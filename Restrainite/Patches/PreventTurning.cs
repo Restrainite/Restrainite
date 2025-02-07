@@ -65,4 +65,11 @@ internal static class PreventTurning
         __result = float2.Zero;
         return false;
     }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(TurnSubmodule), nameof(TurnSubmodule.Update), typeof(float))]
+    private static bool TurnSubmodule_Update_Prefix()
+    {
+        return !RestrainiteMod.IsRestricted(PreventionType.PreventTurning);
+    }
 }

@@ -27,4 +27,11 @@ internal static class PreventMovement
         __result = float3.Zero;
         return false;
     }
+
+    [HarmonyPrefix]
+    [HarmonyPatch(typeof(TeleportLocomotion), "ProcessInput")]
+    private static bool TeleportLocomotion_ProcessInput_Prefix()
+    {
+        return !RestrainiteMod.IsRestricted(PreventionType.PreventMovement);
+    }
 }
