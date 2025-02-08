@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  trigger-external-workflow:
+  update-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,7 +20,7 @@ jobs:
         run: |
           REF="${{ github.ref }}"
           SHORTENED="${REF#refs/tags/v}"
-          echo "${SHORTENED}" > latest_version
+          echo -n "${SHORTENED}" > latest_version
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add latest_version
