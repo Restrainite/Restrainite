@@ -15,7 +15,6 @@ jobs:
         with:
           repository: restrainite/restrainite.github.io
           token: ${{ secrets.PAT }}
-          path: repo
           persist-credentials: true
       - name: Commit and push latest_version file
         run: |
