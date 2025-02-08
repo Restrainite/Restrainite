@@ -1,4 +1,4 @@
-name: Trigger Update Release Workflow on restrainite.github.io on Release
+name: Update restrainite.github.io on Release
 
 on:
   release:
@@ -10,10 +10,20 @@ jobs:
   trigger-external-workflow:
     runs-on: ubuntu-latest
     steps:
-      - name: Repository Dispatch
-        uses: peter-evans/repository-dispatch@v3
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.PAT }}
           repository: restrainite/restrainite.github.io
-          event-type: update-release
-          client-payload: '{"ref": "${{ github.ref }}"}'
+          token: ${{ secrets.PAT }}
+          path: repo
+          persist-credentials: true
+      - name: Commit and push latest_version file
+        run: |
+          REF="${{ github.ref }}"
+          SHORTENED="${REF#refs/tags/v}"
+          echo "${SHORTENED}" > latest_version
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add latest_version
+          git commit -m "Update latest_version to ${SHORTENED}"
+          git push origin main
