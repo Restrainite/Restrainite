@@ -20,9 +20,9 @@ jobs:
         run: |
           REF="${{ github.ref }}"
           SHORTENED="${REF#refs/tags/v}"
-          echo -n "${SHORTENED}" > latest_version
+          echo -n "${SHORTENED}" > latest_version.txt
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add latest_version
-          git commit -m "Update latest_version to ${SHORTENED}"
+          git add latest_version.txt
+          git commit -m "Update latest_version.txt to ${SHORTENED}"
           git push origin main
