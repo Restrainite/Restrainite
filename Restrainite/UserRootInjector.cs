@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
@@ -64,16 +63,21 @@ internal static class UserRootInjector
             case World.InitializationState.WaitingForJoinGrant:
             case World.InitializationState.InitializingDataModel:
             default:
-                userRoot.RunInUpdates(1, () =>
-                {
-                    WaitForWorldToLoad(userRoot);
-                });
+                userRoot.RunInUpdates(1, () => WaitForWorldToLoad(userRoot));
                 return;
         }
     }
 
     private static void AttachToUserRoot(UserRoot userRoot)
     {
+        if (userRoot.World == Userspace.UserspaceWorld && !RestrainiteMod.SuccessfullyPatched)
+            Userspace.UserspaceWorld.DisplayNotice(
+                "Restrainite Error",
+                "There are problems patching Resonite.\n" +
+                "Please check your latest log file in the Logs folder in the Resonite game directory for more information.\n" +
+                "Create an issue at https://github.com/Restrainite/RestrainiteMod/issues to get support.",
+                OfficialAssets.Graphics.Icons.General.ExclamationPoint);
+
         ResoniteMod.Msg($"Attaching to UserRoot {userRoot.World.InitState} {userRoot.Slot}");
         var refId = userRoot.World.SessionId + userRoot.ReferenceID;
 

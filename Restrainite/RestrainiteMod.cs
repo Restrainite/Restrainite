@@ -20,6 +20,8 @@ public class RestrainiteMod : ResoniteMod
 
     public override string Link => "https://restrainite.github.io";
 
+    internal static bool SuccessfullyPatched { get; private set; } = true;
+
     /**
      * OnRestrictionChanged will fire, when the restriction is activated or deactivated. It will take into account, if
      * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
@@ -47,10 +49,28 @@ public class RestrainiteMod : ResoniteMod
     {
         Configuration.Init(GetConfiguration());
 
-        var harmony = new Harmony("drone.Restrainite");
-        harmony.PatchAll();
+        PatchResonite();
 
         InitializePatches();
+    }
+
+    private static void PatchResonite()
+    {
+        var harmony = new Harmony("drone.Restrainite");
+
+        AccessTools.GetTypesFromAssembly(typeof(RestrainiteMod).Assembly)
+            .Do<Type>(type =>
+            {
+                try
+                {
+                    harmony.CreateClassProcessor(type).Patch();
+                }
+                catch (Exception ex)
+                {
+                    Error($"Please report this to Restrainite (https://github.com/Restrainite/RestrainiteMod/issues): Failed to patch {type.FullName}: {ex}");
+                    SuccessfullyPatched = false;
+                }
+            });
     }
 
     private static void InitializePatches()
@@ -80,7 +100,7 @@ public class RestrainiteMod : ResoniteMod
      */
     internal static void NotifyRestrictionChanged(World source, PreventionType preventionType, bool value)
     {
-        source.RunInUpdates(0, () => OnRestrictionChanged?.Invoke(preventionType, value));
+        source.RunInUpdates(0, () => OnRestrictionChanged.SafeInvoke(preventionType, value));
     }
 
     internal static float GetLowestFloat(PreventionType preventionType)

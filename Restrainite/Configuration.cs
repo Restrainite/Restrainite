@@ -135,7 +135,7 @@ internal class Configuration
 
     private void ShouldRecheckPermissionInvoker(object? _)
     {
-        ShouldRecheckPermissions?.Invoke();
+        ShouldRecheckPermissions.SafeInvoke();
     }
 
     private ModConfigurationKey.OnChangedHandler OnPreventionTypeConfigChanged(PreventionType preventionType)
@@ -267,7 +267,7 @@ internal class Configuration
         // which should be restricted.
         if (world != world.WorldManager.FocusedWorld)
         {
-            ShouldRecheckPermissions?.Invoke();
+            ShouldRecheckPermissions.SafeInvoke();
             return;
         }
 
@@ -279,9 +279,10 @@ internal class Configuration
             case PresetChangeType.None:
                 if (currentPreset == PresetType.None)
                 {
-                    ShouldRecheckPermissions?.Invoke();
+                    ShouldRecheckPermissions.SafeInvoke();
                     return;
                 }
+
                 _config?.Set(_presetConfig, PresetType.None);
                 return;
             case PresetChangeType.All:
@@ -292,14 +293,15 @@ internal class Configuration
             case PresetChangeType.StoredPresetOmega:
                 if (currentPreset == (PresetType)changePreset)
                 {
-                    ShouldRecheckPermissions?.Invoke();
+                    ShouldRecheckPermissions.SafeInvoke();
                     return;
                 }
+
                 _config?.Set(_presetConfig, (PresetType)changePreset);
                 return;
             case PresetChangeType.DoNotChange:
             case null:
-                ShouldRecheckPermissions?.Invoke();
+                ShouldRecheckPermissions.SafeInvoke();
                 return;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -362,6 +364,6 @@ internal class Configuration
         presetPasswords[presetType.ToString()] = password;
         _config?.Set(_presetPasswords, presetPasswords);
 
-        ShouldRecheckPermissions?.Invoke();
+        ShouldRecheckPermissions.SafeInvoke();
     }
 }
