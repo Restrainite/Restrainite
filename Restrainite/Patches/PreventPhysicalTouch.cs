@@ -5,7 +5,7 @@ using Restrainite.Enums;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal class PreventPhysicalTouch
+internal static class PreventPhysicalTouch
 {
     [HarmonyPostfix]
     [HarmonyPatch(typeof(RaycastTouchSource), "GetTouchable")]

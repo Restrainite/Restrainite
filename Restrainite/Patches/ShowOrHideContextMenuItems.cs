@@ -8,7 +8,7 @@ using Restrainite.Enums;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal class ShowOrHideContextMenuItems
+internal static class ShowOrHideContextMenuItems
 {
     private static bool ShouldDisableButton(IWorldElement contextMenuItem, LocaleString? label)
     {
@@ -29,7 +29,8 @@ internal class ShowOrHideContextMenuItems
             if (hidden) return true;
         }
 
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventLaserTouch) && label is { content: "Interaction.LaserEnabled" })
+        if (RestrainiteMod.IsRestricted(PreventionType.PreventLaserTouch) &&
+            label is { content: "Interaction.LaserEnabled" })
             return true;
 
         return false;
@@ -44,6 +45,7 @@ internal class ShowOrHideContextMenuItems
                 if (item.Equals("null")) return true;
                 continue;
             }
+
             if (item.Equals(label.Value.content)) return true;
 
             // Special case for locomotion item

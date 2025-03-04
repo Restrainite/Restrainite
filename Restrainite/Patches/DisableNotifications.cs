@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Reflection;
-using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.Enums;

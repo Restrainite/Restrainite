@@ -67,7 +67,9 @@ public class RestrainiteMod : ResoniteMod
                 }
                 catch (Exception ex)
                 {
-                    Error($"Please report this to Restrainite (https://github.com/Restrainite/RestrainiteMod/issues): Failed to patch {type.FullName}: {ex}");
+                    Error("Please report this to Restrainite "+
+                          "(https://github.com/Restrainite/RestrainiteMod/issues): "+
+                          $"Failed to patch {type.FullName}: {ex}");
                     SuccessfullyPatched = false;
                 }
             });

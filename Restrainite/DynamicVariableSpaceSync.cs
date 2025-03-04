@@ -39,7 +39,8 @@ internal class DynamicVariableSpaceSync
     {
         _dynamicVariableSpace = new WeakReference<DynamicVariableSpace>(dynamicVariableSpace);
         var user = dynamicVariableSpace.World.GetUserByAllocationID(dynamicVariableSpace.ReferenceID.User);
-        _refId = $"Dynamic Variable Space {dynamicVariableSpace.ReferenceID} created by {user?.UserID} in {dynamicVariableSpace.World?.Name}";
+        _refId = $"Dynamic Variable Space {dynamicVariableSpace.ReferenceID} created by {user?.UserID} " +
+                 $"in {dynamicVariableSpace.World?.Name}";
         for (var i = 0; i < PreventionTypes.Max; i++) _localFloatValues.Add(float.NaN);
     }
 
@@ -94,7 +95,8 @@ internal class DynamicVariableSpaceSync
         if (GetGlobalState(preventionType) != globalState)
         {
             GlobalState[(int)preventionType] = globalState;
-            ResoniteMod.Msg($"Global State of {preventionType.ToExpandedString()} changed to {globalState}. ({source})");
+            ResoniteMod.Msg($"Global State of {preventionType.ToExpandedString()} " +
+                            $"changed to {globalState}. ({source})");
             NotifyGlobalStateChange(preventionType, globalState);
         }
 
@@ -104,7 +106,8 @@ internal class DynamicVariableSpaceSync
         if (float.IsNaN(currentValue) && float.IsNaN(lowestFloat)) return;
         if (currentValue == lowestFloat) return;
         LowestFloatState[(int)preventionType] = lowestFloat;
-        ResoniteMod.Msg($"Global Float of {preventionType.ToExpandedString()} changed to {lowestFloat}. ({source})");
+        ResoniteMod.Msg($"Global Float of {preventionType.ToExpandedString()} " +
+                        $"changed to {lowestFloat}. ({source})");
     }
 
     private string Source()

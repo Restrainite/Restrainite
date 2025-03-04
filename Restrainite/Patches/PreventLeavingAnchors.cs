@@ -1,5 +1,4 @@
-﻿using FrooxEngine;
-using FrooxEngine.CommonAvatar;
+﻿using FrooxEngine.CommonAvatar;
 using HarmonyLib;
 using Restrainite.Enums;
 

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading;
 using FrooxEngine;
@@ -23,12 +22,7 @@ internal static class ShowOrHideUserAvatars
         var userList = Engine.Current?.WorldManager?.FocusedWorld?.AllUsers;
         if (userList is null) return;
         foreach (var slot in userList.Select(user => user?.Root?.Slot))
-        {
-            slot?.RunInUpdates(0, () =>
-            {
-                slot.ForeachComponentInChildren<Component>(c => c?.MarkChangeDirty());
-            });
-        }
+            slot?.RunInUpdates(0, () => slot.ForeachComponentInChildren<Component>(c => c?.MarkChangeDirty()));
     }
 
     [HarmonyPrefix]

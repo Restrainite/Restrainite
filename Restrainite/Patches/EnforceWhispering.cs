@@ -6,7 +6,7 @@ using static FrooxEngine.VoiceMode;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal class EnforceWhispering
+internal static class EnforceWhispering
 {
     private static VoiceMode _originalVoiceMode = Whisper;
 

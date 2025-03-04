@@ -17,7 +17,9 @@ internal static class DelegateExtensions
             }
             catch (Exception ex)
             {
-                ResoniteMod.Error($"Please report this to Restrainite (https://github.com/Restrainite/RestrainiteMod/issues): Failed to invoke {invocation.Method.Name}: {ex}");
+                ResoniteMod.Error("Please report this to Restrainite "+
+                                  "(https://github.com/Restrainite/RestrainiteMod/issues): "+
+                                  $"Failed to invoke {invocation.Method.Name}: {ex}");
             }
         }
     }

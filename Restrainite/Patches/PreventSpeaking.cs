@@ -5,7 +5,7 @@ using Restrainite.Enums;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal class PreventSpeaking
+internal static class PreventSpeaking
 {
     [HarmonyPostfix]
     [HarmonyPatch(typeof(AudioSystem), "IsMuted", MethodType.Getter)]

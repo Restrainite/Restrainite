@@ -5,7 +5,7 @@ using Restrainite.Enums;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal class PreventHearing
+internal static class PreventHearing
 {
     /*
      * PreventHearing OFF EnforceSelectiveHearing OFF: No mute override

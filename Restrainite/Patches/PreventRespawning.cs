@@ -7,7 +7,7 @@ using Restrainite.Enums;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal class PreventRespawning
+internal static class PreventRespawning
 {
     private static IEnumerable<MethodBase> TargetMethods()
     {
