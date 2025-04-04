@@ -62,9 +62,9 @@ internal static class ShowOrHideContextMenuItems
     [HarmonyPatch(typeof(ContextMenu), "AddItem",
         [
             typeof(LocaleString), typeof(IAssetProvider<ITexture2D>), typeof(Uri), typeof(IAssetProvider<Sprite>),
-            typeof(colorX?)
+            typeof(colorX?), typeof(bool)
         ],
-        [ArgumentType.Ref, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Ref])]
+        [ArgumentType.Ref, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Normal, ArgumentType.Ref, ArgumentType.Normal])]
     public static void ShowOrHideContextMenuItems_ContextMenuAddItem_Postfix(LocaleString label,
         ContextMenuItem __result)
     {
