@@ -67,8 +67,8 @@ public class RestrainiteMod : ResoniteMod
                 }
                 catch (Exception ex)
                 {
-                    Error("Please report this to Restrainite "+
-                          "(https://github.com/Restrainite/RestrainiteMod/issues): "+
+                    Error("Please report this to Restrainite " +
+                          "(https://github.com/Restrainite/RestrainiteMod/issues): " +
                           $"Failed to patch {type.FullName}: {ex}");
                     SuccessfullyPatched = false;
                 }
@@ -85,6 +85,7 @@ public class RestrainiteMod : ResoniteMod
         PreventUserScaling.Initialize();
         ShowOrHideUserAvatars.Initialize();
         DisableNameplates.Initialize();
+        ShowOrHideDashScreens.Initialize();
     }
 
     internal static bool IsRestricted(PreventionType preventionType)

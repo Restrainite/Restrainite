@@ -9,6 +9,28 @@ internal static class ShowOrHideDashScreens
 {
     private const string DashScreensExit = "Dash.Screens.Exit";
 
+    internal static void Initialize()
+    {
+        RestrainiteMod.OnRestrictionChanged += OnChange;
+    }
+
+    private static void OnChange(PreventionType preventionType, bool value)
+    {
+        if ((preventionType != PreventionType.ShowDashScreens &&
+             preventionType != PreventionType.HideDashScreens) ||
+            !value)
+            return;
+
+        Userspace.Current.RunSynchronously(() =>
+        {
+            var instance = Userspace.UserspaceWorld.GetGloballyRegisteredComponent<UserspaceRadiantDash>();
+            if (instance == null) return;
+
+            SwitchScreen(instance);
+            HideButtons(instance);
+        });
+    }
+
     private static bool ScreenToLabel(RadiantDashScreen? screen, out string? label)
     {
         if (screen?.Label == null)
