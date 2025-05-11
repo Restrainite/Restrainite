@@ -48,7 +48,7 @@ internal static class PreventHearing
             if (!float.IsNaN(volumeMultiplier))
             {
                 if (volumeMultiplier <= 0.0f) volumeMultiplier = 0.0f;
-                if (volume >= 1.0f) volumeMultiplier = 1.0f;
+                if (volumeMultiplier >= 1.0f) volumeMultiplier = 1.0f;
                 volume = volumeMultiplier * volume;
             }
         }
