@@ -1,3 +1,4 @@
+using System;
 using FrooxEngine;
 using Restrainite.Enums;
 
@@ -19,7 +20,7 @@ public class SlotTagPermissionChecker
         var slotPermission = CheckPermissionForSlot(slot);
 
         if (slotPermission == PermissionType.ExplicitlyDenied || slot?.GetObjectRoot() is not Slot objectRootSlot)
-            return slotPermission.ToBool();
+            return PermissionToBool(slotPermission);
 
         var objectRootSlotPermission = CheckPermissionForSlot(objectRootSlot);
 
@@ -27,7 +28,7 @@ public class SlotTagPermissionChecker
         {
             PermissionType.ExplicitlyAllowed => true,
             PermissionType.ExplicitlyDenied => false,
-            _ => slotPermission.ToBool()
+            _ => PermissionToBool(slotPermission)
         };
     }
 
@@ -48,5 +49,25 @@ public class SlotTagPermissionChecker
         }
 
         return PermissionType.Allowed;
+    }
+
+    private static bool PermissionToBool(PermissionType type)
+    {
+        return type switch
+        {
+            PermissionType.Allowed => true,
+            PermissionType.Denied => false,
+            PermissionType.ExplicitlyAllowed => true,
+            PermissionType.ExplicitlyDenied => false,
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    private enum PermissionType
+    {
+        Allowed,
+        Denied,
+        ExplicitlyAllowed,
+        ExplicitlyDenied
     }
 }

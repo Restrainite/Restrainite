@@ -21,7 +21,8 @@ internal static class PreventHearing
             preventionType != PreventionType.PreventHearingOfUsers &&
             preventionType != PreventionType.EnforceSelectiveHearing &&
             preventionType != PreventionType.AllowHearingBySlotTags &&
-            preventionType != PreventionType.DenyHearingBySlotTags)
+            preventionType != PreventionType.DenyHearingBySlotTags &&
+            preventionType != PreventionType.HearingVolumeMultiplier)
             return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;
@@ -40,12 +41,24 @@ internal static class PreventHearing
     {
         var slot = __instance.Slot;
         var activeUser = slot?.ActiveUser;
-        if (activeUser == null) return ShouldHear(slot) ? result : 0.0f;
+        var volume = result;
+        if (RestrainiteMod.IsRestricted(PreventionType.HearingVolumeMultiplier))
+        {
+            var volumeMultiplier = RestrainiteMod.GetLowestFloat(PreventionType.HearingVolumeMultiplier);
+            if (!float.IsNaN(volumeMultiplier))
+            {
+                if (volumeMultiplier <= 0.0f) volumeMultiplier = 0.0f;
+                if (volume >= 1.0f) volumeMultiplier = 1.0f;
+                volume = volumeMultiplier * volume;
+            }
+        }
+
+        if (activeUser == null) return ShouldHear(slot) ? volume : 0.0f;
         var userId = activeUser.UserID;
-        if (userId is null) return ShouldHear(slot) ? result : 0.0f;
+        if (userId is null) return ShouldHear(slot) ? volume : 0.0f;
         if (RestrainiteMod.IsRestricted(PreventionType.EnforceSelectiveHearing) &&
             !RestrainiteMod.GetStrings(PreventionType.EnforceSelectiveHearing).Contains(userId)) return 0.0f;
-        return RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfUsers) ? 0.0f : result;
+        return RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfUsers) ? 0.0f : volume;
     }
 
     private static bool ShouldHear(Slot? slot)

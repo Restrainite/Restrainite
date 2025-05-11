@@ -8,7 +8,7 @@ namespace Restrainite.Patches;
 internal static class PreventSpeaking
 {
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(AudioSystem), "IsMuted", MethodType.Getter)]
+    [HarmonyPatch(typeof(AudioSystem), nameof(AudioSystem.IsMuted), MethodType.Getter)]
     private static void PreventSpeaking_AudioSystemIsMuted_Getter_Postfix(ref bool __result)
     {
         if (RestrainiteMod.IsRestricted(PreventionType.PreventSpeaking)) __result = true;
