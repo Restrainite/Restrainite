@@ -30,6 +30,14 @@ public class RestrainiteMod : ResoniteMod
      */
     internal static event Action<PreventionType, bool>? OnRestrictionChanged;
 
+    /**
+     * OnFloatChanged will fire, when the float value is changed. It will take into account, if
+     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
+     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
+     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
+     */
+    internal static event Action<PreventionType, float>? OnFloatChanged;
+
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {
         Configuration.DefineConfiguration(builder);
@@ -106,6 +114,14 @@ public class RestrainiteMod : ResoniteMod
     internal static void NotifyRestrictionChanged(World source, PreventionType preventionType, bool value)
     {
         source.RunInUpdates(0, () => OnRestrictionChanged.SafeInvoke(preventionType, value));
+    }
+
+    /**
+     * Only to be called by DynamicVariableSpaceSync.
+     */
+    internal static void NotifyFloatChanged(World source, PreventionType preventionType, float value)
+    {
+        source.RunInUpdates(0, () => OnFloatChanged.SafeInvoke(preventionType, value));
     }
 
     internal static float GetLowestFloat(PreventionType preventionType)

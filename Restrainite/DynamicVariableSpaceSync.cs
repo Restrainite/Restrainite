@@ -108,6 +108,7 @@ internal class DynamicVariableSpaceSync
         LowestFloatState[(int)preventionType] = lowestFloat;
         ResoniteMod.Msg($"Global Float of {preventionType.ToExpandedString()} " +
                         $"changed to {lowestFloat}. ({source})");
+        NotifyGlobalFloatStateChange(preventionType, lowestFloat);
     }
 
     private string Source()
@@ -149,6 +150,12 @@ internal class DynamicVariableSpaceSync
     {
         if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
         RestrainiteMod.NotifyRestrictionChanged(dynamicVariableSpace.World, preventionType, value);
+    }
+
+    private void NotifyGlobalFloatStateChange(PreventionType preventionType, float value)
+    {
+        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
+        RestrainiteMod.NotifyFloatChanged(dynamicVariableSpace.World, preventionType, value);
     }
 
     private void UpdateAllGlobalStates()

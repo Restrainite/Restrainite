@@ -13,6 +13,7 @@ internal static class PreventHearing
     internal static void Initialize()
     {
         RestrainiteMod.OnRestrictionChanged += OnChange;
+        RestrainiteMod.OnFloatChanged += OnChange;
     }
 
     private static void OnChange(PreventionType preventionType, bool value)
@@ -23,6 +24,15 @@ internal static class PreventHearing
             preventionType != PreventionType.AllowHearingBySlotTags &&
             preventionType != PreventionType.DenyHearingBySlotTags &&
             preventionType != PreventionType.HearingVolumeMultiplier)
+            return;
+        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
+        if (list == null) return;
+        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+    }
+
+    private static void OnChange(PreventionType preventionType, float value)
+    {
+        if (preventionType != PreventionType.HearingVolumeMultiplier)
             return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;

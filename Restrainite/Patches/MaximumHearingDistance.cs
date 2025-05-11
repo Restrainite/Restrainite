@@ -18,6 +18,7 @@ internal static class MaximumHearingDistance
     internal static void Initialize()
     {
         RestrainiteMod.OnRestrictionChanged += OnChange;
+        RestrainiteMod.OnFloatChanged += OnFloatChange;
 
         _nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
         if (_nativeOutputMethod == null) ResoniteMod.Warn("Failed to find method AudioOutput.NativeOutput");
@@ -34,6 +35,16 @@ internal static class MaximumHearingDistance
         if (list == null) return;
         foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
     }
+
+    private static void OnFloatChange(PreventionType preventionType, float value)
+    {
+        if (preventionType != PreventionType.MaximumHearingDistance)
+            return;
+        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
+        if (list == null) return;
+        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+    }
+
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(AudioOutput), "UpdateNativeOutput")]
