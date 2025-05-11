@@ -52,7 +52,9 @@ internal enum PreventionType
     MovementSpeedMultiplier,
     MaximumLaserDistance,
     PreventHearingOfUsers,
-    MaximumHearingDistance
+    MaximumHearingDistance,
+    AllowHearingBySlotTags,
+    DenyHearingBySlotTags
 }
 
 internal static class PreventionTypes

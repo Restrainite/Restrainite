@@ -9,28 +9,8 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class AllowOrDenyGrabbing
 {
-    private static bool IsItemGrabbable(Slot slot, bool checkObjectRoot = true)
-    {
-        var tag = string.IsNullOrEmpty(slot.Tag) ? "null" : slot.Tag;
-        var result = true;
-
-        if (RestrainiteMod.IsRestricted(PreventionType.AllowGrabbingBySlotTags))
-        {
-            var allowed = RestrainiteMod.GetStrings(PreventionType.AllowGrabbingBySlotTags);
-            result &= allowed.Contains(tag);
-        }
-
-        if (RestrainiteMod.IsRestricted(PreventionType.DenyGrabbingBySlotTags))
-        {
-            var denied = RestrainiteMod.GetStrings(PreventionType.DenyGrabbingBySlotTags);
-            result &= !denied.Contains(tag);
-        }
-
-        if (checkObjectRoot && slot.GetObjectRoot() is Slot root)
-            result &= IsItemGrabbable(root, false);
-
-        return result;
-    }
+    private static readonly SlotTagPermissionChecker SlotTagPermissionChecker = new(
+        PreventionType.AllowGrabbingBySlotTags, PreventionType.DenyGrabbingBySlotTags);
 
     private static IEnumerable<MethodBase> TargetMethods()
     {
@@ -42,7 +22,7 @@ internal static class AllowOrDenyGrabbing
     private static void Postfix(IGrabbable __instance, ref bool __result)
     {
         if (__instance.World != Userspace.UserspaceWorld)
-            __result &= IsItemGrabbable(__instance.Slot);
+            __result &= SlotTagPermissionChecker.IsAllowed(__instance.Slot);
         else if (RestrainiteMod.IsRestricted(PreventionType.PreventNonDashUserspaceInteraction))
             __result &= __instance.Slot.GetComponentInParents<UserspaceRadiantDash>() != null;
     }
