@@ -50,7 +50,9 @@ internal enum PreventionType
     PreventNonDashUserspaceInteraction,
     DisableNameplates,
     MovementSpeedMultiplier,
-    MaximumLaserDistance
+    MaximumLaserDistance,
+    PreventHearingOfUsers,
+    MaximumHearingDistance
 }
 
 internal static class PreventionTypes
@@ -81,7 +83,9 @@ internal static class PreventionTypes
     {
         return type switch
         {
-            PreventionType.MovementSpeedMultiplier or PreventionType.MaximumLaserDistance => true,
+            PreventionType.MovementSpeedMultiplier or
+                PreventionType.MaximumLaserDistance or
+                PreventionType.MaximumHearingDistance => true,
             _ => false
         };
     }
