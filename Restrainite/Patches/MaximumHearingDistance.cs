@@ -1,3 +1,4 @@
+using System.Reflection;
 using Awwdio;
 using Elements.Core;
 using FrooxEngine;
@@ -11,11 +12,18 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class MaximumHearingDistance
 {
-    private static bool _hasShownWarning;
+    private static MethodInfo? _nativeOutputMethod;
+    private static MethodInfo? _audioInletMethod;
 
     internal static void Initialize()
     {
         RestrainiteMod.OnRestrictionChanged += OnChange;
+
+        _nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
+        if (_nativeOutputMethod == null) ResoniteMod.Warn("Failed to find method AudioOutput.NativeOutput");
+
+        _audioInletMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioManager), "EffectsInlet");
+        if (_audioInletMethod == null) ResoniteMod.Warn("Failed to find method AudioManager.EffectsInlet");
     }
 
     private static void OnChange(PreventionType preventionType, bool value)
@@ -29,29 +37,24 @@ internal static class MaximumHearingDistance
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(AudioOutput), "UpdateNativeOutput")]
-    private static bool AudioOutput_UpdateNativeOutput_Prefix(AudioOutput __instance, ChangesBatch batch,
-        ref bool ____updateRegistered, ref IAudioShape ____audioShape)
+    private static bool AudioOutput_UpdateNativeOutput_Prefix(
+        AudioOutput __instance,
+        ChangesBatch batch,
+        ref bool ____updateRegistered,
+        ref IAudioShape ____audioShape)
     {
         if (!RestrainiteMod.IsRestricted(PreventionType.MaximumHearingDistance)) return true;
+        if (_nativeOutputMethod == null || _audioInletMethod == null) return true;
 
         var restrictedDistance = RestrainiteMod.GetLowestFloat(PreventionType.MaximumHearingDistance);
-        if (float.IsNaN(restrictedDistance) || restrictedDistance < 0) return true;
+        if (float.IsNaN(restrictedDistance)) return true;
+        if (restrictedDistance <= 0.0f) restrictedDistance = 0.0f;
 
         if (__instance.Global.Value ?? MathX.Approximately(__instance.SpatialBlend.Value, 0.0f)) return true;
 
-        var nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
-        var audioInletMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioManager), "EffectsInlet");
-        if (nativeOutputMethod == null || audioInletMethod == null)
-        {
-            if (_hasShownWarning) return true;
-            _hasShownWarning = true;
-            ResoniteMod.Warn($"Failed to find methods {nativeOutputMethod} and {audioInletMethod}");
-            return true;
-        }
-
-        var nativeOutput = (Awwdio.AudioOutput?)nativeOutputMethod.Invoke(__instance, []);
-
         ____updateRegistered = false;
+
+        var nativeOutput = (Awwdio.AudioOutput?)_nativeOutputMethod.Invoke(__instance, []);
         if (nativeOutput == null || __instance.IsRemoved)
             return false;
 
@@ -75,7 +78,7 @@ internal static class MaximumHearingDistance
                 : __instance.RolloffMode.Value);
 
         nativeOutput.Update(batch, __instance.Slot.GlobalRigidTransform, __instance.ActualVolume,
-            __instance.Priority.Value, __instance.Spatialize, 
+            __instance.Priority.Value, __instance.Spatialize,
             MathX.Clamp01(__instance.SpatialBlend.Value),
             spatializationStartDistance, spatializationTransitionRange,
             MathX.Max(0.0f, MathX.FilterInvalid(__instance.Pitch.Value)),
@@ -83,7 +86,7 @@ internal static class MaximumHearingDistance
 
 
         nativeOutput.Update(batch, __instance.Source.Target, ____audioShape,
-            __instance.IgnoreAudioEffects.Value ? null : (AudioInlet)audioInletMethod.Invoke(__instance.Audio, []));
+            __instance.IgnoreAudioEffects.Value ? null : (AudioInlet)_audioInletMethod.Invoke(__instance.Audio, []));
         return false;
     }
 }
