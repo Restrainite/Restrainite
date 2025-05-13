@@ -20,15 +20,25 @@ internal static class PreventReading
     {
         if (preventionType != PreventionType.PreventReading)
             return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<Text>();
-        if (list != null)
-            foreach (var text in list)
+        var texts = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<Text>();
+        if (texts != null)
+            foreach (var text in texts)
                 text?.MarkChangeDirty();
+        
+        var textRenderers = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<TextRenderer>();
+        if (textRenderers != null)
+            foreach (var textRenderer in textRenderers)
+                textRenderer?.MarkChangeDirty();
 
-        var userspaceList = Userspace.UserspaceWorld?.RootSlot?.GetComponentsInChildren<Text>();
-        if (userspaceList != null)
-            foreach (var text in userspaceList)
+        var userspaceTexts = Userspace.UserspaceWorld?.RootSlot?.GetComponentsInChildren<Text>();
+        if (userspaceTexts != null)
+            foreach (var text in userspaceTexts)
                 text?.MarkChangeDirty();
+        
+        var userspaceTextRenderers = Userspace.UserspaceWorld?.RootSlot?.GetComponentsInChildren<TextRenderer>();
+        if (userspaceTextRenderers != null)
+            foreach (var textRenderer in userspaceTextRenderers)
+                textRenderer?.MarkChangeDirty();
     }
 
     [HarmonyPrefix]
