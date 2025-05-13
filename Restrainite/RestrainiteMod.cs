@@ -96,6 +96,7 @@ public class RestrainiteMod : ResoniteMod
         ShowOrHideDashScreens.Initialize();
         PreventHearing.Initialize();
         MaximumHearingDistance.Initialize();
+        PreventReading.Initialize();
     }
 
     internal static bool IsRestricted(PreventionType preventionType)

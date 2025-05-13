@@ -55,7 +55,8 @@ internal enum PreventionType
     MaximumHearingDistance,
     AllowHearingBySlotTags,
     DenyHearingBySlotTags,
-    HearingVolumeMultiplier
+    HearingVolumeMultiplier,
+    PreventReading
 }
 
 internal static class PreventionTypes

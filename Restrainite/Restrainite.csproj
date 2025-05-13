@@ -3,7 +3,7 @@
         <Authors>SnepDrone, Zenuru</Authors>
         <Product>Restrainite</Product>
         <Description>Allows others to control restrictions of the local user</Description>
-        <Version>1.1.11</Version>
+        <Version>1.1.12</Version>
         <Copyright>&#169; 2024-2025 $(Authors)</Copyright>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <AssemblyTitle>$(Product)</AssemblyTitle>
@@ -44,6 +44,9 @@
     <ItemGroup>
         <Reference Include="Awwdio">
             <HintPath>$(ResonitePath)Resonite_Data\Managed\Awwdio.dll</HintPath>
+        </Reference>
+        <Reference Include="Elements.Assets">
+            <HintPath>$(ResonitePath)Resonite_Data\Managed\Elements.Assets.dll</HintPath>
         </Reference>
         <Reference Include="FrooxEngine.Store">
             <HintPath>$(ResonitePath)Resonite_Data\Managed\FrooxEngine.Store.dll</HintPath>
