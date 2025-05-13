@@ -56,7 +56,8 @@ internal enum PreventionType
     AllowHearingBySlotTags,
     DenyHearingBySlotTags,
     HearingVolumeMultiplier,
-    PreventReading
+    PreventReading,
+    SpeakingVolumeMultiplier
 }
 
 internal static class PreventionTypes
@@ -90,7 +91,8 @@ internal static class PreventionTypes
             PreventionType.MovementSpeedMultiplier or
                 PreventionType.MaximumLaserDistance or
                 PreventionType.MaximumHearingDistance or
-                PreventionType.HearingVolumeMultiplier => true,
+                PreventionType.HearingVolumeMultiplier or
+                PreventionType.SpeakingVolumeMultiplier => true,
             _ => false
         };
     }
