@@ -68,9 +68,12 @@ internal class DynamicVariableSpaceSync
 
     internal void UpdateLocalFloatState(PreventionType preventionType, float value)
     {
-        if (!preventionType.IsFloatType() ||
-            (float.IsNaN(_localFloatValues[(int)preventionType]) && float.IsNaN(value)) ||
-            _localFloatValues[(int)preventionType] == value) return;
+        if (!preventionType.IsFloatType()) return;
+        var currentValue = _localFloatValues[(int)preventionType];
+        if ((float.IsNaN(currentValue) && float.IsNaN(value)) ||
+            (float.IsPositiveInfinity(currentValue) && float.IsPositiveInfinity(value)) ||
+            (float.IsNegativeInfinity(currentValue) && float.IsNegativeInfinity(value)) ||
+            currentValue == value) return;
         _localFloatValues[(int)preventionType] = value;
         var source = Source();
         ResoniteMod.Msg($"Local Float of {preventionType.ToExpandedString()} changed to {value}. ({source})");
@@ -104,6 +107,8 @@ internal class DynamicVariableSpaceSync
         var lowestFloat = CalculateLowestFloatState(preventionType);
         var currentValue = GetLowestGlobalFloat(preventionType);
         if (float.IsNaN(currentValue) && float.IsNaN(lowestFloat)) return;
+        if (float.IsPositiveInfinity(currentValue) && float.IsPositiveInfinity(lowestFloat)) return;
+        if (float.IsNegativeInfinity(currentValue) && float.IsNegativeInfinity(lowestFloat)) return;
         if (currentValue == lowestFloat) return;
         LowestFloatState[(int)preventionType] = lowestFloat;
         ResoniteMod.Msg($"Global Float of {preventionType.ToExpandedString()} " +

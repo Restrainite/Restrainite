@@ -51,9 +51,9 @@ internal static class DynamicVariableSpaceFinder
                 || dynamicVariableSpaceSync == null) return;
             if (!name.TryParsePreventionType(out var preventionType)) return;
 
-            var booleanValueManagerWrapper = new ValueManagerWrapper<bool>(name, preventionType, __instance);
-            booleanValueManagerWrapper.OnChange += dynamicVariableSpaceSync.UpdateLocalState;
-            __result = booleanValueManagerWrapper;
+            var valueManagerWrapper = new ValueManagerWrapper<bool>(name, preventionType, __instance);
+            valueManagerWrapper.OnChange += dynamicVariableSpaceSync.UpdateLocalState;
+            __result = valueManagerWrapper;
         }
     }
 
@@ -75,9 +75,9 @@ internal static class DynamicVariableSpaceFinder
                 || dynamicVariableSpaceSync == null) return;
             if (!name.TryParsePreventionType(out var preventionType)) return;
 
-            var booleanValueManagerWrapper = new ValueManagerWrapper<float>(name, preventionType, __instance);
-            booleanValueManagerWrapper.OnChange += dynamicVariableSpaceSync.UpdateLocalFloatState;
-            __result = booleanValueManagerWrapper;
+            var valueManagerWrapper = new ValueManagerWrapper<float>(name, preventionType, __instance);
+            valueManagerWrapper.OnChange += dynamicVariableSpaceSync.UpdateLocalFloatState;
+            __result = valueManagerWrapper;
         }
     }
 
