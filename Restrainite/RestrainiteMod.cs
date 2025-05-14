@@ -97,6 +97,7 @@ public class RestrainiteMod : ResoniteMod
         PreventHearing.Initialize();
         MaximumHearingDistance.Initialize();
         PreventReading.Initialize();
+        TrackerMovementSpeed.Initialize();
     }
 
     internal static bool IsRestricted(PreventionType preventionType)
