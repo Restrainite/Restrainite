@@ -20,6 +20,7 @@ internal static class PreventHearing
     {
         if (preventionType != PreventionType.PreventHearing &&
             preventionType != PreventionType.PreventHearingOfUsers &&
+            preventionType != PreventionType.PreventHearingOfSounds &&
             preventionType != PreventionType.EnforceSelectiveHearing &&
             preventionType != PreventionType.AllowHearingBySlotTags &&
             preventionType != PreventionType.DenyHearingBySlotTags &&
@@ -64,7 +65,8 @@ internal static class PreventHearing
             }
         }
 
-        if (activeUser == null || __instance.AudioTypeGroup.Value != AudioTypeGroup.Voice) return ShouldHearSounds(slot) ? volume : 0.0f;
+        if (activeUser == null || __instance.AudioTypeGroup.Value != AudioTypeGroup.Voice)
+            return ShouldHearSounds(slot) ? volume : 0.0f;
         var userId = activeUser.UserID;
         if (userId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
         if (RestrainiteMod.IsRestricted(PreventionType.EnforceSelectiveHearing) &&
@@ -74,6 +76,7 @@ internal static class PreventHearing
 
     private static bool ShouldHearSounds(Slot? slot)
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfSounds) && SlotTagPermissionChecker.IsAllowed(slot);
+        return !RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfSounds) &&
+               SlotTagPermissionChecker.IsAllowed(slot);
     }
 }
