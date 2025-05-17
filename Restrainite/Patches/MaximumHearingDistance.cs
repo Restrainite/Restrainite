@@ -74,17 +74,19 @@ internal static class MaximumHearingDistance
             out var spatializationStartDistance,
             out var spatializationTransitionRange);
 
-        if (restrictedDistance < maxDistance) maxDistance = restrictedDistance;
-        if (minDistance > maxDistance)
+        if (restrictedDistance < maxDistance)
         {
-            minDistance = maxDistance;
-            maxDistance += minDistance * 0.0001f;
+            maxDistance = restrictedDistance;
+            if (minDistance > maxDistance)
+            {
+                minDistance = maxDistance * 0.99f;
+            }
         }
 
         if (____audioShape is not SphereAudioShape sphereAudioShape)
             ____audioShape = sphereAudioShape = new SphereAudioShape(nativeOutput);
         sphereAudioShape.Update(batch, minDistance, maxDistance,
-            __instance.RolloffMode.Value == AudioRolloffCurve.LogarithmicInfinite
+            __instance.RolloffMode.Value is AudioRolloffCurve.LogarithmicInfinite or AudioRolloffCurve.LogarithmicClamped
                 ? AudioRolloffCurve.LogarithmicFadeOff
                 : __instance.RolloffMode.Value);
 
