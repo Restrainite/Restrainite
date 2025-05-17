@@ -9,7 +9,12 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class PreventReading
 {
-    private static readonly int Random = new Random().Next();
+    private static readonly byte[] Randomness = new byte[64];
+
+    static PreventReading()
+    {
+        new Random().NextBytes(Randomness);
+    }
 
     internal static void Initialize()
     {
@@ -24,8 +29,9 @@ internal static class PreventReading
         if (texts != null)
             foreach (var text in texts)
                 text?.MarkChangeDirty();
-        
-        var textRenderers = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<TextRenderer>();
+
+        var textRenderers =
+            Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<TextRenderer>();
         if (textRenderers != null)
             foreach (var textRenderer in textRenderers)
                 textRenderer?.MarkChangeDirty();
@@ -34,7 +40,7 @@ internal static class PreventReading
         if (userspaceTexts != null)
             foreach (var text in userspaceTexts)
                 text?.MarkChangeDirty();
-        
+
         var userspaceTextRenderers = Userspace.UserspaceWorld?.RootSlot?.GetComponentsInChildren<TextRenderer>();
         if (userspaceTextRenderers != null)
             foreach (var textRenderer in userspaceTextRenderers)
@@ -50,28 +56,43 @@ internal static class PreventReading
         if (!RestrainiteMod.IsRestricted(PreventionType.PreventReading)) return true;
 
         var source = value.ToCharArray();
-        var target = new char[source.Length];
-        var i = 0;
+        var length = source.Length;
         var insideTag = false;
         var previousChar = 0;
-        foreach (var character in source)
+
+        // run the algorithm twice to make the first character unpredictable.
+        for (var j = 0; j < 2; j++)
         {
-            // This is a basic tag detection, it will definitely break. But it's good for now.
-            if (character == '<')
-                insideTag = true;
-            if (character == '>')
-                insideTag = false;
-            
-            target[i++] = character switch
+            var skip = j * length;
+            for (var i = 0; i < length; i++)
             {
-                >= '0' and <= '9' => insideTag?character:(char)((character - '0' + Random + previousChar) % 10 + '0'),
-                >= 'a' and <= 'z' => insideTag?character:(char)((character - 'a' + Random + previousChar) % 26 + 'a'),
-                >= 'A' and <= 'Z' => insideTag?character:(char)((character - 'A' + Random + previousChar) % 26 + 'A'),
-                _ => character
-            };
-            previousChar = character;
+                var character = source[i];
+
+                // This is a basic tag detection, it will definitely break. But it's good for now.
+                if (character == '<')
+                    insideTag = true;
+                if (character == '>')
+                    insideTag = false;
+
+                if (insideTag)
+                {
+                    source[i] = character;
+                }
+                else
+                {
+                    var randomValue = character + previousChar + Randomness[(i + skip) % Randomness.Length];
+                    if (char.IsNumber(character))
+                        source[i] = (char)(randomValue % 10 + '0');
+                    else if (char.IsLower(character))
+                        source[i] = (char)(randomValue % 26 + 'a');
+                    else if (char.IsUpper(character))
+                        source[i] = (char)(randomValue % 26 + 'A');
+                    previousChar = character;
+                }
+            }
         }
-        ____string = new string(target);
+
+        ____string = new string(source);
         return false;
     }
 }
