@@ -24,7 +24,7 @@ internal static class PreventHearing
             preventionType != PreventionType.EnforceSelectiveHearing &&
             preventionType != PreventionType.AllowHearingBySlotTags &&
             preventionType != PreventionType.DenyHearingBySlotTags &&
-            preventionType != PreventionType.HearingVolumeMultiplier)
+            preventionType != PreventionType.HearingVolume)
             return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;
@@ -33,7 +33,7 @@ internal static class PreventHearing
 
     private static void OnChange(PreventionType preventionType, float value)
     {
-        if (preventionType != PreventionType.HearingVolumeMultiplier)
+        if (preventionType != PreventionType.HearingVolume)
             return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;
@@ -54,9 +54,9 @@ internal static class PreventHearing
         var slot = __instance.Slot;
         var activeUser = slot?.ActiveUser;
         var volume = result;
-        if (RestrainiteMod.IsRestricted(PreventionType.HearingVolumeMultiplier))
+        if (RestrainiteMod.IsRestricted(PreventionType.HearingVolume))
         {
-            var volumeMultiplier = RestrainiteMod.GetLowestFloat(PreventionType.HearingVolumeMultiplier);
+            var volumeMultiplier = RestrainiteMod.GetLowestFloat(PreventionType.HearingVolume);
             if (!float.IsNaN(volumeMultiplier))
             {
                 if (volumeMultiplier <= 0.0f) volumeMultiplier = 0.0f;

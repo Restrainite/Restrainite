@@ -18,9 +18,9 @@ internal static class PreventSpeaking
             return;
         }
 
-        if (RestrainiteMod.IsRestricted(PreventionType.SpeakingVolumeMultiplier))
+        if (RestrainiteMod.IsRestricted(PreventionType.SpeakingVolume))
         {
-            var multiplier = RestrainiteMod.GetLowestFloat(PreventionType.SpeakingVolumeMultiplier);
+            var multiplier = RestrainiteMod.GetLowestFloat(PreventionType.SpeakingVolume);
             if (float.IsNaN(multiplier)) return;
             if (MathX.Approximately(multiplier, 0.0f)) __result = true;
         }
