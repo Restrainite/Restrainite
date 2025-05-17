@@ -21,6 +21,7 @@
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <Deterministic>true</Deterministic>
+        <CopyToMods Condition="'$(CopyToMods)'==''">true</CopyToMods>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -80,7 +81,7 @@
         </Reference>
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ResonitePath)rml_mods"/>
+        <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ResonitePath)rml_mods" Condition="'$(CopyToMods)'=='true'"/>
         <Message Text="Copied $(TargetFileName) to $(ResonitePath)rml_mods" Importance="high"/>
     </Target>
 </Project>
