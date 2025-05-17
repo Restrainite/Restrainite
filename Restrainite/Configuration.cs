@@ -49,6 +49,11 @@ internal class Configuration
         "Send a dynamic impulse to the user root slot every time a restriction is activated or deactivated.",
         () => true);
 
+    private readonly ModConfigurationKey<bool> _setBusyStatus = new(
+        "Set online status to busy",
+        "When you are unable to reply to messages due to restrictions, automatically set online status to busy.",
+        () => true);
+
 
     private ModConfiguration? _config;
 
@@ -60,6 +65,8 @@ internal class Configuration
     }
 
     internal bool SendDynamicImpulses => _config?.GetValue(_sendDynamicImpulses) ?? true;
+
+    internal bool SetBusyStatus => _config?.GetValue(_setBusyStatus) ?? true;
 
     internal PresetType? CurrentPreset
     {
@@ -86,7 +93,7 @@ internal class Configuration
         foreach (var preventionType in PreventionTypes.List)
         {
             var key = new ModConfigurationKey<bool>($"Allow {preventionType.ToExpandedString()} Restriction",
-                "Should others be able to control this ability.", () => false);
+                $"Should others be able to control the restriction {preventionType.ToExpandedString()}.", () => false);
             builder.Key(key);
             _displayedPreventionTypes.Add(preventionType, key);
         }
@@ -106,6 +113,7 @@ internal class Configuration
 
         builder.Key(_allowRestrictionsFromFocusedWorldOnly);
         builder.Key(_sendDynamicImpulses);
+        builder.Key(_setBusyStatus);
         builder.Key(_hasSeenAllPresetWarning);
     }
 
