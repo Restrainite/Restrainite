@@ -49,6 +49,7 @@ internal static class PreventHearing
     [HarmonyPatch(typeof(AudioOutput), nameof(AudioOutput.ActualVolume), MethodType.Getter)]
     private static float AudioOutput_ActualVolume_Getter_Postfix(float result, AudioOutput __instance)
     {
+        if (RestrainiteMod.IsRestricted(PreventionType.PreventHearing)) return 0.0f;
         var slot = __instance.Slot;
         var activeUser = slot?.ActiveUser;
         var volume = result;
@@ -63,16 +64,16 @@ internal static class PreventHearing
             }
         }
 
-        if (activeUser == null) return ShouldHear(slot) ? volume : 0.0f;
+        if (activeUser == null || __instance.AudioTypeGroup.Value != AudioTypeGroup.Voice) return ShouldHearSounds(slot) ? volume : 0.0f;
         var userId = activeUser.UserID;
-        if (userId is null) return ShouldHear(slot) ? volume : 0.0f;
+        if (userId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
         if (RestrainiteMod.IsRestricted(PreventionType.EnforceSelectiveHearing) &&
             !RestrainiteMod.GetStrings(PreventionType.EnforceSelectiveHearing).Contains(userId)) return 0.0f;
         return RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfUsers) ? 0.0f : volume;
     }
 
-    private static bool ShouldHear(Slot? slot)
+    private static bool ShouldHearSounds(Slot? slot)
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventHearing) && SlotTagPermissionChecker.IsAllowed(slot);
+        return !RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfSounds) && SlotTagPermissionChecker.IsAllowed(slot);
     }
 }

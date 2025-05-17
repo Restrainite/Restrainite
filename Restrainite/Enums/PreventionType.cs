@@ -51,6 +51,7 @@ internal enum PreventionType
     DisableNameplates,
     MovementSpeedMultiplier,
     MaximumLaserDistance,
+    PreventHearingOfSounds,
     PreventHearingOfUsers,
     MaximumHearingDistance,
     AllowHearingBySlotTags,
