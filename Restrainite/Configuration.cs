@@ -86,7 +86,7 @@ internal class Configuration
         foreach (var preventionType in PreventionTypes.List)
         {
             var key = new ModConfigurationKey<bool>($"Allow {preventionType.ToExpandedString()} Restriction",
-                "Should others be able to control this ability.", () => false);
+                preventionType.GetDescription(), () => false);
             builder.Key(key);
             _displayedPreventionTypes.Add(preventionType, key);
         }
