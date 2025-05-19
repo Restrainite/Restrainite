@@ -18,6 +18,8 @@ internal static class AllowOrDenyTouching
             __result &= SlotTagPermissionChecker.IsAllowed(touchable.Slot);
         else if (RestrainiteMod.IsRestricted(PreventionType.PreventNonDashUserspaceInteraction))
             __result &= touchable.Slot.GetComponentInParents<UserspaceRadiantDash>() != null ||
-                        touchable.Slot.GetComponentInParents<ContextMenu>() != null;
+                        touchable.Slot.GetComponentInParents<ContextMenu>() != null ||
+                        touchable.Slot.GetComponentInParents<NoticeDisplayInterface>() != null;
+                        // ^ Needed so users can dismiss the 'All preset warning' popup.
     }
 }
