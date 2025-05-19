@@ -28,7 +28,7 @@ internal static class PreventRunning
     [HarmonyPatch(typeof(VR_LocomotionDirection), nameof(VR_LocomotionDirection.Evaluate))]
     private static void VR_LocomotionDirection_Evaluate_Postfix(VR_LocomotionDirection __instance, ref float3? __result)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventRunning))
-            __result = __result?.Normalized;
+        if (RestrainiteMod.IsRestricted(PreventionType.PreventRunning) && __result?.Magnitude > 1)
+            __result = __result.Value.Normalized;
     }
 }
