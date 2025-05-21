@@ -14,6 +14,7 @@ Building the mod from source is easy. You'll need to install the latest .NET SDK
 2. Create a copy of the file "Directory.Build.props.template" and remove the ".template" from the name so the copied file is called `Directory.Build.props`
 3. Open that copied file and change the Resonite install path if necessary. Make sure it ends with a backslash, or you will get build errors.
 4. Run `dotnet build -c Release` in the project folder to compile the mod. It should take about 10 seconds, and when it completes, the mod dll will be automatically copied to your `rml_mods` folder.
+- *(If you do not want the mod to be copied to your mods folder after building, add `-p CopyToMods=false` when running the command above.)*
 
 And that's it! If you go to compile the mod again at a later date, don't forget to pull the latest changes from git before you recompile.
 
