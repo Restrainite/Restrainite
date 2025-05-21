@@ -60,7 +60,7 @@ internal enum PreventionType
     PreventReading,
     SpeakingVolume,
     TrackerMovementSpeed,
-    DisableVRTrackers
+    DisableVrTrackers
 }
 
 internal static class PreventionTypes
@@ -107,59 +107,94 @@ internal static class PreventionTypes
         {
             // Should others be able to control the restriction ...
             PreventionType.PreventEquippingAvatar => "Should others be able to prevent you from equipping avatars?",
-            PreventionType.PreventOpeningContextMenu => "Should others be able to prevent you from opening your context menu?",
+            PreventionType.PreventOpeningContextMenu =>
+                "Should others be able to prevent you from opening your context menu?",
             PreventionType.PreventUsingTools => "Should others be able to prevent you from equipping tools?",
             PreventionType.PreventOpeningDash => "Should others be able to prevent you from opening the dashboard?",
             PreventionType.PreventGrabbing => "Should others be able to prevent you from grabbing objects?",
             PreventionType.PreventHearing => "Should others be able to mute all audio sources including voices?",
-            PreventionType.EnforceSelectiveHearing => "Should others be able to limit the voices you can hear to specific players?",
-            PreventionType.PreventLaserTouch => "Should others be able to prevent you from any laser-based interaction?",
-            PreventionType.PreventPhysicalTouch => "Should others be able to prevent you from any physically-based interaction?",
+            PreventionType.EnforceSelectiveHearing =>
+                "Should others be able to limit the voices you can hear to specific players?",
+            PreventionType.PreventLaserTouch =>
+                "Should others be able to prevent you from any laser-based interaction?",
+            PreventionType.PreventPhysicalTouch =>
+                "Should others be able to prevent you from any physically-based interaction?",
             PreventionType.PreventSpeaking => "Should others be able to forcefully mute you?",
-            PreventionType.EnforceWhispering => "Should others be able to forcefully make you whisper? (You can still mute yourself.)",
-            PreventionType.PreventRespawning => "Should others be able to prevent you from respawning? (Except for emergency respawning.)",
-            PreventionType.PreventEmergencyRespawning => "Should others be able to prevent you from using the emergency respawn gesture?",
-            PreventionType.PreventSwitchingWorld => "Should others be able to prevent you from starting a new world, joining another session, leaving the current world, or changing focus?",
-            PreventionType.ShowContextMenuItems => "Should others be able to hide all context menu items except for specific ones? (Inverse of Hide Context Menu Items.)",
+            PreventionType.EnforceWhispering =>
+                "Should others be able to forcefully make you whisper? (You can still mute yourself.)",
+            PreventionType.PreventRespawning =>
+                "Should others be able to prevent you from respawning? (Except for emergency respawning.)",
+            PreventionType.PreventEmergencyRespawning =>
+                "Should others be able to prevent you from using the emergency respawn gesture?",
+            PreventionType.PreventSwitchingWorld =>
+                "Should others be able to prevent you from starting a new world, joining another session, leaving the current world, or changing focus?",
+            PreventionType.ShowContextMenuItems =>
+                "Should others be able to hide all context menu items except for specific ones? (Inverse of Hide Context Menu Items.)",
             PreventionType.HideContextMenuItems => "Should others be able to hide specific context menu items?",
-            PreventionType.ShowDashScreens => "Should others be able to hide all dashboard screens except for specific ones? (Inverse of Hide Dash Screens, excludes Exit screen.)",
-            PreventionType.HideDashScreens => "Should others be able to hide specific dashboard screens? (Excluding the Exit screen.)",
+            PreventionType.ShowDashScreens =>
+                "Should others be able to hide all dashboard screens except for specific ones? (Inverse of Hide Dash Screens, excludes Exit screen.)",
+            PreventionType.HideDashScreens =>
+                "Should others be able to hide specific dashboard screens? (Excluding the Exit screen.)",
             PreventionType.PreventUserScaling => "Should others be able to prevent you from rescaling yourself?",
             PreventionType.PreventCrouching => "Should others be able to prevent you from crouching in desktop mode?",
-            PreventionType.PreventJumping => "Should others be able to prevent you from jumping? (Does not prevent exiting anchors.)",
-            PreventionType.PreventClimbing => "Should others be able to prevent you from climbing by grabbing the world or characters?",
-            PreventionType.PreventRunning => "Should others be able to prevent you from sprinting/running? (On desktop, this disables the sprint input, and in VR, you can't use both joysticks to move faster.)",
-            PreventionType.PreventChangeLocomotion => "Should others be able to prevent you from changing your locomotion mode?",
+            PreventionType.PreventJumping =>
+                "Should others be able to prevent you from jumping? (Does not prevent exiting anchors.)",
+            PreventionType.PreventClimbing =>
+                "Should others be able to prevent you from climbing by grabbing the world or characters?",
+            PreventionType.PreventRunning =>
+                "Should others be able to prevent you from sprinting/running? (On desktop, this disables the sprint input, and in VR, you can't use both joysticks to move faster.)",
+            PreventionType.PreventChangeLocomotion =>
+                "Should others be able to prevent you from changing your locomotion mode?",
             PreventionType.ResetUserScale => "Should others be able to force you back to your default avatar scale?",
-            PreventionType.PreventLeavingAnchors => "Should others be able to prevent you from leaving seats/anchors yourself?",
+            PreventionType.PreventLeavingAnchors =>
+                "Should others be able to prevent you from leaving seats/anchors yourself?",
             PreventionType.DisableNotifications => "Should others be able to disable your notifications?",
-            PreventionType.PreventSendingMessages => "Should others be able to prevent you from sending messages to contacts?",
-            PreventionType.PreventInviteContact => "Should others be able to prevent you from inviting contacts to your current world?",
-            PreventionType.PreventThirdPersonView => "Should others be able to prevent you from switching to third-person in desktop mode?",
+            PreventionType.PreventSendingMessages =>
+                "Should others be able to prevent you from sending messages to contacts?",
+            PreventionType.PreventInviteContact =>
+                "Should others be able to prevent you from inviting contacts to your current world?",
+            PreventionType.PreventThirdPersonView =>
+                "Should others be able to prevent you from switching to third-person in desktop mode?",
             PreventionType.PreventSpawnObjects => "Should others be able to prevent you from spawning objects?",
-            PreventionType.PreventSaveItems => "Should others be able to prevent you from saving items to your inventory?",
+            PreventionType.PreventSaveItems =>
+                "Should others be able to prevent you from saving items to your inventory?",
             PreventionType.PreventMovement => "Should others be able to prevent you from walking/moving by yourself?",
-            PreventionType.PreventTurning => "Should others be able to prevent you from turning your body? (You can still look around in VR.)",
-            PreventionType.ShowUserAvatars => "Should others be able to hide all players except for specific ones? (Inverse of Hide User Avatars.)",
+            PreventionType.PreventTurning =>
+                "Should others be able to prevent you from turning your body? (You can still look around in VR.)",
+            PreventionType.ShowUserAvatars =>
+                "Should others be able to hide all players except for specific ones? (Inverse of Hide User Avatars.)",
             PreventionType.HideUserAvatars => "Should others be able to hide specific players?",
-            PreventionType.AllowGrabbingBySlotTags => "Should others be able to prevent you from grabbing all objects except for those with a specific tag? (Inverse of Prevent Grabbing By Slot Tags.)",
-            PreventionType.DenyGrabbingBySlotTags => "Should others be able to prevent you from grabbing objects with a specific tag?",
-            PreventionType.AllowTouchingBySlotTags => "Should others be able to prevent you from touching all objects except for those with a specific tag? (Inverse of Prevent Touching By Slot Tags.)",
-            PreventionType.DenyTouchingBySlotTags => "Should others be able to prevent you from touching objects with a specific tag?",
-            PreventionType.PreventNonDashUserspaceInteraction => "Should others be able to prevent you from interacting with anything in userspace besides the dashboard and notice popups? (Facet anchors, userspace inspectors, etc. can no longer be interacted with.)",
+            PreventionType.AllowGrabbingBySlotTags =>
+                "Should others be able to prevent you from grabbing all objects except for those with a specific tag? (Inverse of Prevent Grabbing By Slot Tags.)",
+            PreventionType.DenyGrabbingBySlotTags =>
+                "Should others be able to prevent you from grabbing objects with a specific tag?",
+            PreventionType.AllowTouchingBySlotTags =>
+                "Should others be able to prevent you from touching all objects except for those with a specific tag? (Inverse of Prevent Touching By Slot Tags.)",
+            PreventionType.DenyTouchingBySlotTags =>
+                "Should others be able to prevent you from touching objects with a specific tag?",
+            PreventionType.PreventNonDashUserspaceInteraction =>
+                "Should others be able to prevent you from interacting with anything in userspace besides the dashboard and notice popups? (Facet anchors, userspace inspectors, etc. can no longer be interacted with.)",
             PreventionType.DisableNameplates => "Should others be able to disable avatar nameplates for you?",
             PreventionType.MovementSpeedMultiplier => "Should others be able to limit your movement speed?",
-            PreventionType.MaximumLaserDistance => "Should others be able to limit the distance on objects you can interact with? (Limiting how far your interaction laser reaches.)",
-            PreventionType.PreventHearingOfSounds => "Should others be able to mute all sounds except other users voices?",
+            PreventionType.MaximumLaserDistance =>
+                "Should others be able to limit the distance on objects you can interact with? (Limiting how far your interaction laser reaches.)",
+            PreventionType.PreventHearingOfSounds =>
+                "Should others be able to mute all sounds except other users voices?",
             PreventionType.PreventHearingOfUsers => "Should others be able to mute all user voices for you?",
-            PreventionType.MaximumHearingDistance => "Should others be able to limit how far away you can hear sounds/audio from?",
-            PreventionType.AllowHearingBySlotTags => "Should others be able to prevent you from hearing all audio sources except for those with a specific tag? (Inverse of Deny Hearing By Slot Tags.)",
-            PreventionType.DenyHearingBySlotTags => "Should others be able to prevent you from hearing audio sources with a specific tag?",
+            PreventionType.MaximumHearingDistance =>
+                "Should others be able to limit how far away you can hear sounds/audio from?",
+            PreventionType.AllowHearingBySlotTags =>
+                "Should others be able to prevent you from hearing all audio sources except for those with a specific tag? (Inverse of Deny Hearing By Slot Tags.)",
+            PreventionType.DenyHearingBySlotTags =>
+                "Should others be able to prevent you from hearing audio sources with a specific tag?",
             PreventionType.HearingVolume => "Should others be able to make all sounds/audio quieter for you?",
-            PreventionType.PreventReading => "Should others be able to scramble all text on screen, making you unable to read?",
+            PreventionType.PreventReading =>
+                "Should others be able to scramble all text on screen, making you unable to read?",
             PreventionType.SpeakingVolume => "Should others be able to make your voice quieter to everyone else?",
-            PreventionType.TrackerMovementSpeed => "Should others be able to slow down or freeze your full-body trackers? (Including VR controllers.)",
-            PreventionType.DisableVRTrackers => "Should others be able to disable your VR controllers and full-body trackers?",
+            PreventionType.TrackerMovementSpeed =>
+                "Should others be able to slow down or freeze your full-body trackers? (Including VR controllers.)",
+            PreventionType.DisableVrTrackers =>
+                "Should others be able to disable your VR controllers and full-body trackers?",
             _ => "(Invalid PreventionType)"
         };
     }
