@@ -59,7 +59,8 @@ internal enum PreventionType
     HearingVolume,
     PreventReading,
     SpeakingVolume,
-    TrackerMovementSpeed
+    TrackerMovementSpeed,
+    DisableVRTrackers
 }
 
 internal static class PreventionTypes
@@ -158,6 +159,7 @@ internal static class PreventionTypes
             PreventionType.PreventReading => "Should others be able to scramble all text on screen, making you unable to read?",
             PreventionType.SpeakingVolume => "Should others be able to make your voice quieter to everyone else?",
             PreventionType.TrackerMovementSpeed => "Should others be able to slow down or freeze your full-body trackers? (Including VR controllers.)",
+            PreventionType.DisableVRTrackers => "Should others be able to disable your VR controllers and full-body trackers?",
             _ => "(Invalid PreventionType)"
         };
     }

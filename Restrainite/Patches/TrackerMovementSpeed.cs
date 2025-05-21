@@ -30,6 +30,11 @@ internal static class TrackerMovementSpeed
         ref bool isActive,
         BodyNode node)
     {
+        if (RestrainiteMod.IsRestricted(PreventionType.DisableVRTrackers))
+        {
+            isActive = false;
+            return;
+        }
         if (!__instance.IsUnderLocalUser) return;
         if (!RestrainiteMod.IsRestricted(PreventionType.TrackerMovementSpeed)) return;
         var speed = RestrainiteMod.GetLowestFloat(PreventionType.TrackerMovementSpeed);
