@@ -107,6 +107,7 @@ public class RestrainiteMod : ResoniteMod
         PreventReading.Initialize();
         TrackerMovementSpeed.Initialize();
         SetBusyStatus.Initialize();
+        PreventEditMode.Initialize();
     }
 
     internal static bool IsRestricted(PreventionType preventionType)

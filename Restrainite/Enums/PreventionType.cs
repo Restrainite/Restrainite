@@ -60,7 +60,8 @@ internal enum PreventionType
     PreventReading,
     SpeakingVolume,
     TrackerMovementSpeed,
-    DisableVrTrackers
+    DisableVrTrackers,
+    PreventEditMode
 }
 
 internal static class PreventionTypes
