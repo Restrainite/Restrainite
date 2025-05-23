@@ -38,13 +38,13 @@ public class SlotTagPermissionChecker
 
         if (RestrainiteMod.IsRestricted(_deniedPrevention))
         {
-            var denied = RestrainiteMod.GetStrings(_deniedPrevention);
+            var denied = RestrainiteMod.GetStringSet(_deniedPrevention);
             if (denied.Contains(tag)) return PermissionType.ExplicitlyDenied;
         }
 
         if (RestrainiteMod.IsRestricted(_allowedPrevention))
         {
-            var allowed = RestrainiteMod.GetStrings(_allowedPrevention);
+            var allowed = RestrainiteMod.GetStringSet(_allowedPrevention);
             return allowed.Contains(tag) ? PermissionType.ExplicitlyAllowed : PermissionType.Denied;
         }
 

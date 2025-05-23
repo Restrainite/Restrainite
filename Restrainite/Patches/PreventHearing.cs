@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.Enums;
@@ -14,6 +15,7 @@ internal static class PreventHearing
     {
         RestrainiteMod.OnRestrictionChanged += OnChange;
         RestrainiteMod.OnFloatChanged += OnChange;
+        RestrainiteMod.OnStringSetChanged += OnChange;
     }
 
     private static void OnChange(PreventionType preventionType, bool value)
@@ -26,18 +28,35 @@ internal static class PreventHearing
             preventionType != PreventionType.DenyHearingBySlotTags &&
             preventionType != PreventionType.HearingVolume)
             return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+        MarkAudioOutputsDirty();
+    }
+
+    private static void MarkAudioOutputsDirty()
+    {
+        var slot = Engine.Current?.WorldManager?.FocusedWorld.RootSlot;
+        slot?.RunInUpdates(0, () =>
+        {
+            var list = slot.GetComponentsInChildren<AudioOutput>();
+            if (list == null) return;
+            foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+        });
     }
 
     private static void OnChange(PreventionType preventionType, float value)
     {
-        if (preventionType != PreventionType.HearingVolume)
+        if (preventionType != PreventionType.HearingVolume || !RestrainiteMod.IsRestricted(preventionType))
             return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+        MarkAudioOutputsDirty();
+    }
+
+    private static void OnChange(PreventionType preventionType, IImmutableSet<string> stringSet)
+    {
+        if ((preventionType != PreventionType.EnforceSelectiveHearing &&
+             preventionType != PreventionType.AllowHearingBySlotTags &&
+             preventionType != PreventionType.DenyHearingBySlotTags) ||
+            !RestrainiteMod.IsRestricted(preventionType))
+            return;
+        MarkAudioOutputsDirty();
     }
 
     /*
@@ -70,7 +89,7 @@ internal static class PreventHearing
         var userId = activeUser.UserID;
         if (userId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
         if (RestrainiteMod.IsRestricted(PreventionType.EnforceSelectiveHearing) &&
-            !RestrainiteMod.GetStrings(PreventionType.EnforceSelectiveHearing).Contains(userId)) return 0.0f;
+            !RestrainiteMod.GetStringSet(PreventionType.EnforceSelectiveHearing).Contains(userId)) return 0.0f;
         return RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfUsers) ? 0.0f : volume;
     }
 

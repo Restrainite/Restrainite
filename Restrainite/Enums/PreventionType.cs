@@ -101,6 +101,27 @@ internal static class PreventionTypes
         };
     }
 
+    internal static bool IsStringSetType(this PreventionType type)
+    {
+        return type switch
+        {
+            PreventionType.EnforceSelectiveHearing or
+                PreventionType.ShowContextMenuItems or
+                PreventionType.HideContextMenuItems or
+                PreventionType.ShowDashScreens or
+                PreventionType.HideDashScreens or
+                PreventionType.ShowUserAvatars or
+                PreventionType.HideUserAvatars or
+                PreventionType.AllowGrabbingBySlotTags or
+                PreventionType.DenyGrabbingBySlotTags or
+                PreventionType.AllowTouchingBySlotTags or
+                PreventionType.DenyTouchingBySlotTags or
+                PreventionType.AllowHearingBySlotTags or
+                PreventionType.DenyHearingBySlotTags => true,
+            _ => false
+        };
+    }
+
     internal static string GetDescription(this PreventionType type)
     {
         return type switch

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -202,20 +203,39 @@ internal class RestrictionStateOutput
             component.Disposing += _ => { RestrainiteMod.OnRestrictionChanged -= onUpdate; };
         }
 
-        if (!preventionType.IsFloatType()) return;
-
-        var componentFloat = GetComponentOrCreate(preventionType, slot,
-            $"{DynamicVariableSpaceStatusName}/{expandedName}",
-            RestrainiteMod.GetLowestFloat(preventionType),
-            out var attachedFloat);
-
-        if (!attachedFloat) return;
-        Action<PreventionType, float> onUpdateFloat = (type, value) =>
+        if (preventionType.IsFloatType())
         {
-            if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => componentFloat.Value.Value = value);
-        };
-        RestrainiteMod.OnFloatChanged += onUpdateFloat;
-        componentFloat.Disposing += _ => { RestrainiteMod.OnFloatChanged -= onUpdateFloat; };
+            var componentFloat = GetComponentOrCreate(preventionType, slot,
+                $"{DynamicVariableSpaceStatusName}/{expandedName}",
+                RestrainiteMod.GetLowestFloat(preventionType),
+                out var attachedFloat);
+
+            if (!attachedFloat) return;
+            Action<PreventionType, float> onUpdateFloat = (type, value) =>
+            {
+                if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => componentFloat.Value.Value = value);
+            };
+            RestrainiteMod.OnFloatChanged += onUpdateFloat;
+            componentFloat.Disposing += _ => { RestrainiteMod.OnFloatChanged -= onUpdateFloat; };
+        }
+
+        if (preventionType.IsStringSetType())
+        {
+            var componentStringSet = GetComponentOrCreate(preventionType, slot,
+                $"{DynamicVariableSpaceStatusName}/{expandedName}",
+                RestrainiteMod.StringSetAsString(RestrainiteMod.GetStringSet(preventionType)),
+                out var attachedStringSet);
+
+            if (!attachedStringSet) return;
+            Action<PreventionType, IImmutableSet<string>> onUpdateStringSet = (type, value) =>
+            {
+                if (preventionType == type)
+                    restrainiteSlot.RunInUpdates(0,
+                        () => componentStringSet.Value.Value = RestrainiteMod.StringSetAsString(value));
+            };
+            RestrainiteMod.OnStringSetChanged += onUpdateStringSet;
+            componentStringSet.Disposing += _ => { RestrainiteMod.OnStringSetChanged -= onUpdateStringSet; };
+        }
     }
 
     private static DynamicValueVariable<T> GetComponentOrCreate<T>(PreventionType preventionType, Slot slot,
@@ -251,6 +271,9 @@ internal class RestrictionStateOutput
                                                  nameWithPrefix.Equals(dynComponent.VariableName.Value));
         if (preventionType.IsFloatType())
             oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<float> dynComponent &&
+                                                     nameWithPrefix.Equals(dynComponent.VariableName.Value));
+        if (preventionType.IsStringSetType())
+            oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<string> dynComponent &&
                                                      nameWithPrefix.Equals(dynComponent.VariableName.Value));
 
         if (oldSlot.ComponentCount != 0)

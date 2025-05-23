@@ -51,11 +51,11 @@ internal static class SetBusyStatus
             return true;
 
         if (RestrainiteMod.IsRestricted(PreventionType.HideDashScreens) &&
-            RestrainiteMod.GetStrings(PreventionType.HideDashScreens).Contains("Dash.Screens.Contacts"))
+            RestrainiteMod.GetStringSet(PreventionType.HideDashScreens).Contains("Dash.Screens.Contacts"))
             return true;
 
         if (RestrainiteMod.IsRestricted(PreventionType.ShowDashScreens) &&
-            !RestrainiteMod.GetStrings(PreventionType.ShowDashScreens).Contains("Dash.Screens.Contacts"))
+            !RestrainiteMod.GetStringSet(PreventionType.ShowDashScreens).Contains("Dash.Screens.Contacts"))
             return true;
         return false;
     }
