@@ -217,6 +217,8 @@ internal static class PreventionTypes
                 "Should others be able to slow down or freeze your full-body trackers? (Including VR controllers.)",
             PreventionType.DisableVrTrackers =>
                 "Should others be able to disable your VR controllers and full-body trackers?",
+            PreventionType.PreventEditMode =>
+                "Should others be able to disable our ability to enable Edit Mode (F2)?",
             _ => "(Invalid PreventionType)"
         };
     }
