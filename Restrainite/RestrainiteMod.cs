@@ -10,6 +10,9 @@ namespace Restrainite;
 
 public class RestrainiteMod : ResoniteMod
 {
+    public const string LogReportUrl =
+        "Please report this to Restrainite (https://github.com/Restrainite/RestrainiteMod/issues):";
+
     internal static readonly Configuration Configuration = new();
 
     public override string Name => "Restrainite";
@@ -83,9 +86,7 @@ public class RestrainiteMod : ResoniteMod
                 }
                 catch (Exception ex)
                 {
-                    Error("Please report this to Restrainite " +
-                          "(https://github.com/Restrainite/RestrainiteMod/issues): " +
-                          $"Failed to patch {type.FullName}: {ex}");
+                    Error($"{LogReportUrl} Failed to patch {type.FullName}: {ex}");
                     SuccessfullyPatched = false;
                 }
             });

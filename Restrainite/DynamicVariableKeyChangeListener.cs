@@ -108,9 +108,7 @@ internal class DynamicVariableChangeListener<TV>(
     {
         if (_hasShownWarning) return;
         _hasShownWarning = true;
-        ResoniteMod.Warn("Please report this to Restrainite " +
-                         "(https://github.com/Restrainite/RestrainiteMod/issues): " +
-                         $"{ex.Message}: {ex}");
+        ResoniteMod.Warn($"{RestrainiteMod.LogReportUrl} {ex.Message}: {ex}");
     }
 
     private event Action<TV>? OnChange;
