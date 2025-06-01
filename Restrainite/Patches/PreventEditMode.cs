@@ -1,4 +1,5 @@
 using FrooxEngine;
+using FrooxEngine.UIX;
 using HarmonyLib;
 using Restrainite.Enums;
 
@@ -31,5 +32,13 @@ internal static class PreventEditMode
     private static bool User_EditMode_Prefix()
     {
         return !RestrainiteMod.IsRestricted(PreventionType.PreventEditMode);
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(SessionControlDialog), "OnCommonUpdate")]
+    private static void SessionControlDialog_OnCommonUpdate_Postfix(SyncRef<Button> ____editMode)
+    {
+        if (RestrainiteMod.IsRestricted(PreventionType.PreventEditMode))
+            ____editMode.Target.Enabled = false;
     }
 }
