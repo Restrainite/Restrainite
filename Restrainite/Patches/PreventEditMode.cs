@@ -28,7 +28,7 @@ internal static class PreventEditMode
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(User), nameof(User.EditMode), MethodType.Setter)]
-    private static bool User_CanEnableEditMode_Prefix()
+    private static bool User_EditMode_Prefix()
     {
         return !RestrainiteMod.IsRestricted(PreventionType.PreventEditMode);
     }
