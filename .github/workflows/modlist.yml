@@ -30,7 +30,7 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            const tag = 'refs/tags/v1.1.8';
+            const tag = '${{ github.ref }}';
             const versionRegex = /^refs\/tags\/v\d+\.\d+\.\d+$/;
             if (!versionRegex.test(tag)) {
               throw new Error('Invalid version format. Expected format: refs/tags/v1.2.3 (exactly three numbers separated by dots)');
@@ -138,5 +138,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add manifest/drone.Restrainite/Restrainite/info.json
-          git commit -m "Update info.json to ${SHORTENED}"
+          git commit -m "Update info.json to ${SHORTENED}" || echo "Nothing to do"
           git push origin restrainite
