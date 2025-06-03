@@ -1,0 +1,20 @@
+name: Update mod list on Release
+
+on:
+  release:
+    types:
+      - released
+  workflow_dispatch:
+    
+
+jobs:
+  update-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: restrainite/resonite-mod-manifest
+          ref: ref/heads/restrainite
+          token: ${{ secrets.PAT }}
+          persist-credentials: true
