@@ -35,4 +35,32 @@ jobs:
               throw new Error("Invalid status code: " + result.status);
             }
             console.log(result.data.assets);
+            for (const asset of result.data.assets) {
+              if (asset.name === 'Restrainite.dll') {
+                const url = asset.url;
+                https.get(url, res => {
+                  console.log(response.statusCode);
+                  if (res.statusCode !== 200) {
+                    console.error(`Request Failed. Status Code: ${res.statusCode}`);
+                    res.resume(); // Consume response data to free up memory
+                    return;
+                  }
+              
+                  const hash = crypto.createHash('sha256');
+              
+                  res.on('data', (chunk) => hash.update(chunk));
+                  res.on('end', () => {
+                    const digest = hash.digest('hex');
+                    console.log(`SHA-256 hash: ${digest}`);
+                  });
+              
+                  res.on('error', (err) => {
+                    console.error('Response stream error:', err.message);
+                  });
+                }).on('error', (err) => {
+                  console.error('Request error:', err.message);
+                });
+                break;
+              }
+            }
       
