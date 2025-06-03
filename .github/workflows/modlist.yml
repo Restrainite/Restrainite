@@ -25,9 +25,14 @@ jobs:
         with: 
           github-token: '${{ github.token }}'
           script: |
-            console.log(await github.rest.repos.getReleaseByTag({
+            const result = await github.rest.repos.getReleaseByTag({
               owner: 'Restrainite',
               repo: 'RestrainiteMod',
               tag: 'v1.1.8'
-            }));
+            });
+            console.log(result);
+            if (result.status != 200) {
+              throw new Error("Invalid status code: " + result.status);
+            }
+            console.log(result.data.assets);
       
