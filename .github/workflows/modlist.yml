@@ -139,4 +139,4 @@ jobs:
           git config user.email "github-actions@github.com"
           git add manifest/drone.Restrainite/Restrainite/info.json
           git commit -m "Update info.json to ${SHORTENED}"
-          git push origin main
+          git push origin restrainite
