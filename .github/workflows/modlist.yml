@@ -31,9 +31,9 @@ jobs:
             const path = require('path');
             
             const tag = 'refs/tags/v1.1.8';
-            const versionRegex = /^refs/tags/v\d+\.\d+\.\d+$/;
+            const versionRegex = /^refs\/tags\/v\d+\.\d+\.\d+$/;
             if (!versionRegex.test(tag)) {
-              throw new Error('Invalid version format. Expected format: v1.2.3 (exactly three numbers separated by dots)');
+              throw new Error('Invalid version format. Expected format: refs/tags/v1.2.3 (exactly three numbers separated by dots)');
             }
             const version = tag.replace('refs/tags/v', '');
   
