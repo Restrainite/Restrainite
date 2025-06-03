@@ -30,17 +30,17 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            const tag = 'v1.1.8';
-            const versionRegex = /^v\d+\.\d+\.\d+$/;
+            const tag = 'refs/tags/v1.1.8';
+            const versionRegex = /^refs/tags/v\d+\.\d+\.\d+$/;
             if (!versionRegex.test(tag)) {
               throw new Error('Invalid version format. Expected format: v1.2.3 (exactly three numbers separated by dots)');
             }
-            const version = tag.replace('v', '');
+            const version = tag.replace('refs/tags/v', '');
   
             const releaseResult = await github.rest.repos.getReleaseByTag({
               owner: 'Restrainite',
               repo: 'RestrainiteMod',
-              tag
+              tag: tag.replace('refs/tags/','')
             });
             console.log(releaseResult);
   
@@ -131,3 +131,12 @@ jobs:
             console.log(jsonData);
             await fs.promises.writeFile(jsonPath, JSON.stringify(jsonData, null, '\t'), 'utf8');
       
+      - name: Commit and push info.json file
+        run: |
+          REF="${{ github.ref }}"
+          SHORTENED="${REF#refs/tags/v}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add manifest/drone.Restrainite/Restrainite/info.json
+          git commit -m "Update info.json to ${SHORTENED}"
+          git push origin main
