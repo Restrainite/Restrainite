@@ -53,9 +53,36 @@ jobs:
             if (!asset) {
               throw new Error("Asset named Restrainite.dll not found");
             }
+            
+            const fileRedirectPromise = new Promise((resolve, reject) => {
+              const request = https.get(asset.browser_download_url, res => {
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                  resolve(res.headers.location);
+                  res.resume();
+                  return;
+                } else {
+                  reject(new Error(`Request Failed. Status Code: ${res.statusCode}, Status Message: ${res.statusMessage}`));
+                  res.resume();
+                  return;
+                }
+                res.on('error', reject);
+              });
+              request.on('error', (error) => {
+                request.destroy();
+                reject(error);
+              });
+              request.on('timeout', () => {
+                request.destroy();
+                reject(new Error('Request timed out'));
+              });
+              
+              request.setTimeout(30000);
+            });
+            
+            const redirectUrl = await fileRedirectPromise;
   
             const fileHashPromise = new Promise((resolve, reject) => {
-              const request = https.get(asset.browser_download_url, res => {
+              const request = https.get(redirectUrl, res => {
                 if (res.statusCode !== 200) {
                   reject(new Error(`Request Failed. Status Code: ${res.statusCode}, Status Message: ${res.statusMessage}`));
                   res.resume();
