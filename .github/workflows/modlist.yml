@@ -25,7 +25,7 @@ jobs:
         with: 
           github-token: '${{ github.token }}'
           script: |
-            console.log(github.rest.repos.getReleaseByTag({
+            console.log(await github.rest.repos.getReleaseByTag({
               owner: 'Restrainite',
               repo: 'RestrainiteMod',
               tag: 'v1.1.8'
