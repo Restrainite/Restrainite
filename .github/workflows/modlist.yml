@@ -25,44 +25,82 @@ jobs:
         with: 
           github-token: '${{ github.token }}'
           script: |
-            const result = await github.rest.repos.getReleaseByTag({
+            const https = require('https');
+            const crypto = require('crypto');
+            const fs = require('fs');
+            const path = require('path');
+            
+            const tag = 'v1.1.8';
+            const versionRegex = /^v\d+\.\d+\.\d+$/;
+            if (!versionRegex.test(tag)) {
+              throw new Error('Invalid version format. Expected format: v1.2.3 (exactly three numbers separated by dots)');
+            }
+            const version = tag.replace('v', '');
+  
+            const releaseResult = await github.rest.repos.getReleaseByTag({
               owner: 'Restrainite',
               repo: 'RestrainiteMod',
-              tag: 'v1.1.8'
+              tag
             });
-            console.log(result);
-            if (result.status != 200) {
-              throw new Error("Invalid status code: " + result.status);
+            console.log(releaseResult);
+  
+            if (releaseResult.status !== 200) {
+              throw new Error(`Invalid status code: ${releaseResult.status}`);
             }
-            console.log(result.data.assets);
-            for (const asset of result.data.assets) {
-              if (asset.name === 'Restrainite.dll') {
-                const url = asset.url;
-                const https = require('https');
-                https.get(url, res => {
-                  console.log(response.statusCode);
-                  if (res.statusCode !== 200) {
-                    console.error(`Request Failed. Status Code: ${res.statusCode}`);
-                    res.resume(); // Consume response data to free up memory
-                    return;
-                  }
             
-                  const crypto = require('crypto');
-                  const hash = crypto.createHash('sha256');
-              
-                  res.on('data', (chunk) => hash.update(chunk));
-                  res.on('end', () => {
-                    const digest = hash.digest('hex');
-                    console.log(`SHA-256 hash: ${digest}`);
-                  });
-              
-                  res.on('error', (err) => {
-                    console.error('Response stream error:', err.message);
-                  });
-                }).on('error', (err) => {
-                  console.error('Request error:', err.message);
-                });
-                break;
-              }
+            console.log(releaseResult.data.assets);
+            const asset = releaseResult.data.assets.find(asset => asset.name === 'Restrainite.dll');
+            if (!asset) {
+              throw new Error("Asset named Restrainite.dll not found");
             }
+  
+            const fileHashPromise = new Promise((resolve, reject) => {
+              const request = https.get(asset.browser_download_url, res => {
+                if (res.statusCode !== 200) {
+                  reject(new Error(`Request Failed. Status Code: ${res.statusCode}, Status Message: ${res.statusMessage}`));
+                  res.resume();
+                  return;
+                }
+    
+                const hash = crypto.createHash('sha256');
+                res.on('data', chunk => hash.update(chunk));
+                res.on('end', () => resolve(hash.digest('hex')));
+                res.on('error', reject);
+              });
+              request.on('error', (error) => {
+                request.destroy();
+                reject(error);
+              });
+              request.on('timeout', () => {
+                request.destroy();
+                reject(new Error('Request timed out'));
+              });
+              
+              request.setTimeout(30000);
+            });
+  
+            const hash = await fileHashPromise;
+  
+            const jsonPath = path.join('manifest', 'drone.Restrainite', 'Restrainite', 'info.json');
+            try {
+              await fs.promises.access(jsonPath);
+            } catch (error) {
+              throw new Error(`Manifest file not found: ${jsonPath}`);
+            }
+            const jsonData = JSON.parse(await fs.promises.readFile(jsonPath, 'utf8'));
+  
+            if (!jsonData || typeof jsonData !== 'object') {
+              throw new Error('Invalid JSON structure in manifest file');
+            }
+  
+  
+            jsonData.versions[version] = {
+              releaseUrl: releaseResult.data.html_url,
+              artifacts: [{
+                url: asset.browser_download_url,
+                sha256: hash,
+              }]
+            };
+            console.log(jsonData);
+            await fs.promises.writeFile(jsonPath, JSON.stringify(jsonData, null, '\t'), 'utf8');
       
