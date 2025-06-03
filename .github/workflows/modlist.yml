@@ -38,6 +38,7 @@ jobs:
             for (const asset of result.data.assets) {
               if (asset.name === 'Restrainite.dll') {
                 const url = asset.url;
+                const https = require('https');
                 https.get(url, res => {
                   console.log(response.statusCode);
                   if (res.statusCode !== 200) {
@@ -45,7 +46,8 @@ jobs:
                     res.resume(); // Consume response data to free up memory
                     return;
                   }
-              
+            
+                  const crypto = require('crypto');
                   const hash = crypto.createHash('sha256');
               
                   res.on('data', (chunk) => hash.update(chunk));
