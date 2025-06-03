@@ -6,6 +6,8 @@ on:
       - released
   workflow_dispatch:
     
+permissions: 
+  contents: read
 
 jobs:
   update-release:
@@ -18,3 +20,14 @@ jobs:
           ref: restrainite
           token: ${{ secrets.PAT }}
           persist-credentials: true
+      - name: Collect release info
+        uses: actions/github-script@v7
+        with: 
+          github-token: '${{ github.token }}'
+          script: |
+            console.log(github.rest.repos.getRelease({
+              'restrainite',
+              'RestrainiteMod',
+              'v1.1.8'
+            }));
+      
