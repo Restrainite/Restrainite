@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -76,8 +77,8 @@ internal class RestrictionStateOutput
         if (!_userSlot.TryGetTarget(out var userSlot)) return;
         ResoniteMod.Msg($"Adding Restrainite DynamicVariableSpace to {userSlot.Name} {userSlot.ReferenceID} " +
                         $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
-        var dynamicVariableSpace = userSlot.GetComponentOrAttach<DynamicVariableSpace>(
-            component => DynamicVariableSpaceStatusName.Equals(component.CurrentName)
+        var dynamicVariableSpace = userSlot.GetComponentOrAttach<DynamicVariableSpace>(component =>
+            DynamicVariableSpaceStatusName.Equals(component.CurrentName)
         );
         dynamicVariableSpace.OnlyDirectBinding.Value = true;
         dynamicVariableSpace.SpaceName.Value = DynamicVariableSpaceStatusName;
@@ -121,8 +122,9 @@ internal class RestrictionStateOutput
     private static void CreateVersionComponent(Slot restrainiteSlot)
     {
         const string versionName = $"{DynamicVariableSpaceStatusName}/Version";
-        var component = restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<uint3>>(
-            search => versionName.Equals(search.VariableName.Value));
+        var component =
+            restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<uint3>>(search =>
+                versionName.Equals(search.VariableName.Value));
         component.VariableName.Value = versionName;
         component.Persistent = false;
         var version = RestrainiteMod.AssemblyVersion;
@@ -150,8 +152,9 @@ internal class RestrictionStateOutput
     private void CreatePasswordComponent(Slot restrainiteSlot)
     {
         const string passwordName = $"{DynamicVariableSpaceStatusName}/Requires Password";
-        var component = restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<bool>>(
-            search => passwordName.Equals(search.VariableName.Value));
+        var component =
+            restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<bool>>(search =>
+                passwordName.Equals(search.VariableName.Value));
         component.VariableName.Value = passwordName;
         component.Persistent = false;
         component.Value.Value = _configuration.RequiresPassword;
@@ -187,25 +190,62 @@ internal class RestrictionStateOutput
 
         var component = GetComponentOrCreate(preventionType, slot,
             $"{DynamicVariableSpaceStatusName}/{expandedName}",
+            RestrainiteMod.IsRestricted(preventionType),
             out var attached);
 
-        if (!attached) return;
-        Action<PreventionType, bool> onUpdate = (type, value) =>
+        if (attached)
         {
-            if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => component.Value.Value = value);
-        };
-        RestrainiteMod.OnRestrictionChanged += onUpdate;
-        component.Disposing += _ => { RestrainiteMod.OnRestrictionChanged -= onUpdate; };
+            Action<PreventionType, bool> onUpdate = (type, value) =>
+            {
+                if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => component.Value.Value = value);
+            };
+            RestrainiteMod.OnRestrictionChanged += onUpdate;
+            component.Disposing += _ => { RestrainiteMod.OnRestrictionChanged -= onUpdate; };
+        }
+
+        if (preventionType.IsFloatType())
+        {
+            var componentFloat = GetComponentOrCreate(preventionType, slot,
+                $"{DynamicVariableSpaceStatusName}/{expandedName}",
+                RestrainiteMod.GetLowestFloat(preventionType),
+                out var attachedFloat);
+
+            if (!attachedFloat) return;
+            Action<PreventionType, float> onUpdateFloat = (type, value) =>
+            {
+                if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => componentFloat.Value.Value = value);
+            };
+            RestrainiteMod.OnFloatChanged += onUpdateFloat;
+            componentFloat.Disposing += _ => { RestrainiteMod.OnFloatChanged -= onUpdateFloat; };
+        }
+
+        if (preventionType.IsStringSetType())
+        {
+            var componentStringSet = GetComponentOrCreate(preventionType, slot,
+                $"{DynamicVariableSpaceStatusName}/{expandedName}",
+                RestrainiteMod.StringSetAsString(RestrainiteMod.GetStringSet(preventionType)),
+                out var attachedStringSet);
+
+            if (!attachedStringSet) return;
+            Action<PreventionType, IImmutableSet<string>> onUpdateStringSet = (type, value) =>
+            {
+                if (preventionType == type)
+                    restrainiteSlot.RunInUpdates(0,
+                        () => componentStringSet.Value.Value = RestrainiteMod.StringSetAsString(value));
+            };
+            RestrainiteMod.OnStringSetChanged += onUpdateStringSet;
+            componentStringSet.Disposing += _ => { RestrainiteMod.OnStringSetChanged -= onUpdateStringSet; };
+        }
     }
 
-    private static DynamicValueVariable<bool> GetComponentOrCreate(PreventionType preventionType, Slot slot,
-        string nameWithPrefix, out bool attached)
+    private static DynamicValueVariable<T> GetComponentOrCreate<T>(PreventionType preventionType, Slot slot,
+        string nameWithPrefix, T defaultValue, out bool attached)
     {
-        var component = slot.GetComponentOrAttach<DynamicValueVariable<bool>>(out attached,
+        var component = slot.GetComponentOrAttach<DynamicValueVariable<T>>(out attached,
             search => nameWithPrefix.Equals(search.VariableName.Value));
 
         component.VariableName.Value = nameWithPrefix;
-        component.Value.Value = RestrainiteMod.IsRestricted(preventionType);
+        component.Value.Value = defaultValue;
         component.Persistent = false;
         return component;
     }
@@ -229,6 +269,12 @@ internal class RestrictionStateOutput
         oldSlot.RemoveAllComponents(component => component is GizmoLink);
         oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<bool> dynComponent &&
                                                  nameWithPrefix.Equals(dynComponent.VariableName.Value));
+        if (preventionType.IsFloatType())
+            oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<float> dynComponent &&
+                                                     nameWithPrefix.Equals(dynComponent.VariableName.Value));
+        if (preventionType.IsStringSetType())
+            oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<string> dynComponent &&
+                                                     nameWithPrefix.Equals(dynComponent.VariableName.Value));
 
         if (oldSlot.ComponentCount != 0)
         {

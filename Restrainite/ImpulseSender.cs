@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 using FrooxEngine;
 using FrooxEngine.ProtoFlux;
 using Restrainite.Enums;
@@ -15,6 +16,11 @@ internal class ImpulseSender
     {
         _configuration = config;
         _userRoot = new WeakReference<UserRoot>(userRoot);
+    }
+
+    internal void SendDynamicImpulseForStringSet(PreventionType preventionType, IImmutableSet<string> stringSet)
+    {
+        SendDynamicImpulse(preventionType, RestrainiteMod.StringSetAsString(stringSet));
     }
 
     internal void SendDynamicImpulse<T>(PreventionType preventionType, T value)

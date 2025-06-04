@@ -3,7 +3,7 @@
         <Authors>SnepDrone, Zenuru</Authors>
         <Product>Restrainite</Product>
         <Description>Allows others to control restrictions of the local user</Description>
-        <Version>1.1.8</Version>
+        <Version>1.1.29</Version>
         <Copyright>&#169; 2024-2025 $(Authors)</Copyright>
         <AssemblyVersion>$(Version)</AssemblyVersion>
         <AssemblyTitle>$(Product)</AssemblyTitle>
@@ -21,6 +21,7 @@
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <Deterministic>true</Deterministic>
+        <CopyToMods Condition="'$(CopyToMods)'==''">true</CopyToMods>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -42,8 +43,17 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="Awwdio">
+            <HintPath>$(ResonitePath)Resonite_Data\Managed\Awwdio.dll</HintPath>
+        </Reference>
+        <Reference Include="Elements.Assets">
+            <HintPath>$(ResonitePath)Resonite_Data\Managed\Elements.Assets.dll</HintPath>
+        </Reference>
         <Reference Include="FrooxEngine.Store">
             <HintPath>$(ResonitePath)Resonite_Data\Managed\FrooxEngine.Store.dll</HintPath>
+        </Reference>
+        <Reference Include="SkyFrost.Base">
+            <HintPath>$(ResonitePath)Resonite_Data\Managed\SkyFrost.Base.dll</HintPath>
         </Reference>
         <Reference Include="SkyFrost.Base.Models">
             <HintPath>$(ResonitePath)Resonite_Data\Managed\SkyFrost.Base.Models.dll</HintPath>
@@ -66,9 +76,12 @@
         <Reference Include="System.Collections.Immutable">
             <HintPath>$(ResonitePath)Resonite_Data\Managed\System.Collections.Immutable.dll</HintPath>
         </Reference>
+        <Reference Include="System.Memory">
+            <HintPath>$(ResonitePath)Resonite_Data\Managed\System.Memory.dll</HintPath>
+        </Reference>
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-        <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ResonitePath)rml_mods"/>
+        <Copy SourceFiles="$(OutDir)$(TargetFileName)" DestinationFolder="$(ResonitePath)rml_mods" Condition="'$(CopyToMods)'=='true'"/>
         <Message Text="Copied $(TargetFileName) to $(ResonitePath)rml_mods" Importance="high"/>
     </Target>
 </Project>

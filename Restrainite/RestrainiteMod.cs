@@ -10,6 +10,9 @@ namespace Restrainite;
 
 public class RestrainiteMod : ResoniteMod
 {
+    public const string LogReportUrl =
+        "Please report this to Restrainite (https://github.com/Restrainite/RestrainiteMod/issues):";
+
     internal static readonly Configuration Configuration = new();
 
     public override string Name => "Restrainite";
@@ -29,6 +32,22 @@ public class RestrainiteMod : ResoniteMod
      * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
      */
     internal static event Action<PreventionType, bool>? OnRestrictionChanged;
+
+    /**
+     * OnFloatChanged will fire, when the float value is changed. It will take into account, if
+     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
+     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
+     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
+     */
+    internal static event Action<PreventionType, float>? OnFloatChanged;
+
+    /**
+     * OnStringSetChanged will fire, when the string set value is changed. It will take into account, if
+     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
+     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
+     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
+     */
+    internal static event Action<PreventionType, IImmutableSet<string>>? OnStringSetChanged;
 
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {
@@ -67,9 +86,7 @@ public class RestrainiteMod : ResoniteMod
                 }
                 catch (Exception ex)
                 {
-                    Error("Please report this to Restrainite " +
-                          "(https://github.com/Restrainite/RestrainiteMod/issues): " +
-                          $"Failed to patch {type.FullName}: {ex}");
+                    Error($"{LogReportUrl} Failed to patch {type.FullName}: {ex}");
                     SuccessfullyPatched = false;
                 }
             });
@@ -86,6 +103,12 @@ public class RestrainiteMod : ResoniteMod
         ShowOrHideUserAvatars.Initialize();
         DisableNameplates.Initialize();
         ShowOrHideDashScreens.Initialize();
+        PreventHearing.Initialize();
+        MaximumHearingDistance.Initialize();
+        PreventReading.Initialize();
+        TrackerMovementSpeed.Initialize();
+        SetBusyStatus.Initialize();
+        PreventEditMode.Initialize();
     }
 
     internal static bool IsRestricted(PreventionType preventionType)
@@ -93,9 +116,14 @@ public class RestrainiteMod : ResoniteMod
         return DynamicVariableSpaceSync.GetGlobalState(preventionType);
     }
 
-    internal static IImmutableSet<string> GetStrings(PreventionType preventionType)
+    internal static IImmutableSet<string> GetStringSet(PreventionType preventionType)
     {
-        return DynamicVariableSpaceSync.GetGlobalStrings(preventionType);
+        return DynamicVariableSpaceSync.GetGlobalStringSet(preventionType);
+    }
+
+    internal static string StringSetAsString(IImmutableSet<string> set)
+    {
+        return set.Join(t => t, ",");
     }
 
     /**
@@ -106,8 +134,25 @@ public class RestrainiteMod : ResoniteMod
         source.RunInUpdates(0, () => OnRestrictionChanged.SafeInvoke(preventionType, value));
     }
 
+    /**
+     * Only to be called by DynamicVariableSpaceSync.
+     */
+    internal static void NotifyFloatChanged(World source, PreventionType preventionType, float value)
+    {
+        source.RunInUpdates(0, () => OnFloatChanged.SafeInvoke(preventionType, value));
+    }
+
     internal static float GetLowestFloat(PreventionType preventionType)
     {
         return DynamicVariableSpaceSync.GetLowestGlobalFloat(preventionType);
+    }
+
+    /**
+     * Only to be called by DynamicVariableSpaceSync.
+     */
+    internal static void NotifyStringSetChanged(World source, PreventionType preventionType,
+        IImmutableSet<string> value)
+    {
+        source.RunInUpdates(0, () => OnStringSetChanged.SafeInvoke(preventionType, value));
     }
 }
