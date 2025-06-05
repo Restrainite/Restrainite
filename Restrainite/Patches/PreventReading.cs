@@ -57,12 +57,12 @@ internal static class PreventReading
 
         var source = value.ToCharArray();
         var length = source.Length;
-        var insideTag = false;
         var previousChar = 0;
 
         // run the algorithm twice to make the first character unpredictable.
         for (var j = 0; j < 2; j++)
         {
+            var insideTag = false;
             var skip = j * length;
             for (var i = 0; i < length; i++)
             {
