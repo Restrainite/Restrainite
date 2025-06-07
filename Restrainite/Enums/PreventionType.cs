@@ -10,6 +10,7 @@ internal enum PreventionType
     AllowGrabbingBySlotTags,
     AllowHearingBySlotTags,
     AllowTouchingBySlotTags,
+    AlwaysHearSelectedUsers,
     DenyGrabbingBySlotTags,
     DenyHearingBySlotTags,
     DenyTouchingBySlotTags,
@@ -21,6 +22,7 @@ internal enum PreventionType
     HearingVolume,
     HideContextMenuItems,
     HideDashScreens,
+    HideOthersContextMenus,
     HideUserAvatars,
     MaximumHearingDistance,
     MaximumLaserDistance,
@@ -218,7 +220,11 @@ internal static class PreventionTypes
             PreventionType.DisableVrTrackers =>
                 "Should others be able to disable your VR controllers and full-body trackers?",
             PreventionType.PreventEditMode =>
-                "Should others be able to disable our ability to enable Edit Mode (F2)?",
+                "Should others be able to disable your ability to enable Edit Mode (F2)?",
+            PreventionType.HideOthersContextMenus =>
+                "Should others be able to prevent you from seeing other users context menus.",
+            PreventionType.AlwaysHearSelectedUsers =>
+                "Should others be able to control, that you can hear selected users, even if other restrictions forbid it.",
             _ => "(Invalid PreventionType)"
         };
     }

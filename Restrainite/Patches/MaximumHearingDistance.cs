@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Reflection;
 using Awwdio;
 using Elements.Core;
@@ -19,6 +20,7 @@ internal static class MaximumHearingDistance
     {
         RestrainiteMod.OnRestrictionChanged += OnChange;
         RestrainiteMod.OnFloatChanged += OnFloatChange;
+        RestrainiteMod.OnStringSetChanged += OnStringSetChange;
 
         _nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
         if (_nativeOutputMethod == null) ResoniteMod.Warn("Failed to find method AudioOutput.NativeOutput");
@@ -29,7 +31,8 @@ internal static class MaximumHearingDistance
 
     private static void OnChange(PreventionType preventionType, bool value)
     {
-        if (preventionType != PreventionType.MaximumHearingDistance)
+        if (preventionType != PreventionType.MaximumHearingDistance &&
+            preventionType != PreventionType.AlwaysHearSelectedUsers)
             return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;
@@ -39,6 +42,15 @@ internal static class MaximumHearingDistance
     private static void OnFloatChange(PreventionType preventionType, float value)
     {
         if (preventionType != PreventionType.MaximumHearingDistance)
+            return;
+        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
+        if (list == null) return;
+        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+    }
+
+    private static void OnStringSetChange(PreventionType preventionType, IImmutableSet<string> value)
+    {
+        if (preventionType != PreventionType.AlwaysHearSelectedUsers)
             return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;
@@ -56,6 +68,7 @@ internal static class MaximumHearingDistance
     {
         if (!RestrainiteMod.IsRestricted(PreventionType.MaximumHearingDistance)) return true;
         if (_nativeOutputMethod == null || _audioInletMethod == null) return true;
+        if (IsAlwaysHearingSelectedUsers(__instance)) return true;
 
         var restrictedDistance = RestrainiteMod.GetLowestFloat(PreventionType.MaximumHearingDistance);
         if (float.IsNaN(restrictedDistance)) return true;
@@ -77,16 +90,14 @@ internal static class MaximumHearingDistance
         if (restrictedDistance < maxDistance)
         {
             maxDistance = restrictedDistance;
-            if (minDistance > maxDistance)
-            {
-                minDistance = maxDistance * 0.99f;
-            }
+            if (minDistance > maxDistance) minDistance = maxDistance * 0.99f;
         }
 
         if (____audioShape is not SphereAudioShape sphereAudioShape)
             ____audioShape = sphereAudioShape = new SphereAudioShape(nativeOutput);
         sphereAudioShape.Update(batch, minDistance, maxDistance,
-            __instance.RolloffMode.Value is AudioRolloffCurve.LogarithmicInfinite or AudioRolloffCurve.LogarithmicClamped
+            __instance.RolloffMode.Value is AudioRolloffCurve.LogarithmicInfinite
+                or AudioRolloffCurve.LogarithmicClamped
                 ? AudioRolloffCurve.LogarithmicFadeOff
                 : __instance.RolloffMode.Value);
 
@@ -101,5 +112,18 @@ internal static class MaximumHearingDistance
         nativeOutput.Update(batch, __instance.Source.Target, ____audioShape,
             __instance.IgnoreAudioEffects.Value ? null : (AudioInlet)_audioInletMethod.Invoke(__instance.Audio, []));
         return false;
+    }
+
+    private static bool IsAlwaysHearingSelectedUsers(AudioOutput audioOutput)
+    {
+        var slot = audioOutput.Slot;
+        var activeUser = slot?.ActiveUser;
+
+        if (activeUser == null || audioOutput.AudioTypeGroup.Value != AudioTypeGroup.Voice)
+            return false;
+        var userId = activeUser.UserID;
+        if (userId is null) return false;
+        return RestrainiteMod.IsRestricted(PreventionType.AlwaysHearSelectedUsers) &&
+               RestrainiteMod.GetStringSet(PreventionType.AlwaysHearSelectedUsers).Contains(userId);
     }
 }
