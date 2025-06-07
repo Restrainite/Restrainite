@@ -51,7 +51,7 @@ internal class Configuration
 
     private readonly ModConfigurationKey<bool> _setBusyStatus = new(
         "Set online status to busy",
-        "When you are unable to reply to messages due to restrictions, automatically set online status to busy.",
+        "When you are unable to reply to messages due to restrictions, automatically set online status to busy, if you are not invisible.",
         () => true);
 
 
