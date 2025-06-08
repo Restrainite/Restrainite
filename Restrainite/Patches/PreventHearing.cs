@@ -1,7 +1,7 @@
-using System.Collections.Immutable;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.Enums;
+using Restrainite.States;
 
 namespace Restrainite.Patches;
 
@@ -13,9 +13,9 @@ internal static class PreventHearing
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnChange;
-        RestrainiteMod.OnFloatChanged += OnChange;
-        RestrainiteMod.OnStringSetChanged += OnChange;
+        RestrainiteMod.BoolState.OnChanged += OnChange;
+        RestrainiteMod.LowestFloatState.OnChanged += OnChange;
+        RestrainiteMod.StringSetState.OnChanged += OnChange;
     }
 
     private static void OnChange(PreventionType preventionType, bool value)
@@ -50,7 +50,7 @@ internal static class PreventHearing
         MarkAudioOutputsDirty();
     }
 
-    private static void OnChange(PreventionType preventionType, IImmutableSet<string> stringSet)
+    private static void OnChange(PreventionType preventionType, ImmutableStringSet stringSet)
     {
         if ((preventionType != PreventionType.EnforceSelectiveHearing &&
              preventionType != PreventionType.AllowHearingBySlotTags &&

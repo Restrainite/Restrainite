@@ -12,7 +12,7 @@ internal static class EnforceWhispering
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
+        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
     }
 
     private static void OnRestrictionChanged(PreventionType preventionType, bool value)

@@ -1,9 +1,9 @@
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.Enums;
+using Restrainite.States;
 
 namespace Restrainite.Patches;
 
@@ -14,8 +14,8 @@ internal static class ShowOrHideUserAvatars
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
-        RestrainiteMod.OnStringSetChanged += OnRestrictionChanged;
+        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
+        RestrainiteMod.StringSetState.OnChanged += OnRestrictionChanged;
     }
 
     private static void OnRestrictionChanged(PreventionType preventionType, bool value)
@@ -36,7 +36,7 @@ internal static class ShowOrHideUserAvatars
         });
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, IImmutableSet<string> stringSet)
+    private static void OnRestrictionChanged(PreventionType preventionType, ImmutableStringSet stringSet)
     {
         if (preventionType is not (PreventionType.ShowUserAvatars or PreventionType.HideUserAvatars) ||
             !RestrainiteMod.IsRestricted(preventionType)) return;

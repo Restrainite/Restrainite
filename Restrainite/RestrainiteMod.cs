@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Immutable;
-using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
 using Restrainite.Enums;
 using Restrainite.Patches;
+using Restrainite.States;
 
 namespace Restrainite;
 
@@ -15,6 +14,12 @@ public class RestrainiteMod : ResoniteMod
 
     internal static readonly Configuration Configuration = new();
 
+    internal static readonly GlobalStateBool BoolState = new();
+
+    internal static readonly GlobalStateLowestFloat LowestFloatState = new();
+
+    internal static readonly GlobalStateStringSet StringSetState = new();
+
     public override string Name => "Restrainite";
     public override string Author => "SnepDrone Zenuru";
 
@@ -24,30 +29,6 @@ public class RestrainiteMod : ResoniteMod
     public override string Link => "https://restrainite.github.io";
 
     internal static bool SuccessfullyPatched { get; private set; } = true;
-
-    /**
-     * OnRestrictionChanged will fire, when the restriction is activated or deactivated. It will take into account, if
-     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
-     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
-     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
-     */
-    internal static event Action<PreventionType, bool>? OnRestrictionChanged;
-
-    /**
-     * OnFloatChanged will fire, when the float value is changed. It will take into account, if
-     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
-     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
-     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
-     */
-    internal static event Action<PreventionType, float>? OnFloatChanged;
-
-    /**
-     * OnStringSetChanged will fire, when the string set value is changed. It will take into account, if
-     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
-     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
-     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
-     */
-    internal static event Action<PreventionType, IImmutableSet<string>>? OnStringSetChanged;
 
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {
@@ -113,46 +94,16 @@ public class RestrainiteMod : ResoniteMod
 
     internal static bool IsRestricted(PreventionType preventionType)
     {
-        return DynamicVariableSpaceSync.GetGlobalState(preventionType);
-    }
-
-    internal static IImmutableSet<string> GetStringSet(PreventionType preventionType)
-    {
-        return DynamicVariableSpaceSync.GetGlobalStringSet(preventionType);
-    }
-
-    internal static string StringSetAsString(IImmutableSet<string> set)
-    {
-        return set.Join(t => t, ",");
-    }
-
-    /**
-     * Only to be called by DynamicVariableSpaceSync.
-     */
-    internal static void NotifyRestrictionChanged(World source, PreventionType preventionType, bool value)
-    {
-        source.RunInUpdates(0, () => OnRestrictionChanged.SafeInvoke(preventionType, value));
-    }
-
-    /**
-     * Only to be called by DynamicVariableSpaceSync.
-     */
-    internal static void NotifyFloatChanged(World source, PreventionType preventionType, float value)
-    {
-        source.RunInUpdates(0, () => OnFloatChanged.SafeInvoke(preventionType, value));
+        return BoolState.Get(preventionType);
     }
 
     internal static float GetLowestFloat(PreventionType preventionType)
     {
-        return DynamicVariableSpaceSync.GetLowestGlobalFloat(preventionType);
+        return LowestFloatState.Get(preventionType);
     }
 
-    /**
-     * Only to be called by DynamicVariableSpaceSync.
-     */
-    internal static void NotifyStringSetChanged(World source, PreventionType preventionType,
-        IImmutableSet<string> value)
+    internal static ImmutableStringSet GetStringSet(PreventionType preventionType)
     {
-        source.RunInUpdates(0, () => OnStringSetChanged.SafeInvoke(preventionType, value));
+        return StringSetState.Get(preventionType);
     }
 }

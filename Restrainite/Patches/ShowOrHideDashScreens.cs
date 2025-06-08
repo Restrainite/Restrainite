@@ -1,7 +1,7 @@
-using System.Collections.Immutable;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.Enums;
+using Restrainite.States;
 
 namespace Restrainite.Patches;
 
@@ -12,11 +12,11 @@ internal static class ShowOrHideDashScreens
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnChange;
-        RestrainiteMod.OnStringSetChanged += OnChange;
+        RestrainiteMod.BoolState.OnChanged += OnChange;
+        RestrainiteMod.StringSetState.OnChanged += OnChange;
     }
 
-    private static void OnChange(PreventionType preventionType, IImmutableSet<string> stringSet)
+    private static void OnChange(PreventionType preventionType, ImmutableStringSet stringSet)
     {
         if (preventionType is not (PreventionType.ShowDashScreens or PreventionType.HideDashScreens) ||
             !RestrainiteMod.IsRestricted(preventionType))

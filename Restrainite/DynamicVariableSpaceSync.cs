@@ -1,15 +1,13 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using FrooxEngine;
-using ResoniteModLoader;
 using Restrainite.Enums;
+using Restrainite.States;
 
 namespace Restrainite;
 
-internal class DynamicVariableSpaceSync
+internal class DynamicVariableSpaceSync : IDynamicVariableSpaceWrapper
 {
     internal const string DynamicVariableSpaceName = "Restrainite";
     private const string TargetUserVariableName = "Target User";
@@ -17,34 +15,17 @@ internal class DynamicVariableSpaceSync
 
     private static readonly List<DynamicVariableSpaceSync> Spaces = [];
 
-    private static readonly BitArray GlobalState = new(PreventionTypes.Max, false);
-
-    private static readonly float[] LowestFloatState = CreateDefaultArray(float.NaN);
-
-    private static readonly IImmutableSet<string>[] GlobalStringSet =
-        CreateDefaultArray<IImmutableSet<string>>(ImmutableHashSet<string>.Empty);
-
-    private readonly DynamicVariableKeyChangeListener<PreventionType, bool>[]
-        _boolListeners = CreateDefaultArray<DynamicVariableKeyChangeListener<PreventionType, bool>>(null!);
-
     private readonly WeakReference<DynamicVariableSpace> _dynamicVariableSpace;
 
-    private readonly DynamicVariableKeyChangeListener<PreventionType, float>?[] _floatListeners =
-        CreateDefaultArray<DynamicVariableKeyChangeListener<PreventionType, float>?>(null!);
+    private readonly LocalStateBool _localBoolState;
 
-    private readonly float[] _localFloatValues = CreateDefaultArray(float.NaN);
+    private readonly LocalStateLowestFloat _localLowestFloatState;
 
-    private readonly BitArray _localState = new(PreventionTypes.Max, false);
+    private readonly LocalStateStringSet _localStringSetState;
 
     private readonly DynamicVariableChangeListener<string> _passwordListener;
 
     private readonly string _refId;
-
-    private readonly DynamicVariableKeyChangeListener<PreventionType, string>?[] _stringSetListeners =
-        CreateDefaultArray<DynamicVariableKeyChangeListener<PreventionType, string>?>(null!);
-
-    private readonly IImmutableSet<string>[] _stringSetValues =
-        CreateDefaultArray<IImmutableSet<string>>(ImmutableHashSet<string>.Empty);
 
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
 
@@ -58,31 +39,46 @@ internal class DynamicVariableSpaceSync
             new DynamicVariableChangeListener<string>(dynamicVariableSpace, PasswordVariableName);
         _targetUserListener =
             new DynamicVariableChangeListener<User>(dynamicVariableSpace, TargetUserVariableName);
-        foreach (var preventionType in PreventionTypes.List)
+        _localBoolState = new LocalStateBool(this);
+        _localLowestFloatState = new LocalStateLowestFloat(this);
+        _localStringSetState = new LocalStateStringSet(this);
+    }
+
+    public float GetLowestFloatState(PreventionType preventionType)
+    {
+        return _localLowestFloatState.Get(preventionType);
+    }
+
+    public ImmutableStringSet GetStringSetState(PreventionType preventionType)
+    {
+        return _localStringSetState.Get(preventionType);
+    }
+
+    public bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
+    {
+        return _dynamicVariableSpace.TryGetTarget(out dynamicVariableSpace);
+    }
+
+    public bool IsActiveForLocalUser(PreventionType preventionType)
+    {
+        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return false;
+        if (!IsValidRestrainiteDynamicSpace(dynamicVariableSpace) ||
+            !RestrainiteMod.Configuration.AllowRestrictionsFromWorld(dynamicVariableSpace.World, preventionType))
+            return false;
+        var user = _targetUserListener.DynamicValue;
+        if (user != dynamicVariableSpace.LocalUser) return false;
+
+        if (!RestrainiteMod.Configuration.RequiresPassword) return true;
+        var password = _passwordListener.DynamicValue;
+        return RestrainiteMod.Configuration.IsCorrectPassword(password);
+    }
+
+    public ICollection<IDynamicVariableSpaceWrapper> GetActiveSpaces(PreventionType preventionType)
+    {
+        lock (Spaces)
         {
-            _boolListeners[(int)preventionType] = CreateListener<bool>(dynamicVariableSpace, preventionType);
-            if (preventionType.IsFloatType())
-                _floatListeners[(int)preventionType] = CreateListener<float>(dynamicVariableSpace, preventionType);
-
-            if (preventionType.IsStringSetType())
-                _stringSetListeners[(int)preventionType] = CreateListener<string>(dynamicVariableSpace, preventionType);
+            return Spaces.Where(space => space._localBoolState.Get(preventionType)).ToArray();
         }
-    }
-
-    private static T[] CreateDefaultArray<T>(T defaultValue)
-    {
-        var array = new T[PreventionTypes.Max];
-        for (var i = 0; i < PreventionTypes.Max; i++) array[i] = defaultValue;
-        return array;
-    }
-
-    private static DynamicVariableKeyChangeListener<PreventionType, T> CreateListener<T>(
-        DynamicVariableSpace dynamicVariableSpace, PreventionType preventionType)
-    {
-        return new DynamicVariableKeyChangeListener<PreventionType, T>(
-            dynamicVariableSpace,
-            preventionType,
-            preventionType.ToExpandedString());
     }
 
     private bool Equals(DynamicVariableSpace dynamicVariableSpace)
@@ -92,193 +88,10 @@ internal class DynamicVariableSpaceSync
                internalDynamicVariableSpace == dynamicVariableSpace;
     }
 
-    private bool GetLocalState(PreventionType preventionType)
-    {
-        return _localState[(int)preventionType];
-    }
-
-    private float GetLocalFloat(PreventionType preventionType)
-    {
-        return _localFloatValues[(int)preventionType];
-    }
-
-    private IImmutableSet<string> GetLocalStringSet(PreventionType preventionType)
-    {
-        return _stringSetValues[(int)preventionType];
-    }
-
-    private void UpdateLocalState(PreventionType preventionType, bool value)
-    {
-        UpdateLocalStateInternal(preventionType, IsActiveForLocalUser(preventionType) && value);
-    }
-
-    private void UpdateLocalFloatState(PreventionType preventionType, float value)
-    {
-        if (!preventionType.IsFloatType()) return;
-        var currentValue = _localFloatValues[(int)preventionType];
-        if ((float.IsNaN(currentValue) && float.IsNaN(value)) ||
-            (float.IsPositiveInfinity(currentValue) && float.IsPositiveInfinity(value)) ||
-            (float.IsNegativeInfinity(currentValue) && float.IsNegativeInfinity(value)) ||
-            currentValue == value) return;
-        _localFloatValues[(int)preventionType] = value;
-        var source = Source();
-        ResoniteMod.Msg($"Local Float of {preventionType.ToExpandedString()} changed to {value}. ({source})");
-
-        UpdateGlobalState(preventionType, source);
-    }
-
-    private void UpdateLocalStringListState(PreventionType preventionType, string value)
-    {
-        if (!preventionType.IsStringSetType()) return;
-        var currentValue = _stringSetValues[(int)preventionType];
-        var newValue = SplitStringToList(value);
-        if (currentValue.Equals(newValue)) return;
-        _stringSetValues[(int)preventionType] = newValue;
-        var source = Source();
-        ResoniteMod.Msg($"Local String Set of {preventionType.ToExpandedString()} changed to {newValue}. ({source})");
-
-        UpdateGlobalState(preventionType, source);
-    }
-
-    private void UpdateLocalStateInternal(PreventionType preventionType, bool value)
-    {
-        if (_localState[(int)preventionType] == value) return;
-        _localState[(int)preventionType] = value;
-        var source = Source();
-        ResoniteMod.Msg($"Local State of {preventionType.ToExpandedString()} changed to {value}. ({source})");
-
-        UpdateGlobalState(preventionType, source);
-    }
-
-    private void UpdateGlobalState(PreventionType preventionType, string source)
-    {
-        var globalState = CalculateGlobalState(preventionType);
-
-        if (GetGlobalState(preventionType) != globalState)
-        {
-            GlobalState[(int)preventionType] = globalState;
-            ResoniteMod.Msg($"Global State of {preventionType.ToExpandedString()} " +
-                            $"changed to {globalState}. ({source})");
-            NotifyGlobalStateChange(preventionType, globalState);
-        }
-
-        if (preventionType.IsFloatType())
-        {
-            var lowestFloat = CalculateLowestFloatState(preventionType);
-            var currentValue = GetLowestGlobalFloat(preventionType);
-            if (float.IsNaN(currentValue) && float.IsNaN(lowestFloat)) return;
-            if (float.IsPositiveInfinity(currentValue) && float.IsPositiveInfinity(lowestFloat)) return;
-            if (float.IsNegativeInfinity(currentValue) && float.IsNegativeInfinity(lowestFloat)) return;
-            if (currentValue == lowestFloat) return;
-            LowestFloatState[(int)preventionType] = lowestFloat;
-            ResoniteMod.Msg($"Global Float of {preventionType.ToExpandedString()} " +
-                            $"changed to {lowestFloat}. ({source})");
-            NotifyGlobalFloatStateChange(preventionType, lowestFloat);
-        }
-
-        if (preventionType.IsStringSetType())
-        {
-            var completeSet = CalculateStringSet(preventionType);
-            var currentValue = GetGlobalStringSet(preventionType);
-            if (currentValue.Equals(completeSet)) return;
-            GlobalStringSet[(int)preventionType] = completeSet;
-            ResoniteMod.Msg($"Global String set of {preventionType.ToExpandedString()} " +
-                            $"changed to {completeSet}. ({source})");
-            NotifyGlobalStringSetChange(preventionType, completeSet);
-        }
-    }
-
-    private string Source()
+    public override string ToString()
     {
         var found = GetDynamicVariableSpace(out var internalDynamicVariableSpace);
         return found ? $"{_refId} @{internalDynamicVariableSpace?.Slot?.GlobalPosition}" : _refId;
-    }
-
-    private static bool CalculateGlobalState(PreventionType preventionType)
-    {
-        bool globalState;
-        lock (Spaces)
-        {
-            globalState = Spaces.FindIndex(space => space.GetLocalState(preventionType)) != -1;
-        }
-
-        return globalState;
-    }
-
-    private static float CalculateLowestFloatState(PreventionType preventionType)
-    {
-        var globalState = float.NaN;
-        lock (Spaces)
-        {
-            foreach (var space in Spaces)
-            {
-                if (!space.GetLocalState(preventionType)) continue;
-                var local = space.GetLocalFloat(preventionType);
-                if (float.IsNaN(local)) continue;
-                if (float.IsNaN(globalState) || local < globalState) globalState = local;
-            }
-        }
-
-        return globalState;
-    }
-
-    private static IImmutableSet<string> CalculateStringSet(PreventionType preventionType)
-    {
-        List<DynamicVariableSpaceSync> spaces;
-        lock (Spaces)
-        {
-            spaces = Spaces.Where(space => space.GetLocalState(preventionType)).ToList();
-        }
-
-        return spaces.SelectMany(space => space.GetLocalStringSet(preventionType)).ToImmutableHashSet();
-    }
-
-    private void NotifyGlobalStateChange(PreventionType preventionType, bool value)
-    {
-        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
-        RestrainiteMod.NotifyRestrictionChanged(dynamicVariableSpace.World, preventionType, value);
-    }
-
-    private void NotifyGlobalFloatStateChange(PreventionType preventionType, float value)
-    {
-        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
-        RestrainiteMod.NotifyFloatChanged(dynamicVariableSpace.World, preventionType, value);
-    }
-
-    private void NotifyGlobalStringSetChange(PreventionType preventionType, IImmutableSet<string> value)
-    {
-        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
-        RestrainiteMod.NotifyStringSetChanged(dynamicVariableSpace.World, preventionType, value);
-    }
-
-    private void UpdateAllGlobalStates()
-    {
-        var source = Source();
-        foreach (var preventionType in PreventionTypes.List) UpdateGlobalState(preventionType, source);
-    }
-
-    internal static bool GetGlobalState(PreventionType preventionType)
-    {
-        return GlobalState[(int)preventionType];
-    }
-
-    public static float GetLowestGlobalFloat(PreventionType preventionType)
-    {
-        return LowestFloatState[(int)preventionType];
-    }
-
-    internal static IImmutableSet<string> GetGlobalStringSet(PreventionType preventionType)
-    {
-        return GlobalStringSet[(int)preventionType];
-    }
-
-    private static IImmutableSet<string> SplitStringToList(object? value)
-    {
-        var splitArray = (value as string)?.Split(',') ?? [];
-        return splitArray.Select(t => t.Trim())
-            .Where(trimmed => trimmed.Length != 0)
-            .ToList()
-            .ToImmutableHashSet();
     }
 
     internal static void UpdateList(DynamicVariableSpace dynamicVariableSpace)
@@ -286,7 +99,7 @@ internal class DynamicVariableSpaceSync
         var isValid = IsValidRestrainiteDynamicSpace(dynamicVariableSpace);
         DynamicVariableSpaceSync? shouldUnregister = null;
         DynamicVariableSpaceSync? shouldRegister = null;
-        
+
         lock (Spaces)
         {
             var index = Spaces.FindIndex(space => space.Equals(dynamicVariableSpace));
@@ -306,75 +119,47 @@ internal class DynamicVariableSpaceSync
                 dynamicVariableSpace.Destroyed += _ => { Remove(dynamicVariableSpace); };
             }
         }
+
         shouldUnregister?.Unregister();
         shouldRegister?.Register();
     }
 
     private void Register()
     {
-        RestrainiteMod.Configuration.ShouldRecheckPermissions += ShouldRecheckPermissions;
+        RestrainiteMod.Configuration.ShouldRecheckPermissions += ShouldCheckStates;
         _passwordListener.Register(OnPasswordChanged);
         _targetUserListener.Register(OnTargetUserChanged);
-        foreach (var preventionType in PreventionTypes.List)
-        {
-            _boolListeners[(int)preventionType].Register(UpdateLocalState);
-            if (preventionType.IsFloatType()) _floatListeners[(int)preventionType]?.Register(UpdateLocalFloatState);
-            if (preventionType.IsStringSetType())
-                _stringSetListeners[(int)preventionType]?.Register(UpdateLocalStringListState);
-        }
-
-        UpdateAllGlobalStates();
+        _localBoolState.Register();
+        _localLowestFloatState.Register();
+        _localStringSetState.Register();
     }
 
     private void OnTargetUserChanged(User user)
     {
-        CheckLocalState();
+        ShouldCheckStates();
     }
 
     private void OnPasswordChanged(string password)
     {
-        CheckLocalState();
+        ShouldCheckStates();
     }
 
     private void Unregister()
     {
-        RestrainiteMod.Configuration.ShouldRecheckPermissions -= ShouldRecheckPermissions;
+        RestrainiteMod.Configuration.ShouldRecheckPermissions -= ShouldCheckStates;
 
         _passwordListener.Unregister(OnPasswordChanged);
         _targetUserListener.Unregister(OnTargetUserChanged);
-        foreach (var preventionType in PreventionTypes.List)
-        {
-            _boolListeners[(int)preventionType].Unregister(UpdateLocalState);
-            if (preventionType.IsFloatType()) _floatListeners[(int)preventionType]?.Unregister(UpdateLocalFloatState);
-            if (preventionType.IsStringSetType())
-                _stringSetListeners[(int)preventionType]?.Unregister(UpdateLocalStringListState);
-        }
-
-        UpdateAllGlobalStates();
+        _localBoolState.Unregister();
+        _localLowestFloatState.Unregister();
+        _localStringSetState.Unregister();
     }
 
-    private void ShouldRecheckPermissions()
+    private void ShouldCheckStates()
     {
-        CheckLocalState();
-    }
-
-    private void CheckLocalState()
-    {
-        foreach (var preventionType in PreventionTypes.List)
-            CheckLocalState(preventionType);
-    }
-
-    private void CheckLocalState(PreventionType preventionType)
-    {
-        var state = IsActiveForLocalUser(preventionType);
-        if (state) state = _boolListeners[(int)preventionType].DynamicValue;
-
-        if (_localState[(int)preventionType] != state) UpdateLocalStateInternal(preventionType, state);
-    }
-
-    private bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
-    {
-        return _dynamicVariableSpace.TryGetTarget(out dynamicVariableSpace);
+        _localBoolState.CheckState();
+        _localLowestFloatState.CheckState();
+        _localStringSetState.CheckState();
     }
 
     private static bool IsValidRestrainiteDynamicSpace(DynamicVariableSpace dynamicVariableSpace)
@@ -382,21 +167,7 @@ internal class DynamicVariableSpaceSync
         return dynamicVariableSpace is { IsDestroyed: false, IsDisposed: false, CurrentName: DynamicVariableSpaceName };
     }
 
-    private bool IsActiveForLocalUser(PreventionType preventionType)
-    {
-        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return false;
-        if (!IsValidRestrainiteDynamicSpace(dynamicVariableSpace) ||
-            !RestrainiteMod.Configuration.AllowRestrictionsFromWorld(dynamicVariableSpace.World, preventionType))
-            return false;
-        var user = _targetUserListener.DynamicValue;
-        if (user != dynamicVariableSpace.LocalUser) return false;
-
-        if (!RestrainiteMod.Configuration.RequiresPassword) return true;
-        var password = _passwordListener.DynamicValue;
-        return RestrainiteMod.Configuration.IsCorrectPassword(password);
-    }
-
-    public static void Remove(DynamicVariableSpace dynamicVariableSpace)
+    internal static void Remove(DynamicVariableSpace dynamicVariableSpace)
     {
         DynamicVariableSpaceSync? dynamicVariableSpaceToRemove = null;
         lock (Spaces)
@@ -409,6 +180,6 @@ internal class DynamicVariableSpaceSync
             }
         }
 
-        dynamicVariableSpaceToRemove?.UpdateAllGlobalStates();
+        dynamicVariableSpaceToRemove?.Unregister();
     }
 }

@@ -96,9 +96,9 @@ internal class DynamicVariableChangeListener<TV>(
         get => _value!;
         set
         {
-            ResoniteMod.Msg($"Updating variable {variableName}: {value}");
             if (EqualityComparer<TV>.Default.Equals(_value!, value))
                 return;
+            ResoniteMod.Msg($"Updating variable {variableName}: {value}");
             _value = value;
             OnChange.SafeInvoke(value!);
         }
@@ -128,7 +128,7 @@ internal class DynamicVariableChangeListener<TV>(
     }
 }
 
-internal class DynamicVariableKeyChangeListener<TK, TV> : DynamicVariableChangeListener<TV>
+internal class DynamicVariableKeyChangeListener<TK, TV> : DynamicVariableChangeListener<TV> where TK : notnull
 {
     private readonly TK _key;
 
@@ -155,6 +155,6 @@ internal class DynamicVariableKeyChangeListener<TK, TV> : DynamicVariableChangeL
 
     private void CallChange(TV value)
     {
-        OnChange?.SafeInvoke(_key!, value!);
+        OnChange?.SafeInvoke(_key, value!);
     }
 }

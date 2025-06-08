@@ -228,4 +228,11 @@ internal static class PreventionTypes
             _ => "(Invalid PreventionType)"
         };
     }
+
+    internal static T[] CreateDefaultArray<T>(T defaultValue)
+    {
+        var array = new T[Max];
+        for (var i = 0; i < Max; i++) array[i] = defaultValue;
+        return array;
+    }
 }

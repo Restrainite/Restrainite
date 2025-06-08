@@ -84,9 +84,9 @@ internal static class UserRootInjector
         if (!ImpulseSenders.ContainsKey(refId))
         {
             var impulseSender = new ImpulseSender(RestrainiteMod.Configuration, userRoot);
-            RestrainiteMod.OnRestrictionChanged += impulseSender.SendDynamicImpulse;
-            RestrainiteMod.OnFloatChanged += impulseSender.SendDynamicImpulse;
-            RestrainiteMod.OnStringSetChanged += impulseSender.SendDynamicImpulseForStringSet;
+            RestrainiteMod.BoolState.OnChanged += impulseSender.SendDynamicImpulse;
+            RestrainiteMod.LowestFloatState.OnChanged += impulseSender.SendDynamicImpulse;
+            RestrainiteMod.StringSetState.OnChanged += impulseSender.SendDynamicImpulse;
             ImpulseSenders.Add(refId, impulseSender);
         }
 
@@ -102,9 +102,9 @@ internal static class UserRootInjector
         {
             if (ImpulseSenders.TryGetValue(refId, out var impulseSender))
             {
-                RestrainiteMod.OnRestrictionChanged -= impulseSender.SendDynamicImpulse;
-                RestrainiteMod.OnFloatChanged -= impulseSender.SendDynamicImpulse;
-                RestrainiteMod.OnStringSetChanged -= impulseSender.SendDynamicImpulseForStringSet;
+                RestrainiteMod.BoolState.OnChanged -= impulseSender.SendDynamicImpulse;
+                RestrainiteMod.LowestFloatState.OnChanged -= impulseSender.SendDynamicImpulse;
+                RestrainiteMod.StringSetState.OnChanged -= impulseSender.SendDynamicImpulse;
                 ImpulseSenders.Remove(refId);
             }
 

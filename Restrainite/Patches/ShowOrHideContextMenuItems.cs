@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Immutable;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.Enums;
+using Restrainite.States;
 
 namespace Restrainite.Patches;
 
@@ -37,7 +37,7 @@ internal static class ShowOrHideContextMenuItems
         return false;
     }
 
-    private static bool FindInList(IWorldElement element, IImmutableSet<string> items, LocaleString? label)
+    private static bool FindInList(IWorldElement element, ImmutableStringSet items, LocaleString? label)
     {
         foreach (var item in items)
         {

@@ -18,7 +18,7 @@ internal static class DisableNameplates
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
+        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
     }
 
     private static void OnRestrictionChanged(PreventionType preventionType, bool value)
@@ -30,8 +30,8 @@ internal static class DisableNameplates
                 avatarNameplateVisibilityDriverInstance != null)
                 UpdateVisibility.Invoke(avatarNameplateVisibilityDriverInstance, []);
 
-        AvatarNameplateVisibilityDriverList.RemoveAll(
-            reference => !reference.TryGetTarget(out var target) || target == null
+        AvatarNameplateVisibilityDriverList.RemoveAll(reference =>
+            !reference.TryGetTarget(out var target) || target == null
         );
     }
 
@@ -57,8 +57,8 @@ internal static class DisableNameplates
     [HarmonyPatch(typeof(AvatarNameplateVisibilityDriver), "OnDispose")]
     private static void OnDisposePostfix(AvatarNameplateVisibilityDriver __instance)
     {
-        AvatarNameplateVisibilityDriverList.RemoveAll(
-            reference => !reference.TryGetTarget(out var target) || target == null || target == __instance
+        AvatarNameplateVisibilityDriverList.RemoveAll(reference =>
+            !reference.TryGetTarget(out var target) || target == null || target == __instance
         );
     }
 }

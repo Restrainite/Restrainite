@@ -13,7 +13,7 @@ internal static class TrackerMovementSpeed
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnChange;
+        RestrainiteMod.BoolState.OnChanged += OnChange;
     }
 
     private static void OnChange(PreventionType preventionType, bool value)

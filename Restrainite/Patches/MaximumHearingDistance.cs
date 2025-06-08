@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Reflection;
 using Awwdio;
 using Elements.Core;
@@ -6,6 +5,7 @@ using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
 using Restrainite.Enums;
+using Restrainite.States;
 using AudioOutput = FrooxEngine.AudioOutput;
 
 namespace Restrainite.Patches;
@@ -18,9 +18,9 @@ internal static class MaximumHearingDistance
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnChange;
-        RestrainiteMod.OnFloatChanged += OnFloatChange;
-        RestrainiteMod.OnStringSetChanged += OnStringSetChange;
+        RestrainiteMod.BoolState.OnChanged += OnChange;
+        RestrainiteMod.LowestFloatState.OnChanged += OnFloatChange;
+        RestrainiteMod.StringSetState.OnChanged += OnStringSetChange;
 
         _nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
         if (_nativeOutputMethod == null) ResoniteMod.Warn("Failed to find method AudioOutput.NativeOutput");
@@ -48,7 +48,7 @@ internal static class MaximumHearingDistance
         foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
     }
 
-    private static void OnStringSetChange(PreventionType preventionType, IImmutableSet<string> value)
+    private static void OnStringSetChange(PreventionType preventionType, ImmutableStringSet value)
     {
         if (preventionType != PreventionType.AlwaysHearSelectedUsers)
             return;
