@@ -10,8 +10,12 @@ internal static class PreventLaserTouch
     private static bool _leftOriginalValue = true;
     private static bool _rightOriginalValue = true;
 
-    private static readonly FieldInfo
+    private static readonly FieldInfo?
         LaserEnabledField = AccessTools.Field(typeof(InteractionHandler), "_laserEnabled");
+
+    private static readonly MethodInfo?
+        ClearLaserTimeoutMethod = AccessTools.Method(typeof(InteractionLaser),  "ClearLaserTimeout");
+    
 
     internal static void Initialize()
     {
@@ -37,11 +41,15 @@ internal static class PreventLaserTouch
     private static void SetLaserActive(bool value, InteractionHandler? interactionHandler, ref bool originalValue)
     {
         if (interactionHandler == null) return;
-        if (LaserEnabledField.GetValue(interactionHandler) is not Sync<bool> syncBool) return;
+        if (LaserEnabledField?.GetValue(interactionHandler) is not Sync<bool> syncBool) return;
         if (value)
         {
             originalValue = syncBool.Value;
             syncBool.Value = false;
+            if (interactionHandler.Laser != null)
+            {
+                ClearLaserTimeoutMethod?.Invoke(interactionHandler.Laser, []);
+            }
         }
         else
         {
