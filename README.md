@@ -1,7 +1,7 @@
 # Restrainite
 
-> Restrainite is a [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for 
-> [Resonite](https://resonite.com/) that allows others to control restrictions of the local user. 
+Restrainite is a [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for 
+[Resonite](https://resonite.com/) that allows others to control restrictions of the local user. 
 
 
 > With the current use of dynamic variables, it's not possible to restrict the access by others. Anyone in
