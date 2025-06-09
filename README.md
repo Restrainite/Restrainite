@@ -1,12 +1,13 @@
 # Restrainite
 
-A [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for 
+Restrainite is a [ResoniteModLoader](https://github.com/resonite-modding-group/ResoniteModLoader) mod for 
 [Resonite](https://resonite.com/) that allows others to control restrictions of the local user. 
 
-With the current use of dynamic variables, it's not possible to restrict the access. Anyone in
-your game world can toggle it. Please keep that in mind and use the options in the extensive settings menu.
-There is currently no known way to restrict this based on user ids or similar, because of how the FrooxEngine works. 
-(PRs welcome!) We might add an option to use cloud variables in the future.
+
+> With the current use of dynamic variables, it's not possible to restrict the access by others. Anyone in
+> your game world can toggle it. Please keep that in mind and use the options in the extensive settings menu.
+> There is currently no known way to restrict this based on user ids or similar, because of how the FrooxEngine and
+> the network protocol works. (PRs welcome!) We might add an option to use cloud variables in the future.
 
 ## Documentation
 
@@ -25,6 +26,34 @@ is not to remove safety features, but give people a consenting choice to disable
 
 If someone is using this mod maliciously, this a moderation issue. 
 
-## Contributing and Building from source
+## Can I rely on this? What if a future Resonite update breaks Restrainite.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md).
+Breaking because of updates can always happen and is also very likely, if the game code changes that we patch.
+We are reducing the impact of failures as much as possible by using defensive programming. In most cases only a single
+feature should malfunction. We are a team of three dedicated developers to work on this, in case something happens.
+Due to a team effort, the last breaking release was fixed within 4 hours of
+[reporting](https://github.com/Restrainite/RestrainiteMod/issues/87). Our code is open source and we are always open to
+bug reports, feature and pull requests. Talk to us on Resonite.
+
+We plan to support this for the future, because we are long term active supporters of Resonite and use the mod
+ourselves on a daily bases.
+
+To prevent having too much old code over time, we might deprecate features and eventually remove them. Deprecated features
+should not be used anymore and there will be a replacement available. Unless the code in Resonite changes so much,
+that we can't provide that feature anymore.
+
+## About the project
+RestrainiteMod is © 2024-2025 by SnepDrone, Uruloke, Zenuru
+
+Idea by Fuzy Sidwell
+
+Tested by Azavit, Fuzy Sidwell, K3nzC0, Sylvan and others.
+
+### License
+RestrainiteMod is distributed under a [BSD 3-Clause License](https://github.com/Restrainite/RestrainiteMod?tab=BSD-3-Clause-1-ov-file).
+
+### Contributing and Building from source
+As an external contributor, when contributing to this project, please first discuss the change you wish to make via issue 
+before making a pull request. 
+
+Read more in our [GitHub repo](https://github.com/Restrainite/RestrainiteMod/blob/main/CONTRIBUTING.md).
