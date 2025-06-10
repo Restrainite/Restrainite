@@ -75,7 +75,7 @@ public class RestrainiteMod : ResoniteMod
 
     private static void PatchResonite()
     {
-        var harmony = new Harmony("drone.Restrainite");
+        var harmony = new Harmony("Restrainite.RestrainiteMod");
 
         AccessTools.GetTypesFromAssembly(typeof(RestrainiteMod).Assembly)
             .Do<Type>(type =>
