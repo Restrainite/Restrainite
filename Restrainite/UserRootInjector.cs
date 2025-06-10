@@ -75,7 +75,7 @@ internal static class UserRootInjector
                 "Restrainite Error",
                 "There are problems patching Resonite.\n" +
                 "Please check your latest log file in the Logs folder in the Resonite game directory for more information.\n" +
-                "Create an issue at https://github.com/Restrainite/RestrainiteMod/issues to get support.",
+                "Create an issue at https://github.com/Restrainite/Restrainite/issues to get support.",
                 OfficialAssets.Graphics.Icons.General.ExclamationPoint);
 
         ResoniteMod.Msg($"Attaching to UserRoot {userRoot.World.InitState} {userRoot.Slot}");

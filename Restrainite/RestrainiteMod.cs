@@ -11,7 +11,7 @@ namespace Restrainite;
 public class RestrainiteMod : ResoniteMod
 {
     public const string LogReportUrl =
-        "Please report this to Restrainite (https://github.com/Restrainite/RestrainiteMod/issues):";
+        "Please report this to Restrainite (https://github.com/Restrainite/Restrainite/issues):";
 
     internal static readonly Configuration Configuration = new();
 
