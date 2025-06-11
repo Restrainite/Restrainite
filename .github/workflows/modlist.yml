@@ -108,7 +108,7 @@ jobs:
   
             const hash = await fileHashPromise;
   
-            const jsonPath = path.join('manifest', 'Restrainite', 'RestrainiteMod', 'info.json');
+            const jsonPath = path.join('manifest', 'Restrainite', 'Restrainite', 'info.json');
             try {
               await fs.promises.access(jsonPath);
             } catch (error) {
