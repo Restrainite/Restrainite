@@ -108,7 +108,7 @@ jobs:
   
             const hash = await fileHashPromise;
   
-            const jsonPath = path.join('manifest', 'Restrainite', 'RestrainiteMod', 'info.json');
+            const jsonPath = path.join('manifest', 'Restrainite', 'Restrainite', 'info.json');
             try {
               await fs.promises.access(jsonPath);
             } catch (error) {
@@ -137,6 +137,6 @@ jobs:
           SHORTENED="${REF#refs/tags/v}"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add manifest/drone.Restrainite/Restrainite/info.json
-          git commit -m "Update info.json to ${SHORTENED}" || echo "Nothing to do"
+          git add manifest/Restrainite/Restrainite/info.json
+          git commit -m "Update Restrainite to ${SHORTENED}" || echo "Nothing to do"
           git push origin restrainite
