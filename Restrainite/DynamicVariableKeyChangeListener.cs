@@ -96,7 +96,6 @@ internal class DynamicVariableChangeListener<TV>(
         get => _value!;
         set
         {
-            ResoniteMod.Msg($"Updating variable {variableName}: {value}");
             if (EqualityComparer<TV>.Default.Equals(_value!, value))
                 return;
             _value = value;
