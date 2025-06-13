@@ -98,7 +98,6 @@ internal class DynamicVariableChangeListener<TV>(
         {
             if (EqualityComparer<TV>.Default.Equals(_value!, value))
                 return;
-            ResoniteMod.Msg($"Updating variable {variableName}: {value}");
             _value = value;
             OnChange.SafeInvoke(value!);
         }
