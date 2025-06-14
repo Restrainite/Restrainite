@@ -138,7 +138,7 @@ internal static class PreventionTypes
             PreventionType.PreventGrabbing => "Should others be able to prevent you from grabbing objects?",
             PreventionType.PreventHearing => "Should others be able to mute all audio sources including voices?",
             PreventionType.EnforceSelectiveHearing =>
-                "Should others be able to limit the voices you can hear to specific players?",
+                "[Deprecated, use Always Hear Selected Users] Should others be able to limit the voices you can hear to specific players?",
             PreventionType.PreventLaserTouch =>
                 "Should others be able to prevent you from any laser-based interaction?",
             PreventionType.PreventPhysicalTouch =>
