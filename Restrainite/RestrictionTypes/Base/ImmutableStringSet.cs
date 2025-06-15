@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Restrainite.States;
+namespace Restrainite.RestrictionTypes.Base;
 
 public class ImmutableStringSet(IImmutableSet<string> immutableSet)
     : IImmutableSet<string>, IEquatable<ImmutableStringSet>

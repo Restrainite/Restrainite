@@ -1,6 +1,6 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -9,13 +9,12 @@ internal static class PreventOpeningDash
 {
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnChange;
+        Restrictions.PreventOpeningDash.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventOpeningDash ||
-            !value)
+        if (!Restrictions.PreventOpeningDash.IsRestricted)
             return;
 
         Userspace.Current.RunSynchronously(() =>
@@ -26,22 +25,22 @@ internal static class PreventOpeningDash
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(UserspaceRadiantDash), nameof(UserspaceRadiantDash.Open), MethodType.Setter)]
-    private static void PreventOpeningDash_UserspaceRadiantDashOpen_Setter_Prefix(ref bool value)
+    private static void UserspaceRadiantDash_Open_Setter_Prefix(ref bool value)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventOpeningDash)) value = false;
+        if (Restrictions.PreventOpeningDash.IsRestricted) value = false;
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(UserspaceRadiantDash), nameof(UserspaceRadiantDash.OpenContact))]
-    private static bool PreventOpeningDash_UserspaceRadiantDashOpenContact_Prefix()
+    private static bool UserspaceRadiantDash_OpenContact_Prefix()
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventOpeningDash);
+        return !Restrictions.PreventOpeningDash.IsRestricted;
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(UserspaceRadiantDash), nameof(UserspaceRadiantDash.ToggleSessionControl))]
-    private static bool PreventOpeningDash_UserspaceRadiantDashToggleSessionControl_Prefix()
+    private static bool UserspaceRadiantDash_ToggleSessionControl_Prefix()
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventOpeningDash);
+        return !Restrictions.PreventOpeningDash.IsRestricted;
     }
 }

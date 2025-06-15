@@ -4,8 +4,7 @@ using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
-using Restrainite.States;
+using Restrainite.RestrictionTypes.Base;
 using AudioOutput = FrooxEngine.AudioOutput;
 
 namespace Restrainite.Patches;
@@ -18,9 +17,8 @@ internal static class MaximumHearingDistance
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnChange;
-        RestrainiteMod.LowestFloatState.OnChanged += OnFloatChange;
-        RestrainiteMod.StringSetState.OnChanged += OnStringSetChange;
+        Restrictions.MaximumHearingDistance.OnChanged += OnChanged;
+        Restrictions.AlwaysHearSelectedUsers.OnChanged += OnChanged;
 
         _nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
         if (_nativeOutputMethod == null) ResoniteMod.Warn("Failed to find method AudioOutput.NativeOutput");
@@ -29,29 +27,8 @@ internal static class MaximumHearingDistance
         if (_audioInletMethod == null) ResoniteMod.Warn("Failed to find method AudioManager.EffectsInlet");
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.MaximumHearingDistance &&
-            preventionType != PreventionType.AlwaysHearSelectedUsers)
-            return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
-    }
-
-    private static void OnFloatChange(PreventionType preventionType, float value)
-    {
-        if (preventionType != PreventionType.MaximumHearingDistance)
-            return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
-    }
-
-    private static void OnStringSetChange(PreventionType preventionType, ImmutableStringSet value)
-    {
-        if (preventionType != PreventionType.AlwaysHearSelectedUsers)
-            return;
         var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
         if (list == null) return;
         foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
@@ -66,11 +43,11 @@ internal static class MaximumHearingDistance
         ref bool ____updateRegistered,
         ref IAudioShape ____audioShape)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.MaximumHearingDistance)) return true;
+        if (!Restrictions.MaximumHearingDistance.IsRestricted) return true;
         if (_nativeOutputMethod == null || _audioInletMethod == null) return true;
         if (IsAlwaysHearingSelectedUsers(__instance)) return true;
 
-        var restrictedDistance = RestrainiteMod.GetLowestFloat(PreventionType.MaximumHearingDistance);
+        var restrictedDistance = Restrictions.MaximumHearingDistance.LowestFloat.Value;
         if (float.IsNaN(restrictedDistance)) return true;
         if (restrictedDistance <= 0.0f) restrictedDistance = 0.0f;
 
@@ -123,7 +100,7 @@ internal static class MaximumHearingDistance
             return false;
         var userId = activeUser.UserID;
         if (userId is null) return false;
-        return RestrainiteMod.IsRestricted(PreventionType.AlwaysHearSelectedUsers) &&
-               RestrainiteMod.GetStringSet(PreventionType.AlwaysHearSelectedUsers).Contains(userId);
+        return Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
+               Restrictions.AlwaysHearSelectedUsers.SetContains(userId);
     }
 }

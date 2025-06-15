@@ -1,15 +1,16 @@
 using System;
 using FrooxEngine;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
 public class SlotTagPermissionChecker
 {
-    private readonly PreventionType _allowedPrevention;
-    private readonly PreventionType _deniedPrevention;
+    private readonly StringSetRestriction _allowedPrevention;
+    private readonly StringSetRestriction _deniedPrevention;
 
-    internal SlotTagPermissionChecker(PreventionType allowedPrevention, PreventionType deniedPrevention)
+    internal SlotTagPermissionChecker(StringSetRestriction allowedPrevention,
+        StringSetRestriction deniedPrevention)
     {
         _allowedPrevention = allowedPrevention;
         _deniedPrevention = deniedPrevention;
@@ -36,17 +37,12 @@ public class SlotTagPermissionChecker
     {
         var tag = slot == null || string.IsNullOrEmpty(slot.Tag) ? "null" : slot.Tag;
 
-        if (RestrainiteMod.IsRestricted(_deniedPrevention))
-        {
-            var denied = RestrainiteMod.GetStringSet(_deniedPrevention);
-            if (denied.Contains(tag)) return PermissionType.ExplicitlyDenied;
-        }
+        if (_deniedPrevention.IsRestricted)
+            if (_deniedPrevention.SetContains(tag))
+                return PermissionType.ExplicitlyDenied;
 
-        if (RestrainiteMod.IsRestricted(_allowedPrevention))
-        {
-            var allowed = RestrainiteMod.GetStringSet(_allowedPrevention);
-            return allowed.Contains(tag) ? PermissionType.ExplicitlyAllowed : PermissionType.Denied;
-        }
+        if (_allowedPrevention.IsRestricted)
+            return _allowedPrevention.SetContains(tag) ? PermissionType.ExplicitlyAllowed : PermissionType.Denied;
 
         return PermissionType.Allowed;
     }

@@ -1,7 +1,7 @@
 using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -10,12 +10,12 @@ internal static class PreventUserScaling
 {
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
+        Restrictions.ResetUserScale.OnChanged += OnRestrictionChanged;
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, bool value)
+    private static void OnRestrictionChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.ResetUserScale || !value) return;
+        if (!Restrictions.ResetUserScale.IsRestricted) return;
         var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
         if (user == null) return;
         var activeUserRoot = user.Root.Slot.ActiveUserRoot;
@@ -24,9 +24,9 @@ internal static class PreventUserScaling
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(LocomotionController), nameof(LocomotionController.CanScale), MethodType.Getter)]
-    private static bool PreventUserScaling_LocomotionControllerCanScale_Getter_Prefix(ref bool __result)
+    private static bool LocomotionController_CanScale_Getter_Prefix(ref bool __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventUserScaling)) return true;
+        if (!Restrictions.PreventUserScaling.IsRestricted && !Restrictions.ResetUserScale.IsRestricted) return true;
         __result = false;
         return false;
     }

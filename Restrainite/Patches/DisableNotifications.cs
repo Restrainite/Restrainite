@@ -2,7 +2,6 @@
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -16,8 +15,8 @@ internal static class DisableNotifications
     }
 
     [HarmonyPrefix]
-    private static bool DisableNotifications_NotificationPanelAddNotification_Prefix()
+    private static bool NotificationPanel_AddNotification_Prefix()
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.DisableNotifications);
+        return !Restrictions.DisableNotifications.IsRestricted;
     }
 }

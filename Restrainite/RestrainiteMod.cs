@@ -1,9 +1,7 @@
 ﻿using System;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
 using Restrainite.Patches;
-using Restrainite.States;
 
 namespace Restrainite;
 
@@ -13,12 +11,6 @@ public class RestrainiteMod : ResoniteMod
         "Please report this to Restrainite (https://github.com/Restrainite/Restrainite/issues):";
 
     internal static readonly Configuration Configuration = new();
-
-    internal static readonly GlobalStateBool BoolState = new();
-
-    internal static readonly GlobalStateLowestFloat LowestFloatState = new();
-
-    internal static readonly GlobalStateStringSet StringSetState = new();
 
     public override string Name => "Restrainite";
     public override string Author => "SnepDrone Zenuru";
@@ -90,20 +82,5 @@ public class RestrainiteMod : ResoniteMod
         TrackerMovementSpeed.Initialize();
         SetBusyStatus.Initialize();
         PreventEditMode.Initialize();
-    }
-
-    internal static bool IsRestricted(PreventionType preventionType)
-    {
-        return BoolState.Get(preventionType);
-    }
-
-    internal static float GetLowestFloat(PreventionType preventionType)
-    {
-        return LowestFloatState.Get(preventionType);
-    }
-
-    internal static ImmutableStringSet GetStringSet(PreventionType preventionType)
-    {
-        return StringSetState.Get(preventionType);
     }
 }

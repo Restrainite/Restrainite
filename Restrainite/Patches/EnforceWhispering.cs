@@ -1,6 +1,6 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 using static FrooxEngine.VoiceMode;
 
 namespace Restrainite.Patches;
@@ -12,26 +12,26 @@ internal static class EnforceWhispering
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
+        Restrictions.EnforceWhispering.OnChanged += OnRestrictionChanged;
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, bool value)
+    private static void OnRestrictionChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.EnforceWhispering) return;
-
         var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
         if (user == null) return;
 
         user.Root.Slot.RunInUpdates(0, () =>
         {
-            if (RestrainiteMod.IsRestricted(PreventionType.EnforceWhispering))
+            var value = Restrictions.EnforceWhispering.IsRestricted;
+            if (Restrictions.EnforceWhispering.IsRestricted)
             {
-                if (!value || user.VoiceMode is not (Normal or Shout or Broadcast)) return;
+                if (user.VoiceMode is not (Normal or Shout or Broadcast)) return;
                 _originalVoiceMode = user.VoiceMode;
                 user.VoiceMode = Whisper;
             }
-            else if (!value && user.VoiceMode is Whisper)
+            else if (!value)
             {
+                if (user.VoiceMode is not Whisper) return;
                 user.VoiceMode = _originalVoiceMode;
             }
         });
@@ -39,10 +39,10 @@ internal static class EnforceWhispering
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(User), nameof(User.VoiceMode), MethodType.Setter)]
-    private static bool EnforceWhispering_UserVoiceMode_Setter_Prefix(VoiceMode value, User __instance)
+    private static bool User_VoiceMode_Setter_Prefix(VoiceMode value, User __instance)
     {
         return !(__instance.IsLocalUser &&
-                 RestrainiteMod.IsRestricted(PreventionType.EnforceWhispering) &&
+                 Restrictions.EnforceWhispering.IsRestricted &&
                  value is Normal or Shout or Broadcast);
     }
 }

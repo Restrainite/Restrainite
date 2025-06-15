@@ -2,8 +2,7 @@ using System.Linq;
 using System.Threading;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
-using Restrainite.States;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -14,13 +13,12 @@ internal static class ShowOrHideUserAvatars
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
-        RestrainiteMod.StringSetState.OnChanged += OnRestrictionChanged;
+        Restrictions.ShowUserAvatars.OnChanged += OnRestrictionChanged;
+        Restrictions.HideUserAvatars.OnChanged += OnRestrictionChanged;
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, bool value)
+    private static void OnRestrictionChanged(IRestriction restriction)
     {
-        if (preventionType is not (PreventionType.ShowUserAvatars or PreventionType.HideUserAvatars)) return;
         MarkAllUsersDirty();
     }
 
@@ -34,14 +32,6 @@ internal static class ShowOrHideUserAvatars
             foreach (var slot in userList.Select(user => user?.Root?.Slot))
                 slot?.ForeachComponentInChildren<Component>(c => c?.MarkChangeDirty());
         });
-    }
-
-    private static void OnRestrictionChanged(PreventionType preventionType, ImmutableStringSet stringSet)
-    {
-        if (preventionType is not (PreventionType.ShowUserAvatars or PreventionType.HideUserAvatars) ||
-            !RestrainiteMod.IsRestricted(preventionType)) return;
-
-        MarkAllUsersDirty();
     }
 
     [HarmonyPrefix]
@@ -63,15 +53,15 @@ internal static class ShowOrHideUserAvatars
     private static void User_IsRenderingLocallyBlocked_Postfix(ref bool __result, User __instance)
     {
         if (InUpdateBlocking.Value || __result || __instance == __instance.LocalUser) return;
-        if (RestrainiteMod.IsRestricted(PreventionType.ShowUserAvatars) &&
-            !RestrainiteMod.GetStringSet(PreventionType.ShowUserAvatars).Contains(__instance.UserID))
+        if (Restrictions.ShowUserAvatars.IsRestricted &&
+            !Restrictions.ShowUserAvatars.SetContains(__instance.UserID))
         {
             __result = true;
             return;
         }
 
-        if (!RestrainiteMod.IsRestricted(PreventionType.HideUserAvatars) ||
-            !RestrainiteMod.GetStringSet(PreventionType.HideUserAvatars).Contains(__instance.UserID)) return;
+        if (!Restrictions.HideUserAvatars.IsRestricted ||
+            !Restrictions.HideUserAvatars.SetContains(__instance.UserID)) return;
         __result = true;
     }
 }

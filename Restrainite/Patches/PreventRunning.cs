@@ -1,7 +1,6 @@
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -14,7 +13,7 @@ internal static class PreventRunning
         out float __state)
     {
         __state = __instance.FastMultiplier;
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventRunning)) __instance.FastMultiplier = 1.0f;
+        if (Restrictions.PreventRunning.IsRestricted) __instance.FastMultiplier = 1.0f;
     }
 
     [HarmonyPostfix]
@@ -28,7 +27,7 @@ internal static class PreventRunning
     [HarmonyPatch(typeof(VR_LocomotionDirection), nameof(VR_LocomotionDirection.Evaluate))]
     private static void VR_LocomotionDirection_Evaluate_Postfix(ref float3? __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventRunning) || __result == null) return;
+        if (!Restrictions.PreventRunning.IsRestricted || __result == null) return;
 
         var normalized = __result.Value.GetNormalized(out var magnitude);
         if (magnitude > 1.0f) __result = normalized;

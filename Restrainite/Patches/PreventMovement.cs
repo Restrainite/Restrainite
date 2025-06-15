@@ -1,7 +1,6 @@
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -12,7 +11,7 @@ internal static class PreventMovement
     [HarmonyPatch(typeof(VR_LocomotionDirection), nameof(VR_LocomotionDirection.Evaluate))]
     private static bool VR_LocomotionDirection_Evaluate_Prefix(ref float3? __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventMovement)) return true;
+        if (!Restrictions.PreventMovement.IsRestricted) return true;
 
         __result = float3.Zero;
         return false;
@@ -22,7 +21,7 @@ internal static class PreventMovement
     [HarmonyPatch(typeof(ScreenLocomotionDirection), nameof(ScreenLocomotionDirection.Evaluate))]
     private static bool ScreenLocomotionDirection_Evaluate_Prefix(ref float3? __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventMovement)) return true;
+        if (!Restrictions.PreventMovement.IsRestricted) return true;
 
         __result = float3.Zero;
         return false;
@@ -32,6 +31,6 @@ internal static class PreventMovement
     [HarmonyPatch(typeof(TeleportLocomotion), "ProcessInput")]
     private static bool TeleportLocomotion_ProcessInput_Prefix()
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventMovement);
+        return !Restrictions.PreventMovement.IsRestricted;
     }
 }

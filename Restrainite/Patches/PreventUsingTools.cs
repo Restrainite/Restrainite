@@ -1,6 +1,5 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -9,20 +8,20 @@ internal static class PreventUsingTools
 {
     [HarmonyPostfix]
     [HarmonyPatch(typeof(InteractionHandler), nameof(InteractionHandler.CanEquip))]
-    private static bool PreventUsingTools_InteractionHandlerCanEquip_Postfix(bool result, InteractionHandler __instance)
+    private static bool InteractionHandler_CanEquip_Postfix(bool result, InteractionHandler __instance)
     {
         if (__instance.World == Userspace.UserspaceWorld) return result;
 
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventUsingTools) && result;
+        return !Restrictions.PreventUsingTools.IsRestricted && result;
     }
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(InteractionHandler), nameof(InteractionHandler.CanKeepEquipped))]
-    private static bool PreventUsingTools_InteractionHandlerCanKeepEquipped_Postfix(bool result,
+    private static bool InteractionHandler_CanKeepEquipped_Postfix(bool result,
         InteractionHandler __instance)
     {
         if (__instance.World == Userspace.UserspaceWorld) return result;
 
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventUsingTools) && result;
+        return !Restrictions.PreventUsingTools.IsRestricted && result;
     }
 }

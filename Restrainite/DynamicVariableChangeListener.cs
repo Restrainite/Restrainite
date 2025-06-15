@@ -3,14 +3,24 @@ using System.Collections.Generic;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
+
+internal static class DynamicVariableChangeListener
+{
+    internal static bool HasShownWarning;
+}
 
 internal class DynamicVariableChangeListener<TV>(
     DynamicVariableSpace space,
     string variableName) : IDynamicVariable<TV>
 {
-    private static bool _hasShownWarning;
+    private readonly string _refId =
+        $"Dynamic Variable Space {space.ReferenceID} " +
+        $"created by {space.World.GetUserByAllocationID(space.ReferenceID.User)?.UserID} " +
+        $"in {space.World.Name}";
+
     private TV? _value;
 
     public void ChildChanged(IWorldElement child)
@@ -105,8 +115,8 @@ internal class DynamicVariableChangeListener<TV>(
 
     private static void WarnInvalidCalls(Exception ex)
     {
-        if (_hasShownWarning) return;
-        _hasShownWarning = true;
+        if (DynamicVariableChangeListener.HasShownWarning) return;
+        DynamicVariableChangeListener.HasShownWarning = true;
         ResoniteMod.Warn($"{RestrainiteMod.LogReportUrl} {ex.Message}: {ex}");
     }
 
@@ -125,35 +135,10 @@ internal class DynamicVariableChangeListener<TV>(
         manager.Unregister(this);
         OnChange -= callback;
     }
-}
 
-internal class DynamicVariableKeyChangeListener<TK, TV> : DynamicVariableChangeListener<TV> where TK : notnull
-{
-    private readonly TK _key;
-
-    internal DynamicVariableKeyChangeListener(DynamicVariableSpace space,
-        TK key,
-        string variableName) : base(space, variableName)
+    internal void LogChange(string typeName, IRestriction restriction, TV value)
     {
-        _key = key;
-    }
-
-    private event Action<TK, TV>? OnChange;
-
-    internal void Register(Action<TK, TV> callback)
-    {
-        base.Register(CallChange);
-        OnChange += callback;
-    }
-
-    internal void Unregister(Action<TK, TV> callback)
-    {
-        base.Unregister(CallChange);
-        OnChange -= callback;
-    }
-
-    private void CallChange(TV value)
-    {
-        OnChange?.SafeInvoke(_key, value!);
+        ResoniteMod.Msg(
+            $"{typeName} of {restriction.Name} changed to '{value}'. ({_refId} @{space?.Slot?.GlobalPosition})");
     }
 }

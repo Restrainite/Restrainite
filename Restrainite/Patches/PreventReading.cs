@@ -2,7 +2,7 @@ using System;
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -18,13 +18,11 @@ internal static class PreventReading
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnChange;
+        Restrictions.PreventReading.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventReading)
-            return;
         var texts = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<Text>();
         if (texts != null)
             foreach (var text in texts)
@@ -53,7 +51,7 @@ internal static class PreventReading
         ref string ____string)
     {
         if (value == null) return true;
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventReading)) return true;
+        if (!Restrictions.PreventReading.IsRestricted) return true;
 
         var source = value.ToCharArray();
         var length = source.Length;

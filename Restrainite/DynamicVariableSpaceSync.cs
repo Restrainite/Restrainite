@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using FrooxEngine;
-using Restrainite.Enums;
-using Restrainite.States;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
-internal class DynamicVariableSpaceSync : IDynamicVariableSpaceWrapper
+internal class DynamicVariableSpaceSync
 {
     internal const string DynamicVariableSpaceName = "Restrainite";
     private const string TargetUserVariableName = "Target User";
@@ -17,53 +15,31 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceWrapper
 
     private readonly WeakReference<DynamicVariableSpace> _dynamicVariableSpace;
 
-    private readonly LocalStateBool _localBoolState;
-
-    private readonly LocalStateLowestFloat _localLowestFloatState;
-
-    private readonly LocalStateStringSet _localStringSetState;
-
     private readonly DynamicVariableChangeListener<string> _passwordListener;
 
-    private readonly string _refId;
-
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
+
+    private ILocalRestriction[]? _restrictions;
 
     private DynamicVariableSpaceSync(DynamicVariableSpace dynamicVariableSpace)
     {
         _dynamicVariableSpace = new WeakReference<DynamicVariableSpace>(dynamicVariableSpace);
-        var user = dynamicVariableSpace.World.GetUserByAllocationID(dynamicVariableSpace.ReferenceID.User);
-        _refId = $"Dynamic Variable Space {dynamicVariableSpace.ReferenceID} created by {user?.UserID} " +
-                 $"in {dynamicVariableSpace.World?.Name}";
         _passwordListener =
             new DynamicVariableChangeListener<string>(dynamicVariableSpace, PasswordVariableName);
         _targetUserListener =
             new DynamicVariableChangeListener<User>(dynamicVariableSpace, TargetUserVariableName);
-        _localBoolState = new LocalStateBool(this);
-        _localLowestFloatState = new LocalStateLowestFloat(this);
-        _localStringSetState = new LocalStateStringSet(this);
     }
 
-    public float GetLowestFloatState(PreventionType preventionType)
-    {
-        return _localLowestFloatState.Get(preventionType);
-    }
-
-    public ImmutableStringSet GetStringSetState(PreventionType preventionType)
-    {
-        return _localStringSetState.Get(preventionType);
-    }
-
-    public bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
+    private bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
     {
         return _dynamicVariableSpace.TryGetTarget(out dynamicVariableSpace);
     }
 
-    public bool IsActiveForLocalUser(PreventionType preventionType)
+    private bool IsActiveForLocalUser(IRestriction restriction)
     {
         if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return false;
         if (!IsValidRestrainiteDynamicSpace(dynamicVariableSpace) ||
-            !RestrainiteMod.Configuration.AllowRestrictionsFromWorld(dynamicVariableSpace.World, preventionType))
+            !RestrainiteMod.Configuration.AllowRestrictionsFromWorld(dynamicVariableSpace.World, restriction))
             return false;
         var user = _targetUserListener.DynamicValue;
         if (user != dynamicVariableSpace.LocalUser) return false;
@@ -73,25 +49,11 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceWrapper
         return RestrainiteMod.Configuration.IsCorrectPassword(password);
     }
 
-    public ICollection<IDynamicVariableSpaceWrapper> GetActiveSpaces(PreventionType preventionType)
-    {
-        lock (Spaces)
-        {
-            return Spaces.Where(space => space._localBoolState.Get(preventionType)).ToArray();
-        }
-    }
-
     private bool Equals(DynamicVariableSpace dynamicVariableSpace)
     {
         var found = _dynamicVariableSpace.TryGetTarget(out var internalDynamicVariableSpace);
         return found && internalDynamicVariableSpace != null &&
                internalDynamicVariableSpace == dynamicVariableSpace;
-    }
-
-    public override string ToString()
-    {
-        var found = GetDynamicVariableSpace(out var internalDynamicVariableSpace);
-        return found ? $"{_refId} @{internalDynamicVariableSpace?.Slot?.GlobalPosition}" : _refId;
     }
 
     internal static void UpdateList(DynamicVariableSpace dynamicVariableSpace)
@@ -129,9 +91,8 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceWrapper
         RestrainiteMod.Configuration.ShouldRecheckPermissions += ShouldCheckStates;
         _passwordListener.Register(OnPasswordChanged);
         _targetUserListener.Register(OnTargetUserChanged);
-        _localBoolState.Register();
-        _localLowestFloatState.Register();
-        _localStringSetState.Register();
+        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
+        _restrictions = Restrictions.CreateLocals(dynamicVariableSpace, IsActiveForLocalUser);
     }
 
     private void OnTargetUserChanged(User user)
@@ -150,16 +111,15 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceWrapper
 
         _passwordListener.Unregister(OnPasswordChanged);
         _targetUserListener.Unregister(OnTargetUserChanged);
-        _localBoolState.Unregister();
-        _localLowestFloatState.Unregister();
-        _localStringSetState.Unregister();
+        if (_restrictions == null) return;
+        foreach (var restriction in _restrictions) restriction.Destroy();
+        _restrictions = null;
     }
 
     private void ShouldCheckStates()
     {
-        _localBoolState.CheckState();
-        _localLowestFloatState.CheckState();
-        _localStringSetState.CheckState();
+        if (_restrictions == null) return;
+        foreach (var restriction in _restrictions) restriction.Check();
     }
 
     private static bool IsValidRestrainiteDynamicSpace(DynamicVariableSpace dynamicVariableSpace)

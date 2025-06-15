@@ -1,7 +1,6 @@
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -10,17 +9,17 @@ internal static class PreventSpeaking
 {
     [HarmonyPostfix]
     [HarmonyPatch(typeof(AudioSystem), nameof(AudioSystem.IsMuted), MethodType.Getter)]
-    private static void PreventSpeaking_AudioSystemIsMuted_Getter_Postfix(ref bool __result)
+    private static void AudioSystem_IsMuted_Getter_Postfix(ref bool __result)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventSpeaking))
+        if (Restrictions.PreventSpeaking.IsRestricted)
         {
             __result = true;
             return;
         }
 
-        if (RestrainiteMod.IsRestricted(PreventionType.SpeakingVolume))
+        if (Restrictions.SpeakingVolume.IsRestricted)
         {
-            var multiplier = RestrainiteMod.GetLowestFloat(PreventionType.SpeakingVolume);
+            var multiplier = Restrictions.SpeakingVolume.LowestFloat.Value;
             if (float.IsNaN(multiplier)) return;
             if (MathX.Approximately(multiplier, 0.0f)) __result = true;
         }

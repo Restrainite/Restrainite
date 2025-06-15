@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -18,13 +18,11 @@ internal static class DisableNameplates
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnRestrictionChanged;
+        Restrictions.DisableNameplates.OnChanged += OnRestrictionChanged;
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, bool value)
+    private static void OnRestrictionChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.DisableNameplates) return;
-
         foreach (var avatarNameplateVisibilityDriver in AvatarNameplateVisibilityDriverList)
             if (avatarNameplateVisibilityDriver.TryGetTarget(out var avatarNameplateVisibilityDriverInstance) &&
                 avatarNameplateVisibilityDriverInstance != null)
@@ -35,27 +33,26 @@ internal static class DisableNameplates
         );
     }
 
-
     [HarmonyPrefix]
     [HarmonyPatch(typeof(AvatarNameplateVisibilityDriver), nameof(AvatarNameplateVisibilityDriver.ShouldBeVisible),
         MethodType.Getter)]
-    private static bool ShouldBeVisiblePrefix(ref bool __result)
+    private static bool AvatarNameplateVisibilityDriver_ShouldBeVisiblePrefix(ref bool __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.DisableNameplates)) return true;
+        if (!Restrictions.DisableNameplates.IsRestricted) return true;
         __result = false;
         return false;
     }
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(AvatarNameplateVisibilityDriver), "OnAwake")]
-    private static void OnAwakePostfix(AvatarNameplateVisibilityDriver __instance)
+    private static void AvatarNameplateVisibilityDriver_OnAwakePostfix(AvatarNameplateVisibilityDriver __instance)
     {
         AvatarNameplateVisibilityDriverList.Add(new WeakReference<AvatarNameplateVisibilityDriver>(__instance));
     }
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(AvatarNameplateVisibilityDriver), "OnDispose")]
-    private static void OnDisposePostfix(AvatarNameplateVisibilityDriver __instance)
+    private static void AvatarNameplateVisibilityDriver_OnDisposePostfix(AvatarNameplateVisibilityDriver __instance)
     {
         AvatarNameplateVisibilityDriverList.RemoveAll(reference =>
             !reference.TryGetTarget(out var target) || target == null || target == __instance

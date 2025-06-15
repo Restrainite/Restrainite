@@ -1,5 +1,5 @@
 using FrooxEngine;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 using SkyFrost.Base;
 
 namespace Restrainite;
@@ -11,18 +11,16 @@ internal static class SetBusyStatus
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnChange;
+        Restrictions.PreventOpeningDash.OnChanged += OnChanged;
+        Restrictions.DisableNotifications.OnChanged += OnChanged;
+        Restrictions.HideDashScreens.OnChanged += OnChanged;
+        Restrictions.ShowDashScreens.OnChanged += OnChanged;
+        Restrictions.PreventReading.OnChanged += OnChanged;
+        Restrictions.PreventSendingMessages.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventOpeningDash &&
-            preventionType != PreventionType.DisableNotifications &&
-            preventionType != PreventionType.HideDashScreens &&
-            preventionType != PreventionType.ShowDashScreens &&
-            preventionType != PreventionType.PreventReading &&
-            preventionType != PreventionType.PreventSendingMessages) return;
-
         if (!RestrainiteMod.Configuration.SetBusyStatus) return;
 
         var currentValue = Engine.Current.Cloud.Status.OnlineStatus;
@@ -44,18 +42,18 @@ internal static class SetBusyStatus
 
     private static bool GetExpectedState()
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventOpeningDash) ||
-            RestrainiteMod.IsRestricted(PreventionType.DisableNotifications) ||
-            RestrainiteMod.IsRestricted(PreventionType.PreventReading) ||
-            RestrainiteMod.IsRestricted(PreventionType.PreventSendingMessages))
+        if (Restrictions.PreventOpeningDash.IsRestricted ||
+            Restrictions.DisableNotifications.IsRestricted ||
+            Restrictions.PreventReading.IsRestricted ||
+            Restrictions.PreventSendingMessages.IsRestricted)
             return true;
 
-        if (RestrainiteMod.IsRestricted(PreventionType.HideDashScreens) &&
-            RestrainiteMod.GetStringSet(PreventionType.HideDashScreens).Contains("Dash.Screens.Contacts"))
+        if (Restrictions.HideDashScreens.IsRestricted &&
+            Restrictions.HideDashScreens.SetContains("Dash.Screens.Contacts"))
             return true;
 
-        if (RestrainiteMod.IsRestricted(PreventionType.ShowDashScreens) &&
-            !RestrainiteMod.GetStringSet(PreventionType.ShowDashScreens).Contains("Dash.Screens.Contacts"))
+        if (Restrictions.ShowDashScreens.IsRestricted &&
+            !Restrictions.ShowDashScreens.SetContains("Dash.Screens.Contacts"))
             return true;
         return false;
     }

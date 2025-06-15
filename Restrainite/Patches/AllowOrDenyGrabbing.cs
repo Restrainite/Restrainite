@@ -2,7 +2,6 @@
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -10,7 +9,8 @@ namespace Restrainite.Patches;
 internal static class AllowOrDenyGrabbing
 {
     private static readonly SlotTagPermissionChecker SlotTagPermissionChecker = new(
-        PreventionType.AllowGrabbingBySlotTags, PreventionType.DenyGrabbingBySlotTags);
+        Restrictions.AllowGrabbingBySlotTags,
+        Restrictions.DenyGrabbingBySlotTags);
 
     private static IEnumerable<MethodBase> TargetMethods()
     {
@@ -23,7 +23,7 @@ internal static class AllowOrDenyGrabbing
     {
         if (__instance.World != Userspace.UserspaceWorld)
             __result &= SlotTagPermissionChecker.IsAllowed(__instance.Slot);
-        else if (RestrainiteMod.IsRestricted(PreventionType.PreventNonDashUserspaceInteraction))
+        else if (Restrictions.PreventNonDashUserspaceInteraction.IsRestricted)
             __result &= __instance.Slot.GetComponentInParents<UserspaceRadiantDash>() != null;
     }
 }

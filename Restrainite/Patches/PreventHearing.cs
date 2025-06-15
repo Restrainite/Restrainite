@@ -1,7 +1,6 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
-using Restrainite.States;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -9,30 +8,22 @@ namespace Restrainite.Patches;
 internal static class PreventHearing
 {
     private static readonly SlotTagPermissionChecker SlotTagPermissionChecker = new(
-        PreventionType.AllowHearingBySlotTags, PreventionType.DenyHearingBySlotTags);
+        Restrictions.AllowHearingBySlotTags,
+        Restrictions.DenyHearingBySlotTags);
 
     internal static void Initialize()
     {
-        RestrainiteMod.BoolState.OnChanged += OnChange;
-        RestrainiteMod.LowestFloatState.OnChanged += OnChange;
-        RestrainiteMod.StringSetState.OnChanged += OnChange;
+        Restrictions.AllowHearingBySlotTags.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.DenyHearingBySlotTags.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.PreventHearing.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.PreventHearingOfUsers.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.PreventHearingOfSounds.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.EnforceSelectiveHearing.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.HearingVolume.OnChanged += MarkAudioOutputsDirty;
+        Restrictions.AlwaysHearSelectedUsers.OnChanged += MarkAudioOutputsDirty;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
-    {
-        if (preventionType != PreventionType.PreventHearing &&
-            preventionType != PreventionType.PreventHearingOfUsers &&
-            preventionType != PreventionType.PreventHearingOfSounds &&
-            preventionType != PreventionType.EnforceSelectiveHearing &&
-            preventionType != PreventionType.AllowHearingBySlotTags &&
-            preventionType != PreventionType.DenyHearingBySlotTags &&
-            preventionType != PreventionType.HearingVolume &&
-            preventionType != PreventionType.AlwaysHearSelectedUsers)
-            return;
-        MarkAudioOutputsDirty();
-    }
-
-    private static void MarkAudioOutputsDirty()
+    private static void MarkAudioOutputsDirty(IRestriction restriction)
     {
         var slot = Engine.Current?.WorldManager?.FocusedWorld.RootSlot;
         slot?.RunInUpdates(0, () =>
@@ -43,24 +34,6 @@ internal static class PreventHearing
         });
     }
 
-    private static void OnChange(PreventionType preventionType, float value)
-    {
-        if (preventionType != PreventionType.HearingVolume || !RestrainiteMod.IsRestricted(preventionType))
-            return;
-        MarkAudioOutputsDirty();
-    }
-
-    private static void OnChange(PreventionType preventionType, ImmutableStringSet stringSet)
-    {
-        if ((preventionType != PreventionType.EnforceSelectiveHearing &&
-             preventionType != PreventionType.AllowHearingBySlotTags &&
-             preventionType != PreventionType.DenyHearingBySlotTags &&
-             preventionType != PreventionType.AlwaysHearSelectedUsers) ||
-            !RestrainiteMod.IsRestricted(preventionType))
-            return;
-        MarkAudioOutputsDirty();
-    }
-
     [HarmonyPostfix]
     [HarmonyPatch(typeof(AudioOutput), nameof(AudioOutput.ActualVolume), MethodType.Getter)]
     private static float AudioOutput_ActualVolume_Getter_Postfix(float result, AudioOutput __instance)
@@ -68,9 +41,9 @@ internal static class PreventHearing
         var slot = __instance.Slot;
         var activeUser = slot?.ActiveUser;
         var volume = result;
-        if (RestrainiteMod.IsRestricted(PreventionType.HearingVolume))
+        if (Restrictions.HearingVolume.IsRestricted)
         {
-            var volumeMultiplier = RestrainiteMod.GetLowestFloat(PreventionType.HearingVolume);
+            var volumeMultiplier = Restrictions.HearingVolume.LowestFloat.Value;
             if (!float.IsNaN(volumeMultiplier))
             {
                 if (volumeMultiplier <= 0.0f) volumeMultiplier = 0.0f;
@@ -83,20 +56,20 @@ internal static class PreventHearing
             return ShouldHearSounds(slot) ? volume : 0.0f;
         var userId = activeUser.UserID;
         if (userId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
-        if (RestrainiteMod.IsRestricted(PreventionType.AlwaysHearSelectedUsers) &&
-            RestrainiteMod.GetStringSet(PreventionType.AlwaysHearSelectedUsers).Contains(userId)) return result;
-        if (RestrainiteMod.IsRestricted(PreventionType.EnforceSelectiveHearing) &&
-            !RestrainiteMod.GetStringSet(PreventionType.EnforceSelectiveHearing).Contains(userId)) return 0.0f;
-        return RestrainiteMod.IsRestricted(PreventionType.PreventHearing) ||
-               RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfUsers)
+        if (Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
+            Restrictions.AlwaysHearSelectedUsers.SetContains(userId)) return result;
+        if (Restrictions.EnforceSelectiveHearing.IsRestricted &&
+            !Restrictions.EnforceSelectiveHearing.SetContains(userId)) return 0.0f;
+        return Restrictions.PreventHearing.IsRestricted ||
+               Restrictions.PreventHearingOfUsers.IsRestricted
             ? 0.0f
             : volume;
     }
 
     private static bool ShouldHearSounds(Slot? slot)
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventHearing) &&
-               !RestrainiteMod.IsRestricted(PreventionType.PreventHearingOfSounds) &&
+        return !Restrictions.PreventHearing.IsRestricted &&
+               !Restrictions.PreventHearingOfSounds.IsRestricted &&
                SlotTagPermissionChecker.IsAllowed(slot);
     }
 }
