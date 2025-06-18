@@ -24,10 +24,11 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
 
     public abstract string Description { get; }
 
-    public ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace, IRestriction.IsValid isValid)
+    public ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
+        IDynamicVariableSpaceSync dynamicVariableSpaceSync)
     {
         var localValue = new T();
-        localValue.Register(dynamicVariableSpace, isValid, this);
+        localValue.Register(dynamicVariableSpace, dynamicVariableSpaceSync, this);
         localValue.OnChanged += Update;
         localValue.OnDestroy += () =>
         {

@@ -4,13 +4,12 @@ namespace Restrainite.RestrictionTypes.Base;
 
 public interface IRestriction
 {
-    delegate bool IsValid(IRestriction restriction);
-
     int Index { get; set; }
     string Name { get; }
     string Description { get; }
 
-    ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace, IsValid isValid);
+    ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
+        IDynamicVariableSpaceSync dynamicVariableSpaceSync);
 
     void CreateStatusComponent(Slot slot, string dynamicVariableSpaceName);
 

@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FrooxEngine;
 using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
-internal class DynamicVariableSpaceSync
+internal class DynamicVariableSpaceSync : IDynamicVariableSpaceSync
 {
     internal const string DynamicVariableSpaceName = "Restrainite";
     private const string TargetUserVariableName = "Target User";
@@ -30,12 +31,7 @@ internal class DynamicVariableSpaceSync
             new DynamicVariableChangeListener<User>(dynamicVariableSpace, TargetUserVariableName);
     }
 
-    private bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
-    {
-        return _dynamicVariableSpace.TryGetTarget(out dynamicVariableSpace);
-    }
-
-    private bool IsActiveForLocalUser(IRestriction restriction)
+    public bool IsActiveForLocalUser(IRestriction restriction)
     {
         if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return false;
         if (!IsValidRestrainiteDynamicSpace(dynamicVariableSpace) ||
@@ -47,6 +43,11 @@ internal class DynamicVariableSpaceSync
         if (!RestrainiteMod.Configuration.RequiresPassword) return true;
         var password = _passwordListener.DynamicValue;
         return RestrainiteMod.Configuration.IsCorrectPassword(password);
+    }
+
+    private bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
+    {
+        return _dynamicVariableSpace.TryGetTarget(out dynamicVariableSpace);
     }
 
     private bool Equals(DynamicVariableSpace dynamicVariableSpace)
@@ -92,7 +93,9 @@ internal class DynamicVariableSpaceSync
         _passwordListener.Register(OnPasswordChanged);
         _targetUserListener.Register(OnTargetUserChanged);
         if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
-        _restrictions = Restrictions.CreateLocals(dynamicVariableSpace, IsActiveForLocalUser);
+        _restrictions = Restrictions.All
+            .Select(restriction => restriction.CreateLocal(dynamicVariableSpace, this))
+            .ToArray();
     }
 
     private void OnTargetUserChanged(User user)

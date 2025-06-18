@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using FrooxEngine;
 using ResoniteModLoader;
 using Restrainite.RestrictionTypes;
 using Restrainite.RestrictionTypes.Base;
@@ -90,12 +89,6 @@ internal static class Restrictions
     }
 
     internal static int Length => All.Length;
-
-    internal static ILocalRestriction[] CreateLocals(DynamicVariableSpace dynamicVariableSpace,
-        IRestriction.IsValid isValid)
-    {
-        return All.Select(restriction => restriction.CreateLocal(dynamicVariableSpace, isValid)).ToArray();
-    }
 
     internal static bool TryGetByName(string name, out IRestriction restriction)
     {

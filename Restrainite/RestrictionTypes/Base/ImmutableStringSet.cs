@@ -108,14 +108,6 @@ public class ImmutableStringSet(IImmutableSet<string> immutableSet)
         return new ImmutableStringSet(immutableHashSet);
     }
 
-    public static ImmutableStringSet From(string? immutableSet)
-    {
-        var splitArray = immutableSet?.Split(',') ?? [];
-        return splitArray.Select(t => t.Trim())
-            .Where(trimmed => trimmed.Length != 0)
-            .ToImmutableHashSet();
-    }
-
     public override string ToString()
     {
         return immutableSet.Aggregate<string, string>("",

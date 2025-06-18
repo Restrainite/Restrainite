@@ -2,11 +2,11 @@ using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal abstract class LowestFloatRestriction : BaseRestriction<LocalLowestFloatRestriction>
+internal abstract class LowestFloatRestriction : BaseRestriction<LocalFloatRestriction>
 {
     internal SimpleState<float> LowestFloat { get; } = new(float.NaN);
 
-    protected override bool Combine(LocalLowestFloatRestriction[] restrictions)
+    protected override bool Combine(LocalFloatRestriction[] restrictions)
     {
         var baseChanged = base.Combine(restrictions);
 

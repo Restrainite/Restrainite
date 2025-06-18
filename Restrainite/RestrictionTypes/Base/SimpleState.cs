@@ -8,11 +8,11 @@ internal class SimpleState<T>(T defaultValue) where T : IEquatable<T>
 
     internal event Action<IRestriction, T>? OnStateChanged;
 
-    internal bool SetIfChanged(IRestriction restriction, T newValue)
+    internal bool SetIfChanged(IRestriction restriction, T newValue, bool triggerEvent = true)
     {
         if (Value.Equals(newValue)) return false;
         Value = newValue;
-        OnStateChanged.SafeInvoke(restriction, Value);
+        if (triggerEvent) OnStateChanged.SafeInvoke(restriction, Value);
         return true;
     }
 }
