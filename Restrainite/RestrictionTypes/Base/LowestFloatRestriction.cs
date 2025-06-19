@@ -12,9 +12,9 @@ internal abstract class LowestFloatRestriction : BaseRestriction<LocalFloatRestr
 
         var lowestFloatValue = float.NaN;
         foreach (var restriction in restrictions)
-            if (!float.IsNaN(restriction.LowestFloat.Value) &&
-                (float.IsNaN(lowestFloatValue) || restriction.LowestFloat.Value < lowestFloatValue))
-                lowestFloatValue = restriction.LowestFloat.Value;
+            if (!float.IsNaN(restriction.FloatState.Value) &&
+                (float.IsNaN(lowestFloatValue) || restriction.FloatState.Value < lowestFloatValue))
+                lowestFloatValue = restriction.FloatState.Value;
 
         var changed = LowestFloat.SetIfChanged(this, lowestFloatValue);
         if (changed) LogChange("Global float", LowestFloat.Value);
