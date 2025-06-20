@@ -35,7 +35,7 @@ If this is the first time you are compiling the mod, start from step 1. Otherwhi
 
 **3.** Clone this repository
 - Find a folder on your PC to download the mod files to. In that folder (or on your desktop), hold shift and right-click. If you see the option "Open in Terminal", click that. Otherwise, pick "Open PowerShell window here."
-- Copy this command: `git clone https://github.com/SnepDrone/Restrainite.git`
+- Copy this command: `git clone https://github.com/Restrainite/Restrainite.git`
 - In the shell window that opened, *RIGHT-CLICK* to paste the command. Ctrl-V will NOT work!
 - Verify that what got pasted matches the command above, then hit enter to run it.
 - Once the command has completed (your cursor is returned to a prompt), you may close the window.
