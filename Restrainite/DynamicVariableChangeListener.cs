@@ -21,6 +21,8 @@ internal class DynamicVariableChangeListener<TV>(
         $"created by {space.World.GetUserByAllocationID(space.ReferenceID.User)?.UserID} " +
         $"in {space.World.Name}";
 
+    private readonly WeakReference<DynamicVariableSpace> _space = new(space);
+
     private TV? _value;
 
     public void ChildChanged(IWorldElement child)
@@ -77,8 +79,9 @@ internal class DynamicVariableChangeListener<TV>(
         }
     }
 
-    public World World => space.World;
-    public IWorldElement Parent => space;
+    public World World => !_space.TryGetTarget(out var dynamicVariableSpace) ? null! : dynamicVariableSpace.World;
+
+    public IWorldElement Parent => !_space.TryGetTarget(out var dynamicVariableSpace) ? null! : dynamicVariableSpace;
     public bool IsLocalElement => true;
     public bool IsPersistent => false;
     public bool IsRemoved => false;
@@ -124,6 +127,7 @@ internal class DynamicVariableChangeListener<TV>(
 
     internal void Register(Action<TV> callback)
     {
+        if (!_space.TryGetTarget(out var space)) return;
         var manager = space.GetManager<TV>(VariableName, true);
         manager.Register(this);
         OnChange += callback;
@@ -131,13 +135,15 @@ internal class DynamicVariableChangeListener<TV>(
 
     internal void Unregister(Action<TV> callback)
     {
+        OnChange -= callback;
+        if (!_space.TryGetTarget(out var space)) return;
         var manager = space.GetManager<TV>(VariableName, true);
         manager.Unregister(this);
-        OnChange -= callback;
     }
 
     internal void LogChange(string typeName, IRestriction restriction, TV value)
     {
+        if (!_space.TryGetTarget(out var space)) return;
         ResoniteMod.Msg(
             $"{typeName} of {restriction.Name} changed to '{value}'. ({_refId} @{space?.Slot?.GlobalPosition})");
     }

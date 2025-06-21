@@ -37,6 +37,7 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
             {
                 _localValues.Remove(localValue);
             }
+            Update();
         };
         lock (_localValues)
         {
