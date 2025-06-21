@@ -13,12 +13,12 @@ internal static class TrackerMovementSpeed
 
     internal static void Initialize()
     {
-        Restrictions.TrackerMovementSpeed.State.OnStateChanged += OnStateChanged;
+        Restrictions.TrackerMovementSpeed.OnChanged += OnChanged;
     }
 
-    private static void OnStateChanged(IRestriction restriction, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (!value) SmoothingFilters.Clear();
+        if (!Restrictions.TrackerMovementSpeed.IsRestricted) SmoothingFilters.Clear();
     }
 
     [HarmonyPrefix]
