@@ -19,7 +19,7 @@ internal static class PreventUserScaling
         var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
         if (user == null) return;
         var activeUserRoot = user.Root.Slot.ActiveUserRoot;
-        activeUserRoot.RunInUpdates(0, () => activeUserRoot.SetUserScale(activeUserRoot.GetDefaultScale(), 0.25f));
+        activeUserRoot.RunSynchronously(() => activeUserRoot.SetUserScale(activeUserRoot.GetDefaultScale(), 0.25f));
     }
 
     [HarmonyPrefix]

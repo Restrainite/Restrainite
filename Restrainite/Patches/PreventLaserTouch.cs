@@ -1,6 +1,7 @@
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
+using ResoniteModLoader;
 using Restrainite.Enums;
 
 namespace Restrainite.Patches;
@@ -14,11 +15,24 @@ internal static class PreventLaserTouch
         LaserEnabledField = AccessTools.Field(typeof(InteractionHandler), "_laserEnabled");
 
     private static readonly MethodInfo?
-        ClearLaserTimeoutMethod = AccessTools.Method(typeof(InteractionLaser),  "ClearLaserTimeout");
-    
+        ClearLaserTimeoutMethod = AccessTools.Method(typeof(InteractionLaser), "ClearLaserTimeout");
+
 
     internal static void Initialize()
     {
+        if (LaserEnabledField == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find field InteractionHandler._laserEnabled");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
+        if (ClearLaserTimeoutMethod == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl +
+                              " Failed to find method InteractionLaser.ClearLaserTimeout");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
         RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
     }
 
@@ -30,11 +44,11 @@ internal static class PreventLaserTouch
         if (user is null) return;
 
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
-        leftInteractionHandler.RunInUpdates(0, () =>
+        leftInteractionHandler.RunSynchronously(() =>
             SetLaserActive(value, leftInteractionHandler, ref _leftOriginalValue));
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
-        rightInteractionHandler.RunInUpdates(0, () =>
+        rightInteractionHandler.RunSynchronously(() =>
             SetLaserActive(value, rightInteractionHandler, ref _rightOriginalValue));
     }
 
@@ -46,10 +60,7 @@ internal static class PreventLaserTouch
         {
             originalValue = syncBool.Value;
             syncBool.Value = false;
-            if (interactionHandler.Laser != null)
-            {
-                ClearLaserTimeoutMethod?.Invoke(interactionHandler.Laser, []);
-            }
+            if (interactionHandler.Laser != null) ClearLaserTimeoutMethod?.Invoke(interactionHandler.Laser, []);
         }
         else
         {

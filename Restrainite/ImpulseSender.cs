@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Immutable;
 using FrooxEngine;
 using FrooxEngine.ProtoFlux;
 using Restrainite.Enums;
@@ -18,16 +17,11 @@ internal class ImpulseSender
         _userRoot = new WeakReference<UserRoot>(userRoot);
     }
 
-    internal void SendDynamicImpulseForStringSet(PreventionType preventionType, IImmutableSet<string> stringSet)
-    {
-        SendDynamicImpulse(preventionType, RestrainiteMod.StringSetAsString(stringSet));
-    }
-
     internal void SendDynamicImpulse<T>(PreventionType preventionType, T value)
     {
         if (!_configuration.SendDynamicImpulses) return;
         if (!GetLocalUserSlot(out var slot) || slot == null) return;
-        slot.RunInUpdates(0, () =>
+        slot.RunSynchronously(() =>
         {
             if (slot.IsDestroyed || slot.IsDestroying) return;
             if (!_configuration.AllowRestrictionsFromWorld(slot.World, preventionType)) return;

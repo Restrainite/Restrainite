@@ -13,20 +13,31 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class MaximumHearingDistance
 {
-    private static MethodInfo? _nativeOutputMethod;
-    private static MethodInfo? _audioInletMethod;
+    private static readonly MethodInfo? NativeOutputMethod =
+        AccessTools.PropertyGetter(typeof(AudioOutput), "NativeOutput");
+
+    private static readonly MethodInfo? AudioInletMethod =
+        AccessTools.PropertyGetter(typeof(AudioManager), "EffectsInlet");
 
     internal static void Initialize()
     {
+        if (NativeOutputMethod == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method AudioOutput.NativeOutput");
+            RestrainiteMod.SuccessfullyPatched = false;
+            return;
+        }
+
+        if (AudioInletMethod == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method AudioManager.EffectsInlet");
+            RestrainiteMod.SuccessfullyPatched = false;
+            return;
+        }
+
         RestrainiteMod.OnRestrictionChanged += OnChange;
         RestrainiteMod.OnFloatChanged += OnFloatChange;
         RestrainiteMod.OnStringSetChanged += OnStringSetChange;
-
-        _nativeOutputMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioOutput), "NativeOutput");
-        if (_nativeOutputMethod == null) ResoniteMod.Warn("Failed to find method AudioOutput.NativeOutput");
-
-        _audioInletMethod = AccessTools.DeclaredPropertyGetter(typeof(AudioManager), "EffectsInlet");
-        if (_audioInletMethod == null) ResoniteMod.Warn("Failed to find method AudioManager.EffectsInlet");
     }
 
     private static void OnChange(PreventionType preventionType, bool value)
@@ -34,27 +45,21 @@ internal static class MaximumHearingDistance
         if (preventionType != PreventionType.MaximumHearingDistance &&
             preventionType != PreventionType.AlwaysHearSelectedUsers)
             return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+        PreventHearing.MarkAudioOutputsDirty();
     }
 
     private static void OnFloatChange(PreventionType preventionType, float value)
     {
         if (preventionType != PreventionType.MaximumHearingDistance)
             return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+        PreventHearing.MarkAudioOutputsDirty();
     }
 
     private static void OnStringSetChange(PreventionType preventionType, IImmutableSet<string> value)
     {
         if (preventionType != PreventionType.AlwaysHearSelectedUsers)
             return;
-        var list = Engine.Current?.WorldManager?.FocusedWorld?.RootSlot?.GetComponentsInChildren<AudioOutput>();
-        if (list == null) return;
-        foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+        PreventHearing.MarkAudioOutputsDirty();
     }
 
 
@@ -67,7 +72,7 @@ internal static class MaximumHearingDistance
         ref IAudioShape ____audioShape)
     {
         if (!RestrainiteMod.IsRestricted(PreventionType.MaximumHearingDistance)) return true;
-        if (_nativeOutputMethod == null || _audioInletMethod == null) return true;
+        if (NativeOutputMethod == null || AudioInletMethod == null) return true;
         if (IsAlwaysHearingSelectedUsers(__instance)) return true;
 
         var restrictedDistance = RestrainiteMod.GetLowestFloat(PreventionType.MaximumHearingDistance);
@@ -78,7 +83,7 @@ internal static class MaximumHearingDistance
 
         ____updateRegistered = false;
 
-        var nativeOutput = (Awwdio.AudioOutput?)_nativeOutputMethod.Invoke(__instance, []);
+        var nativeOutput = (Awwdio.AudioOutput?)NativeOutputMethod.Invoke(__instance, []);
         if (nativeOutput == null || __instance.IsRemoved)
             return false;
 
@@ -110,7 +115,7 @@ internal static class MaximumHearingDistance
 
 
         nativeOutput.Update(batch, __instance.Source.Target, ____audioShape,
-            __instance.IgnoreAudioEffects.Value ? null : (AudioInlet)_audioInletMethod.Invoke(__instance.Audio, []));
+            __instance.IgnoreAudioEffects.Value ? null : (AudioInlet)AudioInletMethod.Invoke(__instance.Audio, []));
         return false;
     }
 

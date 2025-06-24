@@ -19,7 +19,7 @@ internal static class PreventOpeningContextMenu
             return;
 
         var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
-        user.Root.RunInUpdates(0, () => user.CloseContextMenu(null!));
+        user.Root.RunSynchronously(() => user.CloseContextMenu(null!));
     }
 
     [HarmonyPrefix]

@@ -28,7 +28,7 @@ internal class RestrictionStateOutput
     {
         if (!_userSlot.TryGetTarget(out var userSlot)) return;
         if (userSlot.IsDestroyed || userSlot.IsDestroying) return;
-        userSlot.RunInUpdates(0, ShowOrHideRestrainiteRootSlot);
+        userSlot.RunSynchronously(ShowOrHideRestrainiteRootSlot);
     }
 
     private void ShowOrHideRestrainiteRootSlot()
@@ -39,7 +39,7 @@ internal class RestrictionStateOutput
         if (!show && !_isBeingShown) return;
         _isBeingShown = show;
 
-        userSlot.RunInUpdates(0, show ? AddRestrainiteSlot : RemoveRestrainiteSlot);
+        userSlot.RunSynchronously(show ? AddRestrainiteSlot : RemoveRestrainiteSlot);
     }
 
     private void AddRestrainiteSlot()
@@ -50,8 +50,10 @@ internal class RestrictionStateOutput
 
         ResoniteMod.Msg($"Adding Restrainite slot to {userSlot.Name} {userSlot.ReferenceID} " +
                         $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
-        DeleteOldSlotIfMoved();
-        var restrainiteSlot = userSlot.FindChildOrAdd(RestrainiteRootSlotName, false);
+        DeleteOldSlotIfMovedOutOfUserSlot(userSlot);
+        var restrainiteSlot = _oldSlot != null && _oldSlot.TryGetTarget(out var slot)
+            ? slot
+            : userSlot.FindChildOrAdd(RestrainiteRootSlotName, false);
         _oldSlot = new WeakReference<Slot>(restrainiteSlot);
 
         CreateVersionComponent(restrainiteSlot);
@@ -60,16 +62,18 @@ internal class RestrictionStateOutput
 
         CreatePasswordComponent(restrainiteSlot);
 
+        AddSelfReferenceComponent(restrainiteSlot);
+
         AddOrRemoveComponents(restrainiteSlot);
     }
 
-    private void DeleteOldSlotIfMoved()
+    private void DeleteOldSlotIfMovedOutOfUserSlot(Slot userSlot)
     {
         if (_oldSlot == null ||
             !_oldSlot.TryGetTarget(out var slot) ||
-            !_userSlot.TryGetTarget(out var userSlot) ||
-            slot.Parent == userSlot) return;
+            slot.FindParent(s => s == userSlot, 20) != null) return;
         slot.Destroy(true);
+        _oldSlot = null;
     }
 
     private void CreateDynamicVariableSpace()
@@ -160,6 +164,17 @@ internal class RestrictionStateOutput
         component.Value.Value = _configuration.RequiresPassword;
     }
 
+    private static void AddSelfReferenceComponent(Slot restrainiteSlot)
+    {
+        const string selfReferenceName = "User/Restrainite Status Slot";
+        var component =
+            restrainiteSlot.GetComponentOrAttach<DynamicReferenceVariable<Slot>>(search =>
+                selfReferenceName.Equals(search.VariableName.Value));
+        component.VariableName.Value = selfReferenceName;
+        component.Persistent = false;
+        component.Reference.Target = restrainiteSlot;
+    }
+
     private static void OnPresetChanged(SyncField<string> syncField)
     {
         try
@@ -179,16 +194,11 @@ internal class RestrictionStateOutput
     {
         var expandedName = preventionType.ToExpandedString();
         var slot = restrainiteSlot.FindChild(expandedName);
-        if (slot == null)
-        {
-            ResoniteMod.Msg($"Creating Components for {preventionType} in {restrainiteSlot.Name} " +
-                            $"{restrainiteSlot.ReferenceID} in {restrainiteSlot.Parent?.Name} {restrainiteSlot.World?.Name}");
-            slot = restrainiteSlot.AddSlot(expandedName, false);
-        }
+        if (slot == null) slot = restrainiteSlot.AddSlot(expandedName, false);
 
         slot.Tag = $"{DynamicVariableSpaceSync.DynamicVariableSpaceName}/{expandedName}";
 
-        var component = GetComponentOrCreate(preventionType, slot,
+        var component = GetComponentOrCreate(slot,
             $"{DynamicVariableSpaceStatusName}/{expandedName}",
             RestrainiteMod.IsRestricted(preventionType),
             out var attached);
@@ -197,7 +207,7 @@ internal class RestrictionStateOutput
         {
             Action<PreventionType, bool> onUpdate = (type, value) =>
             {
-                if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => component.Value.Value = value);
+                if (preventionType == type) restrainiteSlot.RunSynchronously(() => component.Value.Value = value);
             };
             RestrainiteMod.OnRestrictionChanged += onUpdate;
             component.Disposing += _ => { RestrainiteMod.OnRestrictionChanged -= onUpdate; };
@@ -205,7 +215,7 @@ internal class RestrictionStateOutput
 
         if (preventionType.IsFloatType())
         {
-            var componentFloat = GetComponentOrCreate(preventionType, slot,
+            var componentFloat = GetComponentOrCreate(slot,
                 $"{DynamicVariableSpaceStatusName}/{expandedName}",
                 RestrainiteMod.GetLowestFloat(preventionType),
                 out var attachedFloat);
@@ -213,7 +223,7 @@ internal class RestrictionStateOutput
             if (!attachedFloat) return;
             Action<PreventionType, float> onUpdateFloat = (type, value) =>
             {
-                if (preventionType == type) restrainiteSlot.RunInUpdates(0, () => componentFloat.Value.Value = value);
+                if (preventionType == type) restrainiteSlot.RunSynchronously(() => componentFloat.Value.Value = value);
             };
             RestrainiteMod.OnFloatChanged += onUpdateFloat;
             componentFloat.Disposing += _ => { RestrainiteMod.OnFloatChanged -= onUpdateFloat; };
@@ -221,7 +231,7 @@ internal class RestrictionStateOutput
 
         if (preventionType.IsStringSetType())
         {
-            var componentStringSet = GetComponentOrCreate(preventionType, slot,
+            var componentStringSet = GetComponentOrCreate(slot,
                 $"{DynamicVariableSpaceStatusName}/{expandedName}",
                 RestrainiteMod.StringSetAsString(RestrainiteMod.GetStringSet(preventionType)),
                 out var attachedStringSet);
@@ -230,15 +240,15 @@ internal class RestrictionStateOutput
             Action<PreventionType, IImmutableSet<string>> onUpdateStringSet = (type, value) =>
             {
                 if (preventionType == type)
-                    restrainiteSlot.RunInUpdates(0,
-                        () => componentStringSet.Value.Value = RestrainiteMod.StringSetAsString(value));
+                    restrainiteSlot.RunSynchronously(() =>
+                        componentStringSet.Value.Value = RestrainiteMod.StringSetAsString(value));
             };
             RestrainiteMod.OnStringSetChanged += onUpdateStringSet;
             componentStringSet.Disposing += _ => { RestrainiteMod.OnStringSetChanged -= onUpdateStringSet; };
         }
     }
 
-    private static DynamicValueVariable<T> GetComponentOrCreate<T>(PreventionType preventionType, Slot slot,
+    private static DynamicValueVariable<T> GetComponentOrCreate<T>(Slot slot,
         string nameWithPrefix, T defaultValue, out bool attached)
     {
         var component = slot.GetComponentOrAttach<DynamicValueVariable<T>>(out attached,
@@ -264,27 +274,6 @@ internal class RestrictionStateOutput
                              $"{oldSlot.Parent?.Name} {oldSlot.World?.Name}, too many children: {oldSlot.ChildrenCount}");
             return;
         }
-
-        var nameWithPrefix = $"{DynamicVariableSpaceStatusName}/{expandedName}";
-        oldSlot.RemoveAllComponents(component => component is GizmoLink);
-        oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<bool> dynComponent &&
-                                                 nameWithPrefix.Equals(dynComponent.VariableName.Value));
-        if (preventionType.IsFloatType())
-            oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<float> dynComponent &&
-                                                     nameWithPrefix.Equals(dynComponent.VariableName.Value));
-        if (preventionType.IsStringSetType())
-            oldSlot.RemoveAllComponents(component => component is DynamicValueVariable<string> dynComponent &&
-                                                     nameWithPrefix.Equals(dynComponent.VariableName.Value));
-
-        if (oldSlot.ComponentCount != 0)
-        {
-            ResoniteMod.Warn($"Unable to remove slot {oldSlot.Name} {oldSlot.ReferenceID} in " +
-                             $"{oldSlot.Parent?.Name} {oldSlot.World?.Name}, too many components: {oldSlot.ComponentCount}");
-            return;
-        }
-
-        ResoniteMod.Msg($"Removing Components for {preventionType} in {restrainiteSlot.Name} " +
-                        $"{restrainiteSlot.ReferenceID} in {restrainiteSlot.Parent?.Name} {restrainiteSlot.World?.Name}");
 
         oldSlot.Destroy(true);
     }

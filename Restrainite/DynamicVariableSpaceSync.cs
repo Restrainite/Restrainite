@@ -1,8 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text;
 using FrooxEngine;
 using ResoniteModLoader;
 using Restrainite.Enums;
@@ -17,7 +17,7 @@ internal class DynamicVariableSpaceSync
 
     private static readonly List<DynamicVariableSpaceSync> Spaces = [];
 
-    private static readonly BitArray GlobalState = new(PreventionTypes.Max, false);
+    private static readonly bool[] GlobalState = CreateDefaultArray(false);
 
     private static readonly float[] LowestFloatState = CreateDefaultArray(float.NaN);
 
@@ -34,17 +34,17 @@ internal class DynamicVariableSpaceSync
 
     private readonly float[] _localFloatValues = CreateDefaultArray(float.NaN);
 
-    private readonly BitArray _localState = new(PreventionTypes.Max, false);
+    private readonly bool[] _localState = CreateDefaultArray(false);
 
     private readonly DynamicVariableChangeListener<string> _passwordListener;
 
     private readonly string _refId;
 
+    private readonly string[][] _stringListValues =
+        CreateDefaultArray<string[]>([]);
+
     private readonly DynamicVariableKeyChangeListener<PreventionType, string>?[] _stringSetListeners =
         CreateDefaultArray<DynamicVariableKeyChangeListener<PreventionType, string>?>(null!);
-
-    private readonly IImmutableSet<string>[] _stringSetValues =
-        CreateDefaultArray<IImmutableSet<string>>(ImmutableHashSet<string>.Empty);
 
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
 
@@ -102,9 +102,9 @@ internal class DynamicVariableSpaceSync
         return _localFloatValues[(int)preventionType];
     }
 
-    private IImmutableSet<string> GetLocalStringSet(PreventionType preventionType)
+    private IEnumerable<string> GetLocalStringSet(PreventionType preventionType)
     {
-        return _stringSetValues[(int)preventionType];
+        return _stringListValues[(int)preventionType];
     }
 
     private void UpdateLocalState(PreventionType preventionType, bool value)
@@ -121,23 +121,17 @@ internal class DynamicVariableSpaceSync
             (float.IsNegativeInfinity(currentValue) && float.IsNegativeInfinity(value)) ||
             currentValue == value) return;
         _localFloatValues[(int)preventionType] = value;
-        var source = Source();
-        ResoniteMod.Msg($"Local Float of {preventionType.ToExpandedString()} changed to {value}. ({source})");
-
-        UpdateGlobalState(preventionType, source);
+        UpdateGlobalState(preventionType, "");
     }
 
     private void UpdateLocalStringListState(PreventionType preventionType, string value)
     {
         if (!preventionType.IsStringSetType()) return;
-        var currentValue = _stringSetValues[(int)preventionType];
+        var currentValue = _stringListValues[(int)preventionType];
         var newValue = SplitStringToList(value);
-        if (currentValue.Equals(newValue)) return;
-        _stringSetValues[(int)preventionType] = newValue;
-        var source = Source();
-        ResoniteMod.Msg($"Local String Set of {preventionType.ToExpandedString()} changed to {newValue}. ({source})");
-
-        UpdateGlobalState(preventionType, source);
+        if (currentValue.Length == newValue.Length && currentValue.SequenceEqual(newValue)) return;
+        _stringListValues[(int)preventionType] = newValue;
+        UpdateGlobalState(preventionType, "");
     }
 
     private void UpdateLocalStateInternal(PreventionType preventionType, bool value)
@@ -171,8 +165,6 @@ internal class DynamicVariableSpaceSync
             if (float.IsNegativeInfinity(currentValue) && float.IsNegativeInfinity(lowestFloat)) return;
             if (currentValue == lowestFloat) return;
             LowestFloatState[(int)preventionType] = lowestFloat;
-            ResoniteMod.Msg($"Global Float of {preventionType.ToExpandedString()} " +
-                            $"changed to {lowestFloat}. ({source})");
             NotifyGlobalFloatStateChange(preventionType, lowestFloat);
         }
 
@@ -182,8 +174,6 @@ internal class DynamicVariableSpaceSync
             var currentValue = GetGlobalStringSet(preventionType);
             if (currentValue.Equals(completeSet)) return;
             GlobalStringSet[(int)preventionType] = completeSet;
-            ResoniteMod.Msg($"Global String set of {preventionType.ToExpandedString()} " +
-                            $"changed to {completeSet}. ({source})");
             NotifyGlobalStringSetChange(preventionType, completeSet);
         }
     }
@@ -191,7 +181,22 @@ internal class DynamicVariableSpaceSync
     private string Source()
     {
         var found = GetDynamicVariableSpace(out var internalDynamicVariableSpace);
-        return found ? $"{_refId} @{internalDynamicVariableSpace?.Slot?.GlobalPosition}" : _refId;
+        if (!found) return _refId;
+
+        var slot = internalDynamicVariableSpace?.Slot;
+
+        if (slot == null) return _refId;
+
+        var slotTree = new StringBuilder();
+        var parent = slot.Parent;
+        var maxDepth = 20;
+        while (parent != null && maxDepth-- > 0)
+        {
+            slotTree.Insert(0, $"/{parent.Name}");
+            parent = parent.Parent;
+        }
+
+        return $"{_refId} {slotTree}";
     }
 
     private static bool CalculateGlobalState(PreventionType preventionType)
@@ -272,13 +277,12 @@ internal class DynamicVariableSpaceSync
         return GlobalStringSet[(int)preventionType];
     }
 
-    private static IImmutableSet<string> SplitStringToList(object? value)
+    private static string[] SplitStringToList(object? value)
     {
         var splitArray = (value as string)?.Split(',') ?? [];
         return splitArray.Select(t => t.Trim())
             .Where(trimmed => trimmed.Length != 0)
-            .ToList()
-            .ToImmutableHashSet();
+            .ToArray();
     }
 
     internal static void UpdateList(DynamicVariableSpace dynamicVariableSpace)
@@ -286,7 +290,7 @@ internal class DynamicVariableSpaceSync
         var isValid = IsValidRestrainiteDynamicSpace(dynamicVariableSpace);
         DynamicVariableSpaceSync? shouldUnregister = null;
         DynamicVariableSpaceSync? shouldRegister = null;
-        
+
         lock (Spaces)
         {
             var index = Spaces.FindIndex(space => space.Equals(dynamicVariableSpace));
@@ -306,6 +310,7 @@ internal class DynamicVariableSpaceSync
                 dynamicVariableSpace.Destroyed += _ => { Remove(dynamicVariableSpace); };
             }
         }
+
         shouldUnregister?.Unregister();
         shouldRegister?.Register();
     }

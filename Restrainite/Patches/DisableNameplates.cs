@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
+using ResoniteModLoader;
 using Restrainite.Enums;
 
 namespace Restrainite.Patches;
@@ -13,11 +14,18 @@ internal static class DisableNameplates
     private static readonly List<WeakReference<AvatarNameplateVisibilityDriver>> AvatarNameplateVisibilityDriverList =
         [];
 
-    private static readonly MethodInfo UpdateVisibility =
+    private static readonly MethodInfo? UpdateVisibility =
         AccessTools.Method(typeof(AvatarNameplateVisibilityDriver), "UpdateVisibility");
 
     internal static void Initialize()
     {
+        if (UpdateVisibility == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl +
+                              " Failed to find method AvatarNameplateVisibilityDriver.UpdateVisibility");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
         RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
     }
 
@@ -28,10 +36,10 @@ internal static class DisableNameplates
         foreach (var avatarNameplateVisibilityDriver in AvatarNameplateVisibilityDriverList)
             if (avatarNameplateVisibilityDriver.TryGetTarget(out var avatarNameplateVisibilityDriverInstance) &&
                 avatarNameplateVisibilityDriverInstance != null)
-                UpdateVisibility.Invoke(avatarNameplateVisibilityDriverInstance, []);
+                UpdateVisibility?.Invoke(avatarNameplateVisibilityDriverInstance, []);
 
-        AvatarNameplateVisibilityDriverList.RemoveAll(
-            reference => !reference.TryGetTarget(out var target) || target == null
+        AvatarNameplateVisibilityDriverList.RemoveAll(reference =>
+            !reference.TryGetTarget(out var target) || target == null
         );
     }
 
@@ -57,8 +65,8 @@ internal static class DisableNameplates
     [HarmonyPatch(typeof(AvatarNameplateVisibilityDriver), "OnDispose")]
     private static void OnDisposePostfix(AvatarNameplateVisibilityDriver __instance)
     {
-        AvatarNameplateVisibilityDriverList.RemoveAll(
-            reference => !reference.TryGetTarget(out var target) || target == null || target == __instance
+        AvatarNameplateVisibilityDriverList.RemoveAll(reference =>
+            !reference.TryGetTarget(out var target) || target == null || target == __instance
         );
     }
 }

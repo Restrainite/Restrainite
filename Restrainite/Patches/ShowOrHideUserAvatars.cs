@@ -27,7 +27,7 @@ internal static class ShowOrHideUserAvatars
     private static void MarkAllUsersDirty()
     {
         var world = Engine.Current?.WorldManager?.FocusedWorld;
-        world?.RunInUpdates(0, () =>
+        world?.RunSynchronously(() =>
         {
             var userList = world.AllUsers;
             if (userList is null) return;

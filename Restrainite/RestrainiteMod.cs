@@ -23,7 +23,7 @@ public class RestrainiteMod : ResoniteMod
 
     public override string Link => "https://restrainite.github.io";
 
-    internal static bool SuccessfullyPatched { get; private set; } = true;
+    internal static bool SuccessfullyPatched { get; set; } = true;
 
     /**
      * OnRestrictionChanged will fire, when the restriction is activated or deactivated. It will take into account, if
@@ -131,7 +131,7 @@ public class RestrainiteMod : ResoniteMod
      */
     internal static void NotifyRestrictionChanged(World source, PreventionType preventionType, bool value)
     {
-        source.RunInUpdates(0, () => OnRestrictionChanged.SafeInvoke(preventionType, value));
+        source.RunSynchronously(() => OnRestrictionChanged.SafeInvoke(preventionType, value));
     }
 
     /**
@@ -139,7 +139,7 @@ public class RestrainiteMod : ResoniteMod
      */
     internal static void NotifyFloatChanged(World source, PreventionType preventionType, float value)
     {
-        source.RunInUpdates(0, () => OnFloatChanged.SafeInvoke(preventionType, value));
+        source.RunSynchronously(() => OnFloatChanged.SafeInvoke(preventionType, value));
     }
 
     internal static float GetLowestFloat(PreventionType preventionType)
@@ -153,6 +153,6 @@ public class RestrainiteMod : ResoniteMod
     internal static void NotifyStringSetChanged(World source, PreventionType preventionType,
         IImmutableSet<string> value)
     {
-        source.RunInUpdates(0, () => OnStringSetChanged.SafeInvoke(preventionType, value));
+        source.RunSynchronously(() => OnStringSetChanged.SafeInvoke(preventionType, value));
     }
 }

@@ -1,5 +1,7 @@
+using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
+using ResoniteModLoader;
 using Restrainite.Enums;
 
 namespace Restrainite.Patches;
@@ -7,8 +9,17 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class PreventGrabbing
 {
+    private static readonly MethodInfo? EndGrabMethod =
+        AccessTools.Method(typeof(InteractionHandler), "EndGrab", [typeof(bool)]);
+
     internal static void Initialize()
     {
+        if (EndGrabMethod == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method InteractionHandler.EndGrab");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
         RestrainiteMod.OnRestrictionChanged += OnChange;
     }
 
@@ -18,17 +29,16 @@ internal static class PreventGrabbing
             !value)
             return;
 
-        var method = AccessTools.Method(typeof(InteractionHandler), "EndGrab", [typeof(bool)]);
-        if (method == null) return;
+        if (EndGrabMethod == null) return;
         var user = Engine.Current?.WorldManager?.FocusedWorld?.LocalUser;
         if (user == null) return;
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
         if (leftInteractionHandler != null)
-            leftInteractionHandler.RunInUpdates(0, () => { method.Invoke(leftInteractionHandler, [false]); });
+            leftInteractionHandler.RunSynchronously(() => { EndGrabMethod.Invoke(leftInteractionHandler, [false]); });
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
         if (rightInteractionHandler != null)
-            rightInteractionHandler.RunInUpdates(0, () => { method.Invoke(rightInteractionHandler, [false]); });
+            rightInteractionHandler.RunSynchronously(() => { EndGrabMethod.Invoke(rightInteractionHandler, [false]); });
     }
 
     [HarmonyPrefix]

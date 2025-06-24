@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
+using ResoniteModLoader;
 using Restrainite.Enums;
 
 namespace Restrainite.Patches;
@@ -11,8 +15,16 @@ internal static class PreventHearing
     private static readonly SlotTagPermissionChecker SlotTagPermissionChecker = new(
         PreventionType.AllowHearingBySlotTags, PreventionType.DenyHearingBySlotTags);
 
+    private static readonly FieldInfo? AudioManagerOutputs = AccessTools.Field(typeof(AudioManager), "_outputs");
+
     internal static void Initialize()
     {
+        if (AudioManagerOutputs == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method AudioOutput._outputs");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
         RestrainiteMod.OnRestrictionChanged += OnChange;
         RestrainiteMod.OnFloatChanged += OnChange;
         RestrainiteMod.OnStringSetChanged += OnChange;
@@ -32,14 +44,15 @@ internal static class PreventHearing
         MarkAudioOutputsDirty();
     }
 
-    private static void MarkAudioOutputsDirty()
+    internal static void MarkAudioOutputsDirty()
     {
-        var slot = Engine.Current?.WorldManager?.FocusedWorld.RootSlot;
-        slot?.RunInUpdates(0, () =>
+        var world = Engine.Current?.WorldManager?.FocusedWorld;
+        world?.RunSynchronously(() =>
         {
-            var list = slot.GetComponentsInChildren<AudioOutput>();
-            if (list == null) return;
-            foreach (var audioOutput in list) audioOutput?.MarkChangeDirty();
+            var sources = AudioManagerOutputs?.GetValue(world.Audio);
+            if (sources is not HashSet<AudioOutput> audioOutputs) return;
+            foreach (var audioOutput in audioOutputs.Where(audioOutput => audioOutput.IsRegistered))
+                audioOutput.MarkChangeDirty();
         });
     }
 
