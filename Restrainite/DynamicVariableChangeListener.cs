@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -143,8 +144,26 @@ internal class DynamicVariableChangeListener<TV>(
 
     internal void LogChange(string typeName, IRestriction restriction, TV value)
     {
-        if (!_space.TryGetTarget(out var space)) return;
         ResoniteMod.Msg(
-            $"{typeName} of {restriction.Name} changed to '{value}'. ({_refId} @{space?.Slot?.GlobalPosition})");
+            $"{typeName} of {restriction.Name} changed to '{value}'. ({Source()})");
+    }
+
+    private string Source()
+    {
+        if (!_space.TryGetTarget(out var space)) return _refId;
+        var slot = space?.Slot;
+
+        if (slot == null) return _refId;
+
+        var slotTree = new StringBuilder();
+        var parent = slot.Parent;
+        var maxDepth = 20;
+        while (parent != null && maxDepth-- > 0)
+        {
+            slotTree.Insert(0, $"/{parent.Name}");
+            parent = parent.Parent;
+        }
+
+        return $"{_refId} {slotTree}";
     }
 }

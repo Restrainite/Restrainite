@@ -40,7 +40,7 @@ internal static class MaximumHearingDistance
 
     private static void OnChanged(IRestriction restriction)
     {
-        PreventHearing.MarkAudioOutputsDirty();
+        PreventHearing.MarkAudioOutputsDirty(restriction);
     }
 
 

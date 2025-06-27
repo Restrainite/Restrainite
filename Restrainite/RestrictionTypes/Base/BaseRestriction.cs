@@ -37,6 +37,7 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
             {
                 _localValues.Remove(localValue);
             }
+
             Update();
         };
         lock (_localValues)
@@ -52,20 +53,11 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
         CreateStatusComponent(slot, dynamicVariableSpaceName, State, a => a);
     }
 
-    public virtual void RegisterImpulseSender(ImpulseSender impulseSender)
+    public void RegisterImpulseSender(ImpulseSender impulseSender)
     {
-        RegisterStateImpulseSender(impulseSender, State, a => a);
-    }
-
-    protected void RegisterStateImpulseSender<TS, TV>(ImpulseSender impulseSender, SimpleState<TS> state,
-        Func<TS, TV> to) where TS : IEquatable<TS>
-    {
-        Action<IRestriction, TS> action = (restriction, value) =>
-        {
-            impulseSender.SendDynamicImpulse(restriction, to(value));
-        };
-        state.OnStateChanged += action;
-        impulseSender.OnDestroy += () => { state.OnStateChanged -= action; };
+        Action<IRestriction, bool> action = impulseSender.SendDynamicImpulse;
+        State.OnStateChanged += action;
+        impulseSender.OnDestroy += () => { State.OnStateChanged -= action; };
     }
 
     protected void CreateStatusComponent<TS, TV>(
@@ -85,7 +77,7 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
         if (!attached) return;
         Action<IRestriction, TS> onUpdate = (_, value) =>
         {
-            slot.RunInUpdates(0, () => component.Value.Value = to(value));
+            slot.RunSynchronously(() => component.Value.Value = to(value));
         };
         state.OnStateChanged += onUpdate;
         component.Disposing += _ => { state.OnStateChanged -= onUpdate; };

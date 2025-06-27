@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.RestrictionTypes.Base;
 using ResoniteModLoader;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 

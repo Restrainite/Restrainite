@@ -45,10 +45,4 @@ internal abstract class StringSetRestriction : BaseRestriction<LocalStringRestri
             StringSet,
             a => a.ToString());
     }
-
-    public override void RegisterImpulseSender(ImpulseSender impulseSender)
-    {
-        base.RegisterImpulseSender(impulseSender);
-        RegisterStateImpulseSender(impulseSender, StringSet, a => a.ToString());
-    }
 }

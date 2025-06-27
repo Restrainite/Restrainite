@@ -27,10 +27,4 @@ internal abstract class LowestFloatRestriction : BaseRestriction<LocalFloatRestr
         base.CreateStatusComponent(slot, dynamicVariableSpaceName);
         CreateStatusComponent(slot, dynamicVariableSpaceName, LowestFloat, a => a);
     }
-
-    public override void RegisterImpulseSender(ImpulseSender impulseSender)
-    {
-        base.RegisterImpulseSender(impulseSender);
-        RegisterStateImpulseSender(impulseSender, LowestFloat, a => a);
-    }
 }

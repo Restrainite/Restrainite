@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.RestrictionTypes.Base;
 using ResoniteModLoader;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -36,7 +35,7 @@ internal static class PreventHearing
         Restrictions.AlwaysHearSelectedUsers.OnChanged += MarkAudioOutputsDirty;
     }
 
-    private static void MarkAudioOutputsDirty(IRestriction restriction)
+    internal static void MarkAudioOutputsDirty(IRestriction restriction)
     {
         var world = Engine.Current?.WorldManager?.FocusedWorld;
         world?.RunSynchronously(() =>
