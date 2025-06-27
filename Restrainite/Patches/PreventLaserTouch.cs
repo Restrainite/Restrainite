@@ -44,11 +44,11 @@ internal static class PreventLaserTouch
         if (user is null) return;
 
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
-        leftInteractionHandler.RunSynchronously(() =>
+        leftInteractionHandler.RunInUpdates(0, () =>
             SetLaserActive(value, leftInteractionHandler, ref _leftOriginalValue));
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
-        rightInteractionHandler.RunSynchronously(() =>
+        rightInteractionHandler.RunInUpdates(0, () =>
             SetLaserActive(value, rightInteractionHandler, ref _rightOriginalValue));
     }
 

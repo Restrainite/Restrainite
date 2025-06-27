@@ -34,11 +34,11 @@ internal static class PreventGrabbing
         if (user == null) return;
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
         if (leftInteractionHandler != null)
-            leftInteractionHandler.RunSynchronously(() => { EndGrabMethod.Invoke(leftInteractionHandler, [false]); });
+            leftInteractionHandler.RunInUpdates(0, () => { EndGrabMethod.Invoke(leftInteractionHandler, [false]); });
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
         if (rightInteractionHandler != null)
-            rightInteractionHandler.RunSynchronously(() => { EndGrabMethod.Invoke(rightInteractionHandler, [false]); });
+            rightInteractionHandler.RunInUpdates(0, () => { EndGrabMethod.Invoke(rightInteractionHandler, [false]); });
     }
 
     [HarmonyPrefix]
