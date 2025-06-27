@@ -5,7 +5,12 @@ on:
     types:
       - released
   workflow_dispatch:
-    
+    inputs: 
+      version:
+        description: "Version to be released"
+        required: true
+        type: string
+
 permissions: 
   contents: read
 
@@ -17,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: restrainite/resonite-mod-manifest
-          ref: restrainite
+          ref: upstream
           token: ${{ secrets.PAT }}
           persist-credentials: true
       - name: Collect release info
@@ -30,17 +35,24 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            const tag = '${{ github.ref }}';
-            const versionRegex = /^refs\/tags\/v\d+\.\d+\.\d+$/;
-            if (!versionRegex.test(tag)) {
-              throw new Error('Invalid version format. Expected format: refs/tags/v1.2.3 (exactly three numbers separated by dots)');
-            }
-            const version = tag.replace('refs/tags/v', '');
-  
+            let version;
+            if ('${{ github.event_name }}' === 'workflow_dispatch') {
+              version = '${{ inputs.version }}';
+              console.log(`Using workflow_dispatch input version: ${version}`);
+            } else {
+              const tag = '${{ github.ref }}';
+              const versionRegex = /^refs\/tags\/v\d+\.\d+\.\d+$/;
+              if (!versionRegex.test(tag)) {
+                throw new Error('Invalid version format. Expected format: refs/tags/v1.2.3 (exactly three numbers separated by dots)');
+              }
+              version = tag.replace('refs/tags/v', '');
+              console.log(`Using github.ref version: ${version}`);
+            }            
+            
             const releaseResult = await github.rest.repos.getReleaseByTag({
               owner: 'Restrainite',
               repo: 'Restrainite',
-              tag: tag.replace('refs/tags/','')
+              tag: `v${version}`
             });
             console.log(releaseResult);
   
@@ -133,10 +145,16 @@ jobs:
       
       - name: Commit and push info.json file
         run: |
-          REF="${{ github.ref }}"
-          SHORTENED="${REF#refs/tags/v}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ inputs.version }}"
+          else
+            REF="${{ github.ref }}"
+            VERSION="${REF#refs/tags/v}"
+          fi
+          git branch restrainite upstream
+          git switch restrainite
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add manifest/Restrainite/Restrainite/info.json
-          git commit -m "Update Restrainite to ${SHORTENED}" || echo "Nothing to do"
-          git push origin restrainite
+          git commit -m "Update Restrainite to ${VERSION}" || echo "Nothing to do"
+          git push --force origin restrainite
