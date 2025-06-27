@@ -20,7 +20,7 @@ public class RestrainiteMod : ResoniteMod
 
     public override string Link => "https://restrainite.github.io";
 
-    internal static bool SuccessfullyPatched { get; private set; } = true;
+    internal static bool SuccessfullyPatched { get; set; } = true;
 
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {

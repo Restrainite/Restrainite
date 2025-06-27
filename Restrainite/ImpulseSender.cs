@@ -28,7 +28,7 @@ public class ImpulseSender
     {
         if (!_configuration.SendDynamicImpulses) return;
         if (!GetLocalUserSlot(out var slot) || slot == null) return;
-        slot.RunInUpdates(0, () =>
+        slot.RunSynchronously(() =>
         {
             if (slot.IsDestroyed || slot.IsDestroying) return;
             if (!_configuration.AllowRestrictionsFromWorld(slot.World, restriction)) return;

@@ -17,7 +17,7 @@ internal static class PreventEditMode
     {
         if (!Restrictions.PreventEditMode.IsRestricted) return;
         var world = Engine.Current?.WorldManager?.FocusedWorld;
-        world?.RunInUpdates(0, () =>
+        world?.RunSynchronously(() =>
         {
             var user = world.LocalUser;
             if (user == null) return;

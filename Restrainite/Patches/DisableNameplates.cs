@@ -4,6 +4,7 @@ using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.RestrictionTypes.Base;
+using ResoniteModLoader;
 
 namespace Restrainite.Patches;
 
@@ -13,11 +14,18 @@ internal static class DisableNameplates
     private static readonly List<WeakReference<AvatarNameplateVisibilityDriver>> AvatarNameplateVisibilityDriverList =
         [];
 
-    private static readonly MethodInfo UpdateVisibility =
+    private static readonly MethodInfo? UpdateVisibility =
         AccessTools.Method(typeof(AvatarNameplateVisibilityDriver), "UpdateVisibility");
 
     internal static void Initialize()
     {
+        if (UpdateVisibility == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl +
+                              " Failed to find method AvatarNameplateVisibilityDriver.UpdateVisibility");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
         Restrictions.DisableNameplates.OnChanged += OnRestrictionChanged;
     }
 
@@ -26,7 +34,7 @@ internal static class DisableNameplates
         foreach (var avatarNameplateVisibilityDriver in AvatarNameplateVisibilityDriverList)
             if (avatarNameplateVisibilityDriver.TryGetTarget(out var avatarNameplateVisibilityDriverInstance) &&
                 avatarNameplateVisibilityDriverInstance != null)
-                UpdateVisibility.Invoke(avatarNameplateVisibilityDriverInstance, []);
+                UpdateVisibility?.Invoke(avatarNameplateVisibilityDriverInstance, []);
 
         AvatarNameplateVisibilityDriverList.RemoveAll(reference =>
             !reference.TryGetTarget(out var target) || target == null

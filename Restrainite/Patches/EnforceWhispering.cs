@@ -20,7 +20,7 @@ internal static class EnforceWhispering
         var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
         if (user == null) return;
 
-        user.Root.Slot.RunInUpdates(0, () =>
+        user.Root.Slot.RunSynchronously(() =>
         {
             var value = Restrictions.EnforceWhispering.IsRestricted;
             if (Restrictions.EnforceWhispering.IsRestricted)

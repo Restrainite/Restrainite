@@ -2,6 +2,7 @@ using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.RestrictionTypes.Base;
+using ResoniteModLoader;
 
 namespace Restrainite.Patches;
 
@@ -19,6 +20,19 @@ internal static class PreventLaserTouch
 
     internal static void Initialize()
     {
+        if (LaserEnabledField == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find field InteractionHandler._laserEnabled");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
+        if (ClearLaserTimeoutMethod == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl +
+                              " Failed to find method InteractionLaser.ClearLaserTimeout");
+            RestrainiteMod.SuccessfullyPatched = false;
+        }
+
         Restrictions.PreventLaserTouch.OnChanged += OnRestrictionChanged;
     }
 

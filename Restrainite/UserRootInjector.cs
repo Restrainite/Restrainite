@@ -14,6 +14,13 @@ internal static class UserRootInjector
     private static bool _hasInjectedIntoWorldManager;
     private static readonly FieldInfo UserRootField = AccessTools.Field(typeof(User), "userRoot");
 
+    static UserRootInjector()
+    {
+        if (UserRootField != null) return;
+        ResoniteMod.Warn("Failed to find field User.userRoot");
+        RestrainiteMod.SuccessfullyPatched = false;
+    }
+
     private static void WorldFocused(World world)
     {
         WorldPermissionChanged(world);
@@ -63,7 +70,7 @@ internal static class UserRootInjector
             case World.InitializationState.WaitingForJoinGrant:
             case World.InitializationState.InitializingDataModel:
             default:
-                userRoot.RunInUpdates(1, () => WaitForWorldToLoad(userRoot));
+                userRoot.RunInUpdates(5, () => WaitForWorldToLoad(userRoot));
                 return;
         }
     }

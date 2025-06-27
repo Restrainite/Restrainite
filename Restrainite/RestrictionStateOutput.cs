@@ -28,7 +28,7 @@ internal class RestrictionStateOutput
     {
         if (!_userSlot.TryGetTarget(out var userSlot)) return;
         if (userSlot.IsDestroyed || userSlot.IsDestroying) return;
-        userSlot.RunInUpdates(0, ShowOrHideRestrainiteRootSlot);
+        userSlot.RunSynchronously(ShowOrHideRestrainiteRootSlot);
     }
 
     private void ShowOrHideRestrainiteRootSlot()
@@ -39,7 +39,7 @@ internal class RestrictionStateOutput
         if (!show && !_isBeingShown) return;
         _isBeingShown = show;
 
-        userSlot.RunInUpdates(0, show ? AddRestrainiteSlot : RemoveRestrainiteSlot);
+        userSlot.RunSynchronously(show ? AddRestrainiteSlot : RemoveRestrainiteSlot);
     }
 
     private void AddRestrainiteSlot()
@@ -50,8 +50,10 @@ internal class RestrictionStateOutput
 
         ResoniteMod.Msg($"Adding Restrainite slot to {userSlot.Name} {userSlot.ReferenceID} " +
                         $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
-        DeleteOldSlotIfMoved();
-        var restrainiteSlot = userSlot.FindChildOrAdd(RestrainiteRootSlotName, false);
+        DeleteOldSlotIfMovedOutOfUserSlot(userSlot);
+        var restrainiteSlot = _oldSlot != null && _oldSlot.TryGetTarget(out var slot)
+            ? slot
+            : userSlot.FindChildOrAdd(RestrainiteRootSlotName, false);
         _oldSlot = new WeakReference<Slot>(restrainiteSlot);
 
         CreateVersionComponent(restrainiteSlot);
@@ -60,16 +62,18 @@ internal class RestrictionStateOutput
 
         CreatePasswordComponent(restrainiteSlot);
 
+        AddSelfReferenceComponent(restrainiteSlot);
+
         AddOrRemoveComponents(restrainiteSlot);
     }
 
-    private void DeleteOldSlotIfMoved()
+    private void DeleteOldSlotIfMovedOutOfUserSlot(Slot userSlot)
     {
         if (_oldSlot == null ||
             !_oldSlot.TryGetTarget(out var slot) ||
-            !_userSlot.TryGetTarget(out var userSlot) ||
-            slot.Parent == userSlot) return;
+            slot.FindParent(s => s == userSlot, 20) != null) return;
         slot.Destroy(true);
+        _oldSlot = null;
     }
 
     private void CreateDynamicVariableSpace()
@@ -160,6 +164,17 @@ internal class RestrictionStateOutput
         component.Value.Value = _configuration.RequiresPassword;
     }
 
+    private static void AddSelfReferenceComponent(Slot restrainiteSlot)
+    {
+        const string selfReferenceName = "User/Restrainite Status Slot";
+        var component =
+            restrainiteSlot.GetComponentOrAttach<DynamicReferenceVariable<Slot>>(search =>
+                selfReferenceName.Equals(search.VariableName.Value));
+        component.VariableName.Value = selfReferenceName;
+        component.Persistent = false;
+        component.Reference.Target = restrainiteSlot;
+    }
+
     private static void OnPresetChanged(SyncField<string> syncField)
     {
         try
@@ -180,8 +195,6 @@ internal class RestrictionStateOutput
         var slot = restrainiteSlot.FindChild(restriction.Name);
         if (slot == null)
         {
-            ResoniteMod.Msg($"Creating Status Slot for {restriction.Name} in {restrainiteSlot.Name} " +
-                            $"{restrainiteSlot.ReferenceID} in {restrainiteSlot.Parent?.Name} {restrainiteSlot.World?.Name}");
             slot = restrainiteSlot.AddSlot(restriction.Name, false);
         }
 

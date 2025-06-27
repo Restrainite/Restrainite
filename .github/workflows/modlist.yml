@@ -39,7 +39,7 @@ jobs:
   
             const releaseResult = await github.rest.repos.getReleaseByTag({
               owner: 'Restrainite',
-              repo: 'RestrainiteMod',
+              repo: 'Restrainite',
               tag: tag.replace('refs/tags/','')
             });
             console.log(releaseResult);
