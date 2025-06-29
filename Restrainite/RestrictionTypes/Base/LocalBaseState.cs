@@ -46,7 +46,7 @@ internal class LocalBaseState<T>(T defaultValue) :
     {
         if (_restriction == null) return;
         var valid = _dynamicVariableSpaceSync != null && _dynamicVariableSpaceSync.IsActiveForLocalUser(_restriction);
-        var changed = SetIfChanged(_restriction, valid ? value : _defaultValue, triggerEvent);
+        var changed = SetIfChanged(_restriction, valid ? value ?? _defaultValue : _defaultValue, triggerEvent);
         if (!changed) return;
         _changeListener?.LogChange(_typeName, _restriction, Value);
     }
