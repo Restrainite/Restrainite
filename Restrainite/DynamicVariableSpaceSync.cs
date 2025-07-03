@@ -150,8 +150,8 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
     {
         RestrainiteMod.Configuration.ShouldRecheckPermissions -= ShouldCheckStates;
 
-        _passwordListener.Unregister(OnPasswordChanged);
-        _targetUserListener.Unregister(OnTargetUserChanged);
+        _passwordListener.Unregister();
+        _targetUserListener.Unregister();
         foreach (var restriction in _restrictions) restriction.Destroy();
     }
 

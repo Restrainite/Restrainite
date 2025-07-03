@@ -14,6 +14,7 @@ internal static class DynamicVariableChangeListener
 internal class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
 {
     private readonly WeakReference<DynamicVariableSpace> _space;
+    private Action<TV>? _onValueChanged;
 
     private TV? _value;
 
@@ -21,7 +22,7 @@ internal class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
     {
         _space = new WeakReference<DynamicVariableSpace>(space);
         VariableName = variableName;
-        OnChange += callback;
+        _onValueChanged = callback;
         var manager = space.GetManager<TV>(VariableName, true);
         manager.Register(this);
     }
@@ -113,7 +114,7 @@ internal class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
             if (EqualityComparer<TV>.Default.Equals(_value!, value))
                 return;
             _value = value;
-            OnChange.SafeInvoke(value!);
+            _onValueChanged.SafeInvoke(value!);
         }
     }
 
@@ -124,11 +125,9 @@ internal class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
         ResoniteMod.Warn($"{RestrainiteMod.LogReportUrl} {ex.Message}: {ex}");
     }
 
-    private event Action<TV>? OnChange;
-
-    internal void Unregister(Action<TV> callback)
+    internal void Unregister()
     {
-        OnChange -= callback;
+        _onValueChanged = null;
         if (!_space.TryGetTarget(out var space)) return;
         var manager = space.GetManager<TV>(VariableName, true);
         manager.Unregister(this);

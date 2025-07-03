@@ -8,7 +8,7 @@ internal class LocalBaseState<T> :
 {
     private readonly DynamicVariableChangeListener<T> _changeListener;
     private readonly T _defaultValue;
-    private readonly IDynamicVariableSpace _dynamicVariableSpaceSync;
+    private readonly WeakReference<IDynamicVariableSpace> _dynamicVariableSpaceSync;
     private readonly IRestriction _restriction;
 
     internal LocalBaseState(T defaultValue,
@@ -17,14 +17,14 @@ internal class LocalBaseState<T> :
         IRestriction restriction) : base(defaultValue)
     {
         _defaultValue = defaultValue;
-        _dynamicVariableSpaceSync = dynamicVariableSpaceSync;
+        _dynamicVariableSpaceSync = new WeakReference<IDynamicVariableSpace>(dynamicVariableSpaceSync);
         _restriction = restriction;
         _changeListener = new DynamicVariableChangeListener<T>(dynamicVariableSpace, restriction.Name, OnValueChanged);
     }
 
     public void Destroy()
     {
-        _changeListener.Unregister(OnValueChanged);
+        _changeListener.Unregister();
     }
 
     public void Check(bool triggerEvent = true)
@@ -34,14 +34,15 @@ internal class LocalBaseState<T> :
 
     private void OnValueChanged(T value)
     {
-        OnValueChanged(value, true);
+        OnValueChanged(value ?? _defaultValue, true);
     }
 
     private void OnValueChanged(T value, bool triggerEvent)
     {
-        var valid = _dynamicVariableSpaceSync.IsActiveForLocalUser(_restriction);
+        if (!_dynamicVariableSpaceSync.TryGetTarget(out var dynamicVariableSpaceSync)) return;
+        var valid = dynamicVariableSpaceSync.IsActiveForLocalUser(_restriction);
         SetIfChanged(_restriction,
-            valid ? value ?? _defaultValue : _defaultValue,
-            _dynamicVariableSpaceSync, triggerEvent);
+            valid ? value : _defaultValue,
+            dynamicVariableSpaceSync, triggerEvent);
     }
 }

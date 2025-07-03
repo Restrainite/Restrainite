@@ -1,4 +1,3 @@
-using System;
 using FrooxEngine;
 using ResoniteModLoader;
 
@@ -22,7 +21,7 @@ internal class LocalBaseRestriction : ILocalRestriction
 
     public virtual void Destroy()
     {
-        OnDestroy.SafeInvoke();
+        _restriction.DestroyLocal(this);
         _state.Destroy();
     }
 
@@ -30,8 +29,6 @@ internal class LocalBaseRestriction : ILocalRestriction
     {
         _state.Check();
     }
-
-    public event Action? OnDestroy;
 
     private static void Log(IRestriction restriction, bool value, IDynamicVariableSpace source)
     {

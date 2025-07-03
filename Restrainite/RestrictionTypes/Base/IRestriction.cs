@@ -16,4 +16,6 @@ public interface IRestriction
     void RegisterImpulseSender(ImpulseSender impulseSender);
 
     void Update(IDynamicVariableSpace source);
+
+    void DestroyLocal(ILocalRestriction localBaseRestriction);
 }

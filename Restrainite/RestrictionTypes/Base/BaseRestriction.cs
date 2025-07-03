@@ -29,21 +29,23 @@ internal abstract class BaseRestriction<T, TB> : IRestriction
         IDynamicVariableSpace dynamicVariableSpaceSync)
     {
         var localValue = new TB().Build(dynamicVariableSpace, dynamicVariableSpaceSync, this);
-        localValue.OnDestroy += () =>
-        {
-            lock (_localValues)
-            {
-                _localValues.Remove(localValue);
-            }
-
-            Update(dynamicVariableSpaceSync);
-        };
         lock (_localValues)
         {
             _localValues.Add(localValue);
         }
 
         return localValue;
+    }
+
+    public void DestroyLocal(ILocalRestriction localRestriction)
+    {
+        if (localRestriction is T localBaseRestriction)
+            lock (_localValues)
+            {
+                _localValues.Remove(localBaseRestriction);
+            }
+
+        Update(DestroyedDynamicVariableSpace.Instance);
     }
 
     public virtual void CreateStatusComponent(Slot slot, string dynamicVariableSpaceName)
@@ -109,5 +111,21 @@ internal abstract class BaseRestriction<T, TB> : IRestriction
         if (!changed) return false;
         Log(this, _state.Value, source);
         return changed;
+    }
+}
+
+internal class DestroyedDynamicVariableSpace : IDynamicVariableSpace
+{
+    private const string DestroyedDynamicVariableSpaceString = "Destroyed DynamicVariableSpace";
+    internal static readonly DestroyedDynamicVariableSpace Instance = new();
+
+    public bool IsActiveForLocalUser(IRestriction restriction)
+    {
+        return false;
+    }
+
+    public string AsString()
+    {
+        return DestroyedDynamicVariableSpaceString;
     }
 }
