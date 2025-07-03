@@ -17,11 +17,11 @@ public class ImpulseSender
         _userRoot = new WeakReference<UserRoot>(userRoot);
     }
 
-    internal event Action? OnDestroy;
+    internal event Action<ImpulseSender>? OnDestroy;
 
     internal void Destroy()
     {
-        OnDestroy.SafeInvoke();
+        OnDestroy.SafeInvoke(this);
     }
 
     internal void SendDynamicImpulse(IRestriction restriction, bool value, IDynamicVariableSpace source)

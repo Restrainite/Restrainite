@@ -54,7 +54,7 @@ internal abstract class BaseRestriction<T, TB> : IRestriction
     public void RegisterImpulseSender(ImpulseSender impulseSender)
     {
         _state.OnStateChanged += impulseSender.SendDynamicImpulse;
-        impulseSender.OnDestroy += () => { _state.OnStateChanged -= impulseSender.SendDynamicImpulse; };
+        impulseSender.OnDestroy += sender => { _state.OnStateChanged -= sender.SendDynamicImpulse; };
     }
 
     public void Update(IDynamicVariableSpace source)
