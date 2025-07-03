@@ -35,7 +35,7 @@ internal class LocalBaseRestriction : ILocalRestriction
 
     private static void Log(IRestriction restriction, bool value, IDynamicVariableSpace source)
     {
-        ResoniteMod.Msg($"Local state of {restriction.Name} changed to {value} by {source.AsString()}.");
+        ResoniteMod.Msg($"Local state of {restriction.Name} changed to {value} by {source.AsString()}");
     }
 
     public bool IsActive()

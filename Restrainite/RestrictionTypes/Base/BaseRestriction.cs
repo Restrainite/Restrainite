@@ -75,7 +75,7 @@ internal abstract class BaseRestriction<T, TB> : IRestriction
 
     private static void Log(IRestriction restriction, bool value, IDynamicVariableSpace source)
     {
-        ResoniteMod.Msg($"Global state of {restriction.Name} changed to {value} by {source.AsString()}.");
+        ResoniteMod.Msg($"Global state of {restriction.Name} changed to {value} by {source.AsString()}");
     }
 
     protected void CreateStatusComponent<TS, TV>(
