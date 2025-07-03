@@ -129,7 +129,7 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 
                 var dynamicVariableSpaceSync = new DynamicVariableSpaceSync(dynamicVariableSpace);
                 Spaces.Add(dynamicVariableSpaceSync);
-                dynamicVariableSpace.Destroyed += _ => { Remove(dynamicVariableSpaceSync); };
+                dynamicVariableSpace.Destroyed += dynamicVariableSpaceSync.OnSpaceDestroyed;
             }
         }
 
@@ -165,15 +165,15 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
         return dynamicVariableSpace is { IsDestroyed: false, IsDisposed: false, CurrentName: DynamicVariableSpaceName };
     }
 
-    private static void Remove(DynamicVariableSpaceSync dynamicVariableSpace)
+    private void OnSpaceDestroyed(IDestroyable destroyable)
     {
+        destroyable.Destroyed -= OnSpaceDestroyed;
         lock (Spaces)
         {
-            var index = Spaces.FindIndex(space => space == dynamicVariableSpace);
-            if (index != -1) Spaces.RemoveAt(index);
+            Spaces.Remove(this);
         }
 
-        dynamicVariableSpace.Unregister();
+        Unregister();
     }
 
     internal static void Remove(DynamicVariableSpace dynamicVariableSpace)
