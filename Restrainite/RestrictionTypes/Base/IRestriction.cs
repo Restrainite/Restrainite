@@ -9,9 +9,11 @@ public interface IRestriction
     string Description { get; }
 
     ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
-        IDynamicVariableSpaceSync dynamicVariableSpaceSync);
+        IDynamicVariableSpace dynamicVariableSpaceSync);
 
     void CreateStatusComponent(Slot slot, string dynamicVariableSpaceName);
 
     void RegisterImpulseSender(ImpulseSender impulseSender);
+
+    void Update(IDynamicVariableSpace source);
 }

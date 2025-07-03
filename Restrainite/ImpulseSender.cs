@@ -24,7 +24,7 @@ public class ImpulseSender
         OnDestroy.SafeInvoke();
     }
 
-    internal void SendDynamicImpulse<T>(IRestriction restriction, T value)
+    internal void SendDynamicImpulse(IRestriction restriction, bool value, IDynamicVariableSpace source)
     {
         if (!_configuration.SendDynamicImpulses) return;
         if (!GetLocalUserSlot(out var slot) || slot == null) return;
@@ -34,7 +34,7 @@ public class ImpulseSender
             if (!_configuration.AllowRestrictionsFromWorld(slot.World, restriction)) return;
             ProtoFluxHelper.DynamicImpulseHandler.TriggerAsyncDynamicImpulseWithArgument(
                 slot, $"{ImpulsePrefix} Change", true,
-                $"{restriction.Name}:{typeof(T)}:{value}"
+                $"{restriction.Name}:bool:{value}"
             );
             ProtoFluxHelper.DynamicImpulseHandler.TriggerAsyncDynamicImpulseWithArgument(
                 slot, $"{ImpulsePrefix} {restriction.Name}", true,

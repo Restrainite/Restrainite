@@ -61,7 +61,7 @@ internal static class UserRootInjector
         switch (userRoot.World.InitState)
         {
             case World.InitializationState.Finished:
-                AttachToUserRoot(userRoot);
+                userRoot.World.RunSynchronously(() => AttachToUserRoot(userRoot));
                 return;
             case World.InitializationState.Failed:
                 return;

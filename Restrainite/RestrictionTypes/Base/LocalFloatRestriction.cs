@@ -4,16 +4,18 @@ namespace Restrainite.RestrictionTypes.Base;
 
 internal class LocalFloatRestriction : LocalBaseRestriction
 {
-    internal LocalBaseState<float> FloatState { get; } = new(float.NaN);
-
-    public override void Register(DynamicVariableSpace dynamicVariableSpace,
-        IDynamicVariableSpaceSync dynamicVariableSpaceSync,
-        IRestriction restriction)
+    internal LocalFloatRestriction(DynamicVariableSpace dynamicVariableSpace,
+        IDynamicVariableSpace dynamicVariableSpaceSync,
+        IRestriction restriction) : base(dynamicVariableSpace, dynamicVariableSpaceSync, restriction)
     {
-        base.Register(dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
-        FloatState.Register(dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
-        FloatState.OnStateChanged += (_, _) => base.OnStateChanged();
+        FloatState = new LocalBaseState<float>(float.NaN,
+            dynamicVariableSpace,
+            dynamicVariableSpaceSync,
+            restriction);
+        FloatState.OnStateChanged += (_, _, source) => restriction.Update(source);
     }
+
+    internal LocalBaseState<float> FloatState { get; }
 
     public override void Destroy()
     {
@@ -27,9 +29,18 @@ internal class LocalFloatRestriction : LocalBaseRestriction
         FloatState.Check();
     }
 
-    protected override void OnStateChanged()
+    protected override void OnStateChanged(IDynamicVariableSpace source)
     {
         FloatState.Check(false);
-        base.OnStateChanged();
+        base.OnStateChanged(source);
+    }
+}
+
+internal class LocalFloatRestrictionBuilder : IBuilder<LocalFloatRestriction>
+{
+    public LocalFloatRestriction Build(DynamicVariableSpace dynamicVariableSpace,
+        IDynamicVariableSpace dynamicVariableSpaceSync, IRestriction restriction)
+    {
+        return new LocalFloatRestriction(dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
     }
 }

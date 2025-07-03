@@ -1,6 +1,8 @@
 namespace Restrainite.RestrictionTypes.Base;
 
-public interface IDynamicVariableSpaceSync
+public interface IDynamicVariableSpace
 {
     bool IsActiveForLocalUser(IRestriction restriction);
+
+    string AsString();
 }

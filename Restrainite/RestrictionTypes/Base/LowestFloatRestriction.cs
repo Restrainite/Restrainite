@@ -2,13 +2,13 @@ using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal abstract class LowestFloatRestriction : BaseRestriction<LocalFloatRestriction>
+internal abstract class LowestFloatRestriction : BaseRestriction<LocalFloatRestriction, LocalFloatRestrictionBuilder>
 {
     internal SimpleState<float> LowestFloat { get; } = new(float.NaN);
 
-    protected override bool Combine(LocalFloatRestriction[] restrictions)
+    protected override bool Combine(LocalFloatRestriction[] restrictions, IDynamicVariableSpace source)
     {
-        var baseChanged = base.Combine(restrictions);
+        var baseChanged = base.Combine(restrictions, source);
 
         var lowestFloatValue = float.NaN;
         foreach (var restriction in restrictions)
@@ -16,8 +16,7 @@ internal abstract class LowestFloatRestriction : BaseRestriction<LocalFloatRestr
                 (float.IsNaN(lowestFloatValue) || restriction.FloatState.Value < lowestFloatValue))
                 lowestFloatValue = restriction.FloatState.Value;
 
-        var changed = LowestFloat.SetIfChanged(this, lowestFloatValue);
-        if (changed) LogChange("Global float", LowestFloat.Value);
+        var changed = LowestFloat.SetIfChanged(this, lowestFloatValue, source);
 
         return changed || baseChanged;
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Restrainite.RestrictionTypes.Base;
 
@@ -110,7 +109,6 @@ public class ImmutableStringSet(IImmutableSet<string> immutableSet)
 
     public override string ToString()
     {
-        return immutableSet.Aggregate<string, string>("",
-            (prev, curr) => prev + (prev.Length > 0 ? "," : "") + curr);
+        return string.Join(",", immutableSet);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -5,7 +6,7 @@ using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal abstract class StringSetRestriction : BaseRestriction<LocalStringRestriction>
+internal abstract class StringSetRestriction : BaseRestriction<LocalStringRestriction, LocalStringRestrictionBuilder>
 {
     internal SimpleState<ImmutableStringSet> StringSet { get; } = new(ImmutableStringSet.Empty);
 
@@ -15,9 +16,9 @@ internal abstract class StringSetRestriction : BaseRestriction<LocalStringRestri
                StringSet.Value.Contains(value);
     }
 
-    protected override bool Combine(LocalStringRestriction[] restrictions)
+    protected override bool Combine(LocalStringRestriction[] restrictions, IDynamicVariableSpace source)
     {
-        var baseChanged = base.Combine(restrictions);
+        var baseChanged = base.Combine(restrictions, source);
         if (restrictions.Length == 0)
             return baseChanged;
 
@@ -25,14 +26,13 @@ internal abstract class StringSetRestriction : BaseRestriction<LocalStringRestri
         foreach (var restriction in restrictions)
             builder.UnionWith(SplitValues(restriction.StringState.Value));
         var state = builder.ToImmutable();
-        var changed = StringSet.SetIfChanged(this, state);
-        if (changed) LogChange("Global string", StringSet.Value.ToString());
+        var changed = StringSet.SetIfChanged(this, state, source);
         return changed || baseChanged;
     }
 
     private static IEnumerable<string> SplitValues(string? commaSeparatedList)
     {
-        var splitArray = commaSeparatedList?.Split(',') ?? [];
+        var splitArray = commaSeparatedList?.Split([','], StringSplitOptions.RemoveEmptyEntries) ?? [];
         return splitArray.Select(t => t.Trim())
             .Where(trimmed => trimmed.Length != 0);
     }

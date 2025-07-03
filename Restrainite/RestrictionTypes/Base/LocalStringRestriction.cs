@@ -4,16 +4,16 @@ namespace Restrainite.RestrictionTypes.Base;
 
 internal class LocalStringRestriction : LocalBaseRestriction
 {
-    internal LocalBaseState<string> StringState { get; } = new("");
-
-    public override void Register(DynamicVariableSpace dynamicVariableSpace,
-        IDynamicVariableSpaceSync dynamicVariableSpaceSync,
-        IRestriction restriction)
+    internal LocalStringRestriction(DynamicVariableSpace dynamicVariableSpace,
+        IDynamicVariableSpace dynamicVariableSpaceSync,
+        IRestriction restriction) : base(dynamicVariableSpace, dynamicVariableSpaceSync, restriction)
     {
-        base.Register(dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
-        StringState.Register(dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
-        StringState.OnStateChanged += (_, _) => base.OnStateChanged();
+        StringState = new LocalBaseState<string>(
+            "", dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
+        StringState.OnStateChanged += (_, _, source) => restriction.Update(source);
     }
+
+    internal LocalBaseState<string> StringState { get; }
 
     public override void Destroy()
     {
@@ -27,9 +27,18 @@ internal class LocalStringRestriction : LocalBaseRestriction
         StringState.Check();
     }
 
-    protected override void OnStateChanged()
+    protected override void OnStateChanged(IDynamicVariableSpace source)
     {
         StringState.Check(false);
-        base.OnStateChanged();
+        base.OnStateChanged(source);
+    }
+}
+
+internal class LocalStringRestrictionBuilder : IBuilder<LocalStringRestriction>
+{
+    public LocalStringRestriction Build(DynamicVariableSpace dynamicVariableSpace,
+        IDynamicVariableSpace dynamicVariableSpaceSync, IRestriction restriction)
+    {
+        return new LocalStringRestriction(dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
     }
 }

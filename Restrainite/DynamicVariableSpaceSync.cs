@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Threading;
 using FrooxEngine;
 using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
-internal class DynamicVariableSpaceSync : IDynamicVariableSpaceSync
+internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 {
     internal const string DynamicVariableSpaceName = "Restrainite";
     private const string TargetUserVariableName = "Target User";
@@ -18,17 +20,29 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceSync
 
     private readonly DynamicVariableChangeListener<string> _passwordListener;
 
-    private readonly DynamicVariableChangeListener<User> _targetUserListener;
+    private readonly string _refId;
 
-    private ILocalRestriction[]? _restrictions;
+    private readonly ILocalRestriction[] _restrictions;
+
+    private readonly DynamicVariableChangeListener<User> _targetUserListener;
+    private string _cachedSource;
+    private long _tick;
 
     private DynamicVariableSpaceSync(DynamicVariableSpace dynamicVariableSpace)
     {
+        _refId = $"Dynamic Variable Space {dynamicVariableSpace.ReferenceID} " +
+                 $"created by {dynamicVariableSpace.World.GetUserByAllocationID(dynamicVariableSpace.ReferenceID.User)?.UserID} " +
+                 $"in {dynamicVariableSpace.World.Name}";
+        _cachedSource = _refId;
         _dynamicVariableSpace = new WeakReference<DynamicVariableSpace>(dynamicVariableSpace);
         _passwordListener =
-            new DynamicVariableChangeListener<string>(dynamicVariableSpace, PasswordVariableName);
+            new DynamicVariableChangeListener<string>(dynamicVariableSpace, PasswordVariableName, OnPasswordChanged);
         _targetUserListener =
-            new DynamicVariableChangeListener<User>(dynamicVariableSpace, TargetUserVariableName);
+            new DynamicVariableChangeListener<User>(dynamicVariableSpace, TargetUserVariableName, OnTargetUserChanged);
+        RestrainiteMod.Configuration.ShouldRecheckPermissions += ShouldCheckStates;
+        _restrictions = Restrictions.All
+            .Select(restriction => restriction.CreateLocal(dynamicVariableSpace, this))
+            .ToArray();
     }
 
     public bool IsActiveForLocalUser(IRestriction restriction)
@@ -44,6 +58,42 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceSync
         var password = _passwordListener.DynamicValue;
         return RestrainiteMod.Configuration.IsCorrectPassword(password);
     }
+
+    public string AsString()
+    {
+        var tick = Engine.Current.UpdateTick;
+        if (tick == Interlocked.Read(ref _tick)) return _cachedSource;
+        if (!_dynamicVariableSpace.TryGetTarget(out var space))
+        {
+            _cachedSource = _refId;
+            return _refId;
+        }
+
+        var slot = space?.Slot;
+
+        if (slot == null)
+        {
+            _cachedSource = _refId;
+            return _refId;
+        }
+
+        var slotTree = new StringBuilder($"{slot.Name}/");
+        var parent = slot.Parent;
+        var maxDepth = 20;
+        while (parent != null && maxDepth-- > 0)
+        {
+            slotTree.Append($"{parent.Name}/");
+            parent = parent.Parent;
+        }
+
+        if (maxDepth <= 0) slotTree.Append("...");
+
+        var source = $"{_refId} at {slotTree}";
+        Interlocked.Exchange(ref _cachedSource, source);
+        Interlocked.Exchange(ref _tick, tick);
+        return source;
+    }
+
 
     private bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
     {
@@ -89,13 +139,6 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceSync
 
     private void Register()
     {
-        RestrainiteMod.Configuration.ShouldRecheckPermissions += ShouldCheckStates;
-        _passwordListener.Register(OnPasswordChanged);
-        _targetUserListener.Register(OnTargetUserChanged);
-        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return;
-        _restrictions = Restrictions.All
-            .Select(restriction => restriction.CreateLocal(dynamicVariableSpace, this))
-            .ToArray();
     }
 
     private void OnTargetUserChanged(User user)
@@ -114,14 +157,11 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpaceSync
 
         _passwordListener.Unregister(OnPasswordChanged);
         _targetUserListener.Unregister(OnTargetUserChanged);
-        if (_restrictions == null) return;
         foreach (var restriction in _restrictions) restriction.Destroy();
-        _restrictions = null;
     }
 
     private void ShouldCheckStates()
     {
-        if (_restrictions == null) return;
         foreach (var restriction in _restrictions) restriction.Check();
     }
 

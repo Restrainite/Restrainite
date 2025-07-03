@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -34,27 +35,21 @@ internal class RestrictionStateOutput
     private void ShowOrHideRestrainiteRootSlot()
     {
         if (!_userSlot.TryGetTarget(out var userSlot)) return;
-        var show = _configuration.AllowRestrictionsFromWorld(userSlot.World) ||
-                   userSlot.World == Userspace.UserspaceWorld;
-        if (!show && !_isBeingShown) return;
-        _isBeingShown = show;
+        var shouldShow = _configuration.AllowRestrictionsFromWorld(userSlot.World) ||
+                         userSlot.World == Userspace.UserspaceWorld;
+        if (!shouldShow && !_isBeingShown) return;
+        _isBeingShown = shouldShow;
 
-        userSlot.RunSynchronously(show ? AddRestrainiteSlot : RemoveRestrainiteSlot);
+        userSlot.RunSynchronously(shouldShow ? AddRestrainiteSlot : RemoveRestrainiteSlot);
     }
 
     private void AddRestrainiteSlot()
     {
         if (!_userSlot.TryGetTarget(out var userSlot)) return;
         if (userSlot.IsDestroyed || userSlot.IsDestroying) return;
-        CreateDynamicVariableSpace();
+        CreateDynamicVariableSpace(userSlot);
 
-        ResoniteMod.Msg($"Adding Restrainite slot to {userSlot.Name} {userSlot.ReferenceID} " +
-                        $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
-        DeleteOldSlotIfMovedOutOfUserSlot(userSlot);
-        var restrainiteSlot = _oldSlot != null && _oldSlot.TryGetTarget(out var slot)
-            ? slot
-            : userSlot.FindChildOrAdd(RestrainiteRootSlotName, false);
-        _oldSlot = new WeakReference<Slot>(restrainiteSlot);
+        var restrainiteSlot = CreateStatusSlot(userSlot);
 
         CreateVersionComponent(restrainiteSlot);
 
@@ -67,23 +62,38 @@ internal class RestrictionStateOutput
         AddOrRemoveComponents(restrainiteSlot);
     }
 
-    private void DeleteOldSlotIfMovedOutOfUserSlot(Slot userSlot)
+    private Slot CreateStatusSlot(Slot userSlot)
     {
-        if (_oldSlot == null ||
-            !_oldSlot.TryGetTarget(out var slot) ||
-            slot.FindParent(s => s == userSlot, 20) != null) return;
-        slot.Destroy(true);
-        _oldSlot = null;
+        if (_oldSlot != null && _oldSlot.TryGetTarget(out var slot))
+        {
+            if (slot.FindParent(s => s == userSlot, 20) == null)
+                slot.Destroy(true);
+            else
+                return slot;
+        }
+
+        var existingSlot = userSlot.FindChild(RestrainiteRootSlotName);
+        if (existingSlot != null)
+        {
+            _oldSlot = new WeakReference<Slot>(existingSlot);
+            return existingSlot;
+        }
+
+        ResoniteMod.Msg($"Adding Restrainite slot to {userSlot.Name} {userSlot.ReferenceID} " +
+                        $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
+        var newSlot = userSlot.AddSlot(RestrainiteRootSlotName, false);
+        _oldSlot = new WeakReference<Slot>(newSlot);
+        return newSlot;
     }
 
-    private void CreateDynamicVariableSpace()
+    private static void CreateDynamicVariableSpace(Slot userSlot)
     {
-        if (!_userSlot.TryGetTarget(out var userSlot)) return;
-        ResoniteMod.Msg($"Adding Restrainite DynamicVariableSpace to {userSlot.Name} {userSlot.ReferenceID} " +
-                        $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
-        var dynamicVariableSpace = userSlot.GetComponentOrAttach<DynamicVariableSpace>(component =>
-            DynamicVariableSpaceStatusName.Equals(component.CurrentName)
+        var dynamicVariableSpace = userSlot.GetComponentOrAttach<DynamicVariableSpace>(out var attached, component =>
+            DynamicVariableSpaceStatusName.Equals(component.SpaceName.Value)
         );
+        if (attached)
+            ResoniteMod.Msg($"Adding Restrainite DynamicVariableSpace to {userSlot.Name} {userSlot.ReferenceID} " +
+                            $"in {userSlot.Parent?.Name} {userSlot.World?.Name}");
         dynamicVariableSpace.OnlyDirectBinding.Value = true;
         dynamicVariableSpace.SpaceName.Value = DynamicVariableSpaceStatusName;
         dynamicVariableSpace.Persistent = false;
@@ -97,7 +107,7 @@ internal class RestrictionStateOutput
         {
             userSlot.RemoveAllComponents(component => component is DynamicVariableSpace
             {
-                CurrentName: DynamicVariableSpaceStatusName
+                SpaceName.Value: DynamicVariableSpaceStatusName
             });
 
             var restrainiteSlot = userSlot.FindChild(RestrainiteRootSlotName);
@@ -192,11 +202,7 @@ internal class RestrictionStateOutput
 
     private static void CreateComponents(Slot restrainiteSlot, IRestriction restriction)
     {
-        var slot = restrainiteSlot.FindChild(restriction.Name);
-        if (slot == null)
-        {
-            slot = restrainiteSlot.AddSlot(restriction.Name, false);
-        }
+        var slot = restrainiteSlot.FindChildOrAdd(restriction.Name, false);
 
         slot.Tag = $"{DynamicVariableSpaceSync.DynamicVariableSpaceName}/{restriction.Name}";
 
@@ -216,9 +222,6 @@ internal class RestrictionStateOutput
                              $"{oldSlot.Parent?.Name} {oldSlot.World?.Name}, too many children: {oldSlot.ChildrenCount}");
             return;
         }
-
-        ResoniteMod.Msg($"Removing Status Slot for {restriction.Name} in {restrainiteSlot.Name} " +
-                        $"{restrainiteSlot.ReferenceID} in {restrainiteSlot.Parent?.Name} {restrainiteSlot.World?.Name}");
 
         oldSlot.Destroy(true);
     }

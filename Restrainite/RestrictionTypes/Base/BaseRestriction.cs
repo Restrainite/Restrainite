@@ -6,17 +6,18 @@ using ResoniteModLoader;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal abstract class BaseRestriction : BaseRestriction<LocalBaseRestriction>
+internal abstract class BaseRestriction : BaseRestriction<LocalBaseRestriction, LocalBaseRestrictionBuilder>
 {
 }
 
-internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRestriction, new()
+internal abstract class BaseRestriction<T, TB> : IRestriction
+    where T : LocalBaseRestriction, ILocalRestriction where TB : IBuilder<T>, new()
 {
     private readonly List<T> _localValues = [];
 
-    internal SimpleState<bool> State { get; } = new(false);
+    private readonly SimpleState<bool> _state = new(false);
 
-    public bool IsRestricted => State.Value;
+    public bool IsRestricted => _state.Value;
 
     public int Index { get; set; }
 
@@ -25,20 +26,17 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
     public abstract string Description { get; }
 
     public ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
-        IDynamicVariableSpaceSync dynamicVariableSpaceSync)
+        IDynamicVariableSpace dynamicVariableSpaceSync)
     {
-        var localValue = new T();
-        localValue.Register(dynamicVariableSpace, dynamicVariableSpaceSync, this);
-        localValue.OnChanged += Update;
+        var localValue = new TB().Build(dynamicVariableSpace, dynamicVariableSpaceSync, this);
         localValue.OnDestroy += () =>
         {
-            localValue.OnChanged -= Update;
             lock (_localValues)
             {
                 _localValues.Remove(localValue);
             }
 
-            Update();
+            Update(dynamicVariableSpaceSync);
         };
         lock (_localValues)
         {
@@ -50,14 +48,34 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
 
     public virtual void CreateStatusComponent(Slot slot, string dynamicVariableSpaceName)
     {
-        CreateStatusComponent(slot, dynamicVariableSpaceName, State, a => a);
+        CreateStatusComponent(slot, dynamicVariableSpaceName, _state, a => a);
     }
 
     public void RegisterImpulseSender(ImpulseSender impulseSender)
     {
-        Action<IRestriction, bool> action = impulseSender.SendDynamicImpulse;
-        State.OnStateChanged += action;
-        impulseSender.OnDestroy += () => { State.OnStateChanged -= action; };
+        _state.OnStateChanged += impulseSender.SendDynamicImpulse;
+        impulseSender.OnDestroy += () => { _state.OnStateChanged -= impulseSender.SendDynamicImpulse; };
+    }
+
+    public void Update(IDynamicVariableSpace source)
+    {
+        T[] localValues;
+        lock (_localValues)
+        {
+            localValues = _localValues
+                .Where(localValue => localValue.IsActive())
+                .ToArray();
+        }
+
+        var changed = Combine(localValues, source);
+        if (!changed) return;
+
+        OnChanged.SafeInvoke(this);
+    }
+
+    private static void Log(IRestriction restriction, bool value, IDynamicVariableSpace source)
+    {
+        ResoniteMod.Msg($"Global state of {restriction.Name} changed to {value} by {source.AsString()}.");
     }
 
     protected void CreateStatusComponent<TS, TV>(
@@ -75,7 +93,7 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
         component.Persistent = false;
 
         if (!attached) return;
-        Action<IRestriction, TS> onUpdate = (_, value) =>
+        Action<IRestriction, TS, IDynamicVariableSpace> onUpdate = (_, value, _) =>
         {
             slot.RunSynchronously(() => component.Value.Value = to(value));
         };
@@ -85,32 +103,11 @@ internal abstract class BaseRestriction<T> : IRestriction where T : LocalBaseRes
 
     public event Action<IRestriction>? OnChanged;
 
-    protected virtual bool Combine(T[] values)
+    protected virtual bool Combine(T[] values, IDynamicVariableSpace source)
     {
-        var changed = State.SetIfChanged(this, values.Any());
+        var changed = _state.SetIfChanged(this, values.Any(), source);
         if (!changed) return false;
-        LogChange("Global bool", State.Value);
+        Log(this, _state.Value, source);
         return changed;
-    }
-
-    private void Update()
-    {
-        T[] localValues;
-        lock (_localValues)
-        {
-            localValues = _localValues
-                .Where(localValue => localValue.IsActive())
-                .ToArray();
-        }
-
-        var changed = Combine(localValues);
-        if (!changed) return;
-
-        OnChanged.SafeInvoke(this);
-    }
-
-    protected void LogChange<TV>(string typeName, TV value)
-    {
-        ResoniteMod.Msg($"{typeName} of {Name} changed to '{value}'.");
     }
 }
