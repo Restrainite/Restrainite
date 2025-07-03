@@ -77,12 +77,13 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
             return _refId;
         }
 
-        var slotTree = new StringBuilder($"{slot.Name}/");
+        var slotTree = new StringBuilder();
+        slotTree.Append(slot.Name).Append("/");
         var parent = slot.Parent;
         var maxDepth = 20;
         while (parent != null && maxDepth-- > 0)
         {
-            slotTree.Append($"{parent.Name}/");
+            slotTree.Append(parent.Name).Append("/");
             parent = parent.Parent;
         }
 
@@ -111,7 +112,6 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
     {
         var isValid = IsValidRestrainiteDynamicSpace(dynamicVariableSpace);
         DynamicVariableSpaceSync? shouldUnregister = null;
-        DynamicVariableSpaceSync? shouldRegister = null;
 
         lock (Spaces)
         {
@@ -127,18 +127,13 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
             {
                 if (!isValid) return;
 
-                shouldRegister = new DynamicVariableSpaceSync(dynamicVariableSpace);
-                Spaces.Add(shouldRegister);
-                dynamicVariableSpace.Destroyed += _ => { Remove(dynamicVariableSpace); };
+                var dynamicVariableSpaceSync = new DynamicVariableSpaceSync(dynamicVariableSpace);
+                Spaces.Add(dynamicVariableSpaceSync);
+                dynamicVariableSpace.Destroyed += _ => { Remove(dynamicVariableSpaceSync); };
             }
         }
 
         shouldUnregister?.Unregister();
-        shouldRegister?.Register();
-    }
-
-    private void Register()
-    {
     }
 
     private void OnTargetUserChanged(User user)
@@ -168,6 +163,17 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
     private static bool IsValidRestrainiteDynamicSpace(DynamicVariableSpace dynamicVariableSpace)
     {
         return dynamicVariableSpace is { IsDestroyed: false, IsDisposed: false, CurrentName: DynamicVariableSpaceName };
+    }
+
+    private static void Remove(DynamicVariableSpaceSync dynamicVariableSpace)
+    {
+        lock (Spaces)
+        {
+            var index = Spaces.FindIndex(space => space == dynamicVariableSpace);
+            if (index != -1) Spaces.RemoveAt(index);
+        }
+
+        dynamicVariableSpace.Unregister();
     }
 
     internal static void Remove(DynamicVariableSpace dynamicVariableSpace)
