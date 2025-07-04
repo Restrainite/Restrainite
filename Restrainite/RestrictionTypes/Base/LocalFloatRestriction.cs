@@ -12,13 +12,14 @@ internal class LocalFloatRestriction : LocalBaseRestriction
             dynamicVariableSpace,
             dynamicVariableSpaceSync,
             restriction);
-        FloatState.OnStateChanged += (_, _, source) => restriction.Update(source);
+        FloatState.OnStateChanged += OnFloatStateChanged;
     }
 
     internal LocalBaseState<float> FloatState { get; }
 
     public override void Destroy()
     {
+        FloatState.OnStateChanged -= OnFloatStateChanged;
         base.Destroy();
         FloatState.Destroy();
     }
@@ -27,6 +28,11 @@ internal class LocalFloatRestriction : LocalBaseRestriction
     {
         base.Check();
         FloatState.Check();
+    }
+
+    private static void OnFloatStateChanged(IRestriction restriction, float value, IDynamicVariableSpace source)
+    {
+        restriction.Update(source);
     }
 
     protected override void OnStateChanged(IDynamicVariableSpace source)

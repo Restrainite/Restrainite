@@ -10,13 +10,14 @@ internal class LocalStringRestriction : LocalBaseRestriction
     {
         StringState = new LocalBaseState<string>(
             "", dynamicVariableSpace, dynamicVariableSpaceSync, restriction);
-        StringState.OnStateChanged += (_, _, source) => restriction.Update(source);
+        StringState.OnStateChanged += OnStringStateChanged;
     }
 
     internal LocalBaseState<string> StringState { get; }
 
     public override void Destroy()
     {
+        StringState.OnStateChanged -= OnStringStateChanged;
         base.Destroy();
         StringState.Destroy();
     }
@@ -25,6 +26,11 @@ internal class LocalStringRestriction : LocalBaseRestriction
     {
         base.Check();
         StringState.Check();
+    }
+
+    private static void OnStringStateChanged(IRestriction restriction, string value, IDynamicVariableSpace source)
+    {
+        restriction.Update(source);
     }
 
     protected override void OnStateChanged(IDynamicVariableSpace source)

@@ -15,12 +15,12 @@ internal class LocalBaseRestriction : ILocalRestriction
         _restriction = restriction;
         _state = new LocalBaseState<bool>(false, dynamicVariableSpace, dynamicVariableSpaceSync,
             restriction);
-        _state.OnStateChanged += Log;
-        _state.OnStateChanged += (_, _, source) => OnStateChanged(source);
+        _state.OnStateChanged += OnStateChanged;
     }
 
     public virtual void Destroy()
     {
+        _state.OnStateChanged -= OnStateChanged;
         _restriction.DestroyLocal(this);
         _state.Destroy();
     }
@@ -30,9 +30,10 @@ internal class LocalBaseRestriction : ILocalRestriction
         _state.Check();
     }
 
-    private static void Log(IRestriction restriction, bool value, IDynamicVariableSpace source)
+    private void OnStateChanged(IRestriction restriction, bool value, IDynamicVariableSpace source)
     {
         ResoniteMod.Msg($"Local state of {restriction.Name} changed to {value} by {source.AsString()}");
+        OnStateChanged(source);
     }
 
     public bool IsActive()
