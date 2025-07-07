@@ -1,9 +1,8 @@
 using System;
-using System.Collections.Immutable;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -12,32 +11,28 @@ internal static class ShowOrHideContextMenuItems
 {
     private static bool ShouldDisableButton(IWorldElement contextMenuItem, LocaleString? label)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.ShowContextMenuItems))
+        if (Restrictions.ShowContextMenuItems.IsRestricted)
         {
-            var items = RestrainiteMod.GetStringSet(PreventionType.ShowContextMenuItems);
+            var items = Restrictions.ShowContextMenuItems.StringSet.Value;
 
             var hidden = !FindInList(contextMenuItem, items, label);
 
             if (hidden) return true;
         }
 
-        if (RestrainiteMod.IsRestricted(PreventionType.HideContextMenuItems))
+        if (Restrictions.HideContextMenuItems.IsRestricted)
         {
-            var items = RestrainiteMod.GetStringSet(PreventionType.HideContextMenuItems);
+            var items = Restrictions.HideContextMenuItems.StringSet.Value;
 
             var hidden = FindInList(contextMenuItem, items, label);
 
             if (hidden) return true;
         }
 
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventLaserTouch) &&
-            label is { content: "Interaction.LaserEnabled" })
-            return true;
-
-        return false;
+        return Restrictions.PreventLaserTouch.IsRestricted && label is { content: "Interaction.LaserEnabled" };
     }
 
-    private static bool FindInList(IWorldElement element, IImmutableSet<string> items, LocaleString? label)
+    private static bool FindInList(IWorldElement element, ImmutableStringSet items, LocaleString? label)
     {
         foreach (var item in items)
         {

@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Immutable;
-using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
 using Restrainite.Patches;
 
 namespace Restrainite;
@@ -24,30 +21,6 @@ public class RestrainiteMod : ResoniteMod
     public override string Link => "https://restrainite.github.io";
 
     internal static bool SuccessfullyPatched { get; set; } = true;
-
-    /**
-     * OnRestrictionChanged will fire, when the restriction is activated or deactivated. It will take into account, if
-     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
-     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
-     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
-     */
-    internal static event Action<PreventionType, bool>? OnRestrictionChanged;
-
-    /**
-     * OnFloatChanged will fire, when the float value is changed. It will take into account, if
-     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
-     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
-     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
-     */
-    internal static event Action<PreventionType, float>? OnFloatChanged;
-
-    /**
-     * OnStringSetChanged will fire, when the string set value is changed. It will take into account, if
-     * the restriction is disabled by the user. It will run in the update cycle of the world that triggered the
-     * change. This doesn't have to be the focused world, so make sure, that any write operation are run in the next
-     * update cycle. The value is debounced, meaning it will only trigger, if it actually changes.
-     */
-    internal static event Action<PreventionType, IImmutableSet<string>>? OnStringSetChanged;
 
     public override void DefineConfiguration(ModConfigurationDefinitionBuilder builder)
     {
@@ -109,50 +82,5 @@ public class RestrainiteMod : ResoniteMod
         TrackerMovementSpeed.Initialize();
         SetBusyStatus.Initialize();
         PreventEditMode.Initialize();
-    }
-
-    internal static bool IsRestricted(PreventionType preventionType)
-    {
-        return DynamicVariableSpaceSync.GetGlobalState(preventionType);
-    }
-
-    internal static IImmutableSet<string> GetStringSet(PreventionType preventionType)
-    {
-        return DynamicVariableSpaceSync.GetGlobalStringSet(preventionType);
-    }
-
-    internal static string StringSetAsString(IImmutableSet<string> set)
-    {
-        return set.Join(t => t, ",");
-    }
-
-    /**
-     * Only to be called by DynamicVariableSpaceSync.
-     */
-    internal static void NotifyRestrictionChanged(World source, PreventionType preventionType, bool value)
-    {
-        source.RunSynchronously(() => OnRestrictionChanged.SafeInvoke(preventionType, value));
-    }
-
-    /**
-     * Only to be called by DynamicVariableSpaceSync.
-     */
-    internal static void NotifyFloatChanged(World source, PreventionType preventionType, float value)
-    {
-        source.RunSynchronously(() => OnFloatChanged.SafeInvoke(preventionType, value));
-    }
-
-    internal static float GetLowestFloat(PreventionType preventionType)
-    {
-        return DynamicVariableSpaceSync.GetLowestGlobalFloat(preventionType);
-    }
-
-    /**
-     * Only to be called by DynamicVariableSpaceSync.
-     */
-    internal static void NotifyStringSetChanged(World source, PreventionType preventionType,
-        IImmutableSet<string> value)
-    {
-        source.RunSynchronously(() => OnStringSetChanged.SafeInvoke(preventionType, value));
     }
 }

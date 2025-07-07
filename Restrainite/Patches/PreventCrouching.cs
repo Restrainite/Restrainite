@@ -1,6 +1,5 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -9,9 +8,9 @@ internal static class PreventCrouching
 {
     [HarmonyPrefix]
     [HarmonyPatch(typeof(LocomotionController), nameof(LocomotionController.CanCrouch), MethodType.Getter)]
-    private static bool PreventCrouching_LocomotionControllerCanCrouch_Getter_Prefix(ref bool __result)
+    private static bool LocomotionController_CanCrouch_Getter_Prefix(ref bool __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventCrouching)) return true;
+        if (!Restrictions.PreventCrouching.IsRestricted) return true;
         __result = false;
         return false;
     }

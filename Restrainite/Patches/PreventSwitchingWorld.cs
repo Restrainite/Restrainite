@@ -4,7 +4,6 @@ using System.Threading;
 using FrooxEngine;
 using HarmonyLib;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Worlds;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -28,7 +27,7 @@ internal static class PreventSwitchingWorld
 
         private static bool Prefix()
         {
-            return !RestrainiteMod.IsRestricted(PreventionType.PreventSwitchingWorld);
+            return !Restrictions.PreventSwitchingWorld.IsRestricted;
         }
     }
 
@@ -44,7 +43,7 @@ internal static class PreventSwitchingWorld
         {
             return !(
                 (InOnCommonUpdate.Value || InInteractionHandlerHoldMenu.Value) &&
-                RestrainiteMod.IsRestricted(PreventionType.PreventSwitchingWorld)
+                Restrictions.PreventSwitchingWorld.IsRestricted
             );
         }
     }
@@ -62,7 +61,7 @@ internal static class PreventSwitchingWorld
 
         private static bool Prefix()
         {
-            return !RestrainiteMod.IsRestricted(PreventionType.PreventSwitchingWorld);
+            return !Restrictions.PreventSwitchingWorld.IsRestricted;
         }
     }
 
@@ -89,7 +88,7 @@ internal static class PreventSwitchingWorld
 
         private static bool Prefix()
         {
-            return !RestrainiteMod.IsRestricted(PreventionType.PreventSwitchingWorld);
+            return !Restrictions.PreventSwitchingWorld.IsRestricted;
         }
     }
 
@@ -138,10 +137,7 @@ internal static class PreventSwitchingWorld
         [HarmonyPrefix]
         private static bool Prefix()
         {
-            return !(
-                InOnCommonUpdate.Value &&
-                RestrainiteMod.IsRestricted(PreventionType.PreventSwitchingWorld)
-            );
+            return !(InOnCommonUpdate.Value && Restrictions.PreventSwitchingWorld.IsRestricted);
         }
     }
 }

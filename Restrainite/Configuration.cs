@@ -5,6 +5,7 @@ using System.Linq;
 using FrooxEngine;
 using ResoniteModLoader;
 using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 using SkyFrost.Base;
 
 namespace Restrainite;
@@ -19,7 +20,8 @@ internal class Configuration
     private readonly Dictionary<WorldPermissionType, ModConfigurationKey<PresetChangeType>>
         _changeOnWorldPermissionChangeDict = new();
 
-    private readonly Dictionary<PreventionType, ModConfigurationKey<bool>> _displayedPreventionTypes = new();
+    private readonly ModConfigurationKey<bool>[] _displayedRestrictions =
+        new ModConfigurationKey<bool>[Restrictions.Length];
 
     private readonly ModConfigurationKey<bool> _hasSeenAllPresetWarning = new(
         "Seen All preset warning",
@@ -90,12 +92,12 @@ internal class Configuration
 
         foreach (var key in _presetStore.Values) builder.Key(key);
 
-        foreach (var preventionType in PreventionTypes.List)
+        foreach (var restriction in Restrictions.All)
         {
-            var key = new ModConfigurationKey<bool>($"Allow {preventionType.ToExpandedString()} Restriction",
-                preventionType.GetDescription(), () => false);
+            var key = new ModConfigurationKey<bool>($"Allow {restriction.Name} Restriction",
+                restriction.Description, () => false);
             builder.Key(key);
-            _displayedPreventionTypes.Add(preventionType, key);
+            _displayedRestrictions[restriction.Index] = key;
         }
 
         builder.Key(_password);
@@ -121,8 +123,11 @@ internal class Configuration
     {
         _config = config;
         _presetConfig.OnChanged += OnPresetSelected;
-        foreach (var displayedPreventionType in _displayedPreventionTypes)
-            displayedPreventionType.Value.OnChanged += OnPreventionTypeConfigChanged(displayedPreventionType.Key);
+        for (var index = 0; index < _displayedRestrictions.Length; index++)
+        {
+            var displayedRestriction = _displayedRestrictions[index];
+            displayedRestriction.OnChanged += OnRestrictionConfigChanged(index);
+        }
 
         var presetOnStartup = _config?.GetValue(_presetStartupConfig) ?? PresetChangeType.None;
         if (presetOnStartup != PresetChangeType.DoNotChange) _config?.Set(_presetConfig, (PresetType)presetOnStartup);
@@ -146,8 +151,9 @@ internal class Configuration
         ShouldRecheckPermissions.SafeInvoke();
     }
 
-    private ModConfigurationKey.OnChangedHandler OnPreventionTypeConfigChanged(PreventionType preventionType)
+    private ModConfigurationKey.OnChangedHandler OnRestrictionConfigChanged(int restrictionIndex)
     {
+        var restriction = Restrictions.All[restrictionIndex];
         return value =>
         {
             var boolValue = value as bool? ?? false;
@@ -157,14 +163,14 @@ internal class Configuration
                 case PresetType.None when !boolValue:
                     return;
                 case PresetType.None:
-                    SwitchToCustomized(preventionType, true);
-                    ResoniteMod.Msg($"Preset Customized changed {preventionType} to {boolValue}.");
+                    SwitchToCustomized(restriction, true);
+                    ResoniteMod.Msg($"Preset Customized changed {restriction.Name} to {boolValue}.");
                     return;
                 case PresetType.All when boolValue:
                     return;
                 case PresetType.All:
-                    SwitchToCustomized(preventionType, false);
-                    ResoniteMod.Msg($"Preset Customized changed {preventionType} to {boolValue}.");
+                    SwitchToCustomized(restriction, false);
+                    ResoniteMod.Msg($"Preset Customized changed {restriction.Name} to {boolValue}.");
                     return;
                 case PresetType.Customized:
                 case PresetType.StoredPresetAlpha:
@@ -174,38 +180,38 @@ internal class Configuration
                 case PresetType.StoredPresetOmega:
                 default:
                     var customStored = GetCustomStored(presetType);
-                    if (customStored[(int)preventionType] == boolValue) return;
-                    customStored.Set((int)preventionType, boolValue);
+                    if (customStored[restriction.Index] == boolValue) return;
+                    customStored.Set(restriction.Index, boolValue);
                     SetCustomStored(presetType, customStored);
-                    ResoniteMod.Msg($"Preset {presetType} changed {preventionType} to {boolValue}.");
+                    ResoniteMod.Msg($"Preset {presetType} changed {restriction.Name} to {boolValue}.");
                     return;
             }
         };
     }
 
-    private void SwitchToCustomized(PreventionType preventionType, bool value)
+    private void SwitchToCustomized(IRestriction restriction, bool value)
     {
         var customStored = GetCustomStored(PresetType.Customized);
         customStored.SetAll(!value);
-        customStored.Set((int)preventionType, value);
+        customStored.Set(restriction.Index, value);
         SetCustomStored(PresetType.Customized, customStored);
         _config?.Set(_presetConfig, PresetType.Customized);
     }
 
     private BitArray GetCustomStored(PresetType presetType)
     {
-        if (_config == null) return new BitArray(PreventionTypes.Max, false);
-        if (presetType == PresetType.None) return new BitArray(PreventionTypes.Max, false);
-        if (presetType == PresetType.All) return new BitArray(PreventionTypes.Max, true);
+        if (_config == null) return new BitArray(Restrictions.Length, false);
+        if (presetType == PresetType.None) return new BitArray(Restrictions.Length, false);
+        if (presetType == PresetType.All) return new BitArray(Restrictions.Length, true);
         var savedPresetFound = _config.TryGetValue(_presetStore[presetType], out var value);
-        if (!savedPresetFound || value == null) return new BitArray(PreventionTypes.Max, false);
-        var bitArray = new BitArray(PreventionTypes.Max, false);
+        if (!savedPresetFound || value == null) return new BitArray(Restrictions.Length, false);
+        var bitArray = new BitArray(Restrictions.Length, false);
         foreach (var entry in value)
         {
             if (entry.Key == null) continue;
-            var found = entry.Key.TryParsePreventionType(out var preventionType);
+            var found = Restrictions.TryGetByName(entry.Key, out var restriction);
             if (!found) continue;
-            bitArray.Set((int)preventionType, entry.Value);
+            bitArray.Set(restriction.Index, entry.Value);
         }
 
         return bitArray;
@@ -213,8 +219,8 @@ internal class Configuration
 
     private void SetCustomStored(PresetType presetType, BitArray bitArray)
     {
-        var dictionary = PreventionTypes.List.ToDictionary(preventionType => preventionType.ToExpandedString(),
-            preventionType => bitArray[(int)preventionType]);
+        var dictionary = Restrictions.All.ToDictionary(restriction => restriction.Name,
+            restriction => bitArray[restriction.Index]);
         _config?.Set(_presetStore[presetType], dictionary);
     }
 
@@ -222,13 +228,13 @@ internal class Configuration
     {
         ResoniteMod.Msg($"Restrainite preset changed to {value}.");
         var selectedPreset = value as PresetType? ?? PresetType.None;
-        var preventionTypeValues = GetCustomStored(selectedPreset);
-        foreach (var preventionType in PreventionTypes.List)
+        var restrictionValues = GetCustomStored(selectedPreset);
+        foreach (var restriction in Restrictions.All)
         {
-            if (GetDisplayedPreventionTypeConfig(preventionType, out var configurationKey)) continue;
-            var preventionTypeValue = preventionTypeValues[(int)preventionType];
-            if (_config?.GetValue(configurationKey) == preventionTypeValue) continue;
-            _config?.Set(configurationKey, preventionTypeValue);
+            var configurationKey = GetDisplayedRestrictionConfig(restriction);
+            var restrictionValue = restrictionValues[restriction.Index];
+            if (_config?.GetValue(configurationKey) == restrictionValue) continue;
+            _config?.Set(configurationKey, restrictionValue);
         }
 
         var passwordPreset = selectedPreset is PresetType.All or PresetType.None
@@ -254,16 +260,14 @@ internal class Configuration
         }
     }
 
-    private bool GetDisplayedPreventionTypeConfig(PreventionType preventionType,
-        out ModConfigurationKey<bool> configurationKey)
+    private ModConfigurationKey<bool> GetDisplayedRestrictionConfig(IRestriction restriction)
     {
-        var found = _displayedPreventionTypes.TryGetValue(preventionType, out configurationKey);
-        return !found || configurationKey == null;
+        return _displayedRestrictions[restriction.Index];
     }
 
-    internal bool IsPreventionTypeEnabled(PreventionType preventionType)
+    internal bool IsRestrictionEnabled(IRestriction restriction)
     {
-        if (GetDisplayedPreventionTypeConfig(preventionType, out var key)) return false;
+        var key = GetDisplayedRestrictionConfig(restriction);
         var configValue = false;
         var foundConfigValue = _config?.TryGetValue(key, out configValue) ?? false;
         return foundConfigValue && configValue;
@@ -325,11 +329,11 @@ internal class Configuration
         return !found || key == null ? null! : _config?.GetValue(key);
     }
 
-    internal bool AllowRestrictionsFromWorld(World? world, PreventionType? preventionType = null)
+    internal bool AllowRestrictionsFromWorld(World? world, IRestriction? restriction = null)
     {
         if (_config?.GetValue(_presetConfig) == PresetType.None) return false;
 
-        if (preventionType.HasValue && !IsPreventionTypeEnabled(preventionType.Value)) return false;
+        if (restriction != null && !IsRestrictionEnabled(restriction)) return false;
 
         if (IsLocalHome(world) || IsLocalHome(world?.WorldManager.FocusedWorld)) return false;
 

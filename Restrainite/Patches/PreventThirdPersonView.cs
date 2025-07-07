@@ -1,6 +1,5 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -9,10 +8,10 @@ internal static class PreventThirdPersonView
 {
     [HarmonyPrefix]
     [HarmonyPatch(typeof(ScreenController), nameof(ScreenController.CanUseViewTargetting))]
-    private static bool PreventThirdPersonView_ScreenControllerCanUseViewTargetting_Prefix(
+    private static bool ScreenController_CanUseViewTargetting_Prefix(
         IViewTargettingController view, ref bool __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventThirdPersonView)) return true;
+        if (!Restrictions.PreventThirdPersonView.IsRestricted) return true;
         if (view is not (ThirdPersonTargettingController or FreeformTargettingController)) return true;
 
         __result = false;

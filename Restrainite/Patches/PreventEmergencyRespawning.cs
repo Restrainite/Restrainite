@@ -2,7 +2,6 @@ using System;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -13,10 +12,10 @@ internal static class PreventEmergencyRespawning
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(InteractionHandler), "HoldMenu")]
-    private static void PreventEmergencyRespawning_InteractionHandlerHoldMenu_Prefix(ref float ___panicCharge,
+    private static void InteractionHandler_HoldMenu_Prefix(ref float ___panicCharge,
         InteractionHandler __instance)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventEmergencyRespawning))
+        if (Restrictions.PreventEmergencyRespawning.IsRestricted)
         {
             ___panicCharge = -__instance.Time.Delta;
         }

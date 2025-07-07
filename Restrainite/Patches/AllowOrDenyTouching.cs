@@ -1,6 +1,5 @@
 ﻿using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -8,7 +7,8 @@ namespace Restrainite.Patches;
 internal static class AllowOrDenyTouching
 {
     private static readonly SlotTagPermissionChecker SlotTagPermissionChecker = new(
-        PreventionType.AllowTouchingBySlotTags, PreventionType.DenyTouchingBySlotTags);
+        Restrictions.AllowTouchingBySlotTags,
+        Restrictions.DenyTouchingBySlotTags);
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(TouchablePermissionsExtensions), nameof(TouchablePermissionsExtensions.CanTouch))]
@@ -16,10 +16,10 @@ internal static class AllowOrDenyTouching
     {
         if (touchable.World != Userspace.UserspaceWorld)
             __result &= SlotTagPermissionChecker.IsAllowed(touchable.Slot);
-        else if (RestrainiteMod.IsRestricted(PreventionType.PreventNonDashUserspaceInteraction))
+        else if (Restrictions.PreventNonDashUserspaceInteraction.IsRestricted)
             __result &= touchable.Slot.GetComponentInParents<UserspaceRadiantDash>() != null ||
                         touchable.Slot.GetComponentInParents<ContextMenu>() != null ||
                         touchable.Slot.GetComponentInParents<NoticeDisplayInterface>() != null;
-                        // ^ Needed so users can dismiss the 'All preset warning' popup.
+        // ^ Needed so users can dismiss the 'All preset warning' popup.
     }
 }

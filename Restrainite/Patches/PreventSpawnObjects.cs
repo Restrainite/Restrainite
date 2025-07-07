@@ -1,6 +1,5 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -11,7 +10,7 @@ internal static class PreventSpawnObjects
     [HarmonyPatch(typeof(WorldPermissionsExtensoins), nameof(WorldPermissionsExtensoins.CanSpawnObjects))]
     private static bool WorldPermissionsExtensoins_CanSpawnObjects_Prefix(ref bool __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventSpawnObjects))
+        if (!Restrictions.PreventSpawnObjects.IsRestricted)
             return true;
 
         __result = false;

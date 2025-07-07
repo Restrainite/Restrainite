@@ -1,11 +1,10 @@
-using System.Collections.Immutable;
 using System.Reflection;
 using Awwdio;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 using AudioOutput = FrooxEngine.AudioOutput;
 
 namespace Restrainite.Patches;
@@ -35,31 +34,13 @@ internal static class MaximumHearingDistance
             return;
         }
 
-        RestrainiteMod.OnRestrictionChanged += OnChange;
-        RestrainiteMod.OnFloatChanged += OnFloatChange;
-        RestrainiteMod.OnStringSetChanged += OnStringSetChange;
+        Restrictions.MaximumHearingDistance.OnChanged += OnChanged;
+        Restrictions.AlwaysHearSelectedUsers.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.MaximumHearingDistance &&
-            preventionType != PreventionType.AlwaysHearSelectedUsers)
-            return;
-        PreventHearing.MarkAudioOutputsDirty();
-    }
-
-    private static void OnFloatChange(PreventionType preventionType, float value)
-    {
-        if (preventionType != PreventionType.MaximumHearingDistance)
-            return;
-        PreventHearing.MarkAudioOutputsDirty();
-    }
-
-    private static void OnStringSetChange(PreventionType preventionType, IImmutableSet<string> value)
-    {
-        if (preventionType != PreventionType.AlwaysHearSelectedUsers)
-            return;
-        PreventHearing.MarkAudioOutputsDirty();
+        PreventHearing.MarkAudioOutputsDirty(restriction);
     }
 
 
@@ -71,11 +52,11 @@ internal static class MaximumHearingDistance
         ref bool ____updateRegistered,
         ref IAudioShape ____audioShape)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.MaximumHearingDistance)) return true;
+        if (!Restrictions.MaximumHearingDistance.IsRestricted) return true;
         if (NativeOutputMethod == null || AudioInletMethod == null) return true;
         if (IsAlwaysHearingSelectedUsers(__instance)) return true;
 
-        var restrictedDistance = RestrainiteMod.GetLowestFloat(PreventionType.MaximumHearingDistance);
+        var restrictedDistance = Restrictions.MaximumHearingDistance.LowestFloat.Value;
         if (float.IsNaN(restrictedDistance)) return true;
         if (restrictedDistance <= 0.0f) restrictedDistance = 0.0f;
 
@@ -128,7 +109,7 @@ internal static class MaximumHearingDistance
             return false;
         var userId = activeUser.UserID;
         if (userId is null) return false;
-        return RestrainiteMod.IsRestricted(PreventionType.AlwaysHearSelectedUsers) &&
-               RestrainiteMod.GetStringSet(PreventionType.AlwaysHearSelectedUsers).Contains(userId);
+        return Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
+               Restrictions.AlwaysHearSelectedUsers.SetContains(userId);
     }
 }

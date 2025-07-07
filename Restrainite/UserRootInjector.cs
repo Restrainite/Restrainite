@@ -61,7 +61,7 @@ internal static class UserRootInjector
         switch (userRoot.World.InitState)
         {
             case World.InitializationState.Finished:
-                AttachToUserRoot(userRoot);
+                userRoot.World.RunSynchronously(() => AttachToUserRoot(userRoot));
                 return;
             case World.InitializationState.Failed:
                 return;
@@ -91,7 +91,13 @@ internal static class UserRootInjector
         if (!ImpulseSenders.ContainsKey(refId))
         {
             var impulseSender = new ImpulseSender(RestrainiteMod.Configuration, userRoot);
-            RestrainiteMod.OnRestrictionChanged += impulseSender.SendDynamicImpulse;
+            foreach (var restriction in Restrictions.All)
+                restriction.RegisterImpulseSender(impulseSender);
+            userRoot.Disposing += _ =>
+            {
+                impulseSender.Destroy();
+                ImpulseSenders.Remove(refId);
+            };
             ImpulseSenders.Add(refId, impulseSender);
         }
 
@@ -101,23 +107,13 @@ internal static class UserRootInjector
             var restrictionStateOutput = new RestrictionStateOutput(RestrainiteMod.Configuration, userSlot);
             RestrainiteMod.Configuration.ShouldRecheckPermissions += restrictionStateOutput.OnShouldRecheckPermissions;
             DynamicVariableStatusMap.Add(refId, restrictionStateOutput);
-        }
-
-        userRoot.Disposing += _ =>
-        {
-            if (ImpulseSenders.TryGetValue(refId, out var impulseSender))
-            {
-                RestrainiteMod.OnRestrictionChanged -= impulseSender.SendDynamicImpulse;
-                ImpulseSenders.Remove(refId);
-            }
-
-            if (DynamicVariableStatusMap.TryGetValue(refId, out var restrictionStateOutput))
+            userRoot.Disposing += _ =>
             {
                 RestrainiteMod.Configuration.ShouldRecheckPermissions -=
                     restrictionStateOutput.OnShouldRecheckPermissions;
                 DynamicVariableStatusMap.Remove(refId);
-            }
-        };
+            };
+        }
     }
 
 

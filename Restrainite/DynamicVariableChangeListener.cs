@@ -6,12 +6,26 @@ using ResoniteModLoader;
 
 namespace Restrainite;
 
-internal class DynamicVariableChangeListener<TV>(
-    DynamicVariableSpace space,
-    string variableName) : IDynamicVariable<TV>
+internal static class DynamicVariableChangeListener
 {
-    private static bool _hasShownWarning;
+    internal static bool HasShownWarning;
+}
+
+internal class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
+{
+    private readonly WeakReference<DynamicVariableSpace> _space;
+    private Action<TV>? _onValueChanged;
+
     private TV? _value;
+
+    internal DynamicVariableChangeListener(DynamicVariableSpace space, string variableName, Action<TV> callback)
+    {
+        _space = new WeakReference<DynamicVariableSpace>(space);
+        VariableName = variableName;
+        _onValueChanged = callback;
+        var manager = space.GetManager<TV>(VariableName, true);
+        manager.Register(this);
+    }
 
     public void ChildChanged(IWorldElement child)
     {
@@ -67,8 +81,9 @@ internal class DynamicVariableChangeListener<TV>(
         }
     }
 
-    public World World => space.World;
-    public IWorldElement Parent => space;
+    public World World => !_space.TryGetTarget(out var dynamicVariableSpace) ? null! : dynamicVariableSpace.World;
+
+    public IWorldElement Parent => !_space.TryGetTarget(out var dynamicVariableSpace) ? null! : dynamicVariableSpace;
     public bool IsLocalElement => true;
     public bool IsPersistent => false;
     public bool IsRemoved => false;
@@ -86,7 +101,7 @@ internal class DynamicVariableChangeListener<TV>(
         throw ex;
     }
 
-    public string VariableName => variableName;
+    public string VariableName { get; }
 
     public bool AlwaysOverrideOnLink => false;
     public bool IsWriteOnly => true;
@@ -99,61 +114,22 @@ internal class DynamicVariableChangeListener<TV>(
             if (EqualityComparer<TV>.Default.Equals(_value!, value))
                 return;
             _value = value;
-            OnChange.SafeInvoke(value!);
+            _onValueChanged.SafeInvoke(value!);
         }
     }
 
     private static void WarnInvalidCalls(Exception ex)
     {
-        if (_hasShownWarning) return;
-        _hasShownWarning = true;
+        if (DynamicVariableChangeListener.HasShownWarning) return;
+        DynamicVariableChangeListener.HasShownWarning = true;
         ResoniteMod.Warn($"{RestrainiteMod.LogReportUrl} {ex.Message}: {ex}");
     }
 
-    private event Action<TV>? OnChange;
-
-    internal void Register(Action<TV> callback)
+    internal void Unregister()
     {
-        var manager = space.GetManager<TV>(VariableName, true);
-        manager.Register(this);
-        OnChange += callback;
-    }
-
-    internal void Unregister(Action<TV> callback)
-    {
+        _onValueChanged = null;
+        if (!_space.TryGetTarget(out var space)) return;
         var manager = space.GetManager<TV>(VariableName, true);
         manager.Unregister(this);
-        OnChange -= callback;
-    }
-}
-
-internal class DynamicVariableKeyChangeListener<TK, TV> : DynamicVariableChangeListener<TV>
-{
-    private readonly TK _key;
-
-    internal DynamicVariableKeyChangeListener(DynamicVariableSpace space,
-        TK key,
-        string variableName) : base(space, variableName)
-    {
-        _key = key;
-    }
-
-    private event Action<TK, TV>? OnChange;
-
-    internal void Register(Action<TK, TV> callback)
-    {
-        base.Register(CallChange);
-        OnChange += callback;
-    }
-
-    internal void Unregister(Action<TK, TV> callback)
-    {
-        base.Unregister(CallChange);
-        OnChange -= callback;
-    }
-
-    private void CallChange(TV value)
-    {
-        OnChange?.SafeInvoke(_key!, value!);
     }
 }

@@ -2,7 +2,7 @@ using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -33,30 +33,28 @@ internal static class PreventLaserTouch
             RestrainiteMod.SuccessfullyPatched = false;
         }
 
-        RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
+        Restrictions.PreventLaserTouch.OnChanged += OnRestrictionChanged;
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, bool value)
+    private static void OnRestrictionChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventLaserTouch) return;
-
         var user = Engine.Current?.WorldManager?.FocusedWorld?.LocalUser;
         if (user is null) return;
 
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
         leftInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(value, leftInteractionHandler, ref _leftOriginalValue));
+            SetLaserActive(leftInteractionHandler, ref _leftOriginalValue));
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
         rightInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(value, rightInteractionHandler, ref _rightOriginalValue));
+            SetLaserActive(rightInteractionHandler, ref _rightOriginalValue));
     }
 
-    private static void SetLaserActive(bool value, InteractionHandler? interactionHandler, ref bool originalValue)
+    private static void SetLaserActive(InteractionHandler? interactionHandler, ref bool originalValue)
     {
         if (interactionHandler == null) return;
         if (LaserEnabledField?.GetValue(interactionHandler) is not Sync<bool> syncBool) return;
-        if (value)
+        if (Restrictions.PreventLaserTouch.IsRestricted)
         {
             originalValue = syncBool.Value;
             syncBool.Value = false;

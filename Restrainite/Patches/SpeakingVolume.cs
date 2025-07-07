@@ -2,7 +2,6 @@ using System;
 using Elements.Assets;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -13,8 +12,8 @@ internal static class SpeakingVolume
     [HarmonyPatch(typeof(UserAudioStream<MonoSample>), "OnNewAudioData")]
     private static void UserAudioStream_OnNewAudioData_Prefix(ref Span<StereoSample> buffer)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.SpeakingVolume)) return;
-        var multiplier = RestrainiteMod.GetLowestFloat(PreventionType.SpeakingVolume);
+        if (!Restrictions.SpeakingVolume.IsRestricted) return;
+        var multiplier = Restrictions.SpeakingVolume.LowestFloat.Value;
         if (float.IsNaN(multiplier)) return;
         if (multiplier < 0.0f) multiplier = 0.0f;
         if (multiplier > 1.0f) multiplier = 1.0f;
@@ -22,13 +21,13 @@ internal static class SpeakingVolume
         for (var i = 0; i < newBuffer.Length; i++) newBuffer[i] *= multiplier;
         buffer = newBuffer;
     }
-    
+
     [HarmonyPrefix]
     [HarmonyPatch(typeof(AudioDeviceVolume), "OnNewNormalizedSamples")]
     private static void AudioDeviceVolume_OnNewNormalizedSamples_Prefix(ref Span<StereoSample> buffer)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.SpeakingVolume)) return;
-        var multiplier = RestrainiteMod.GetLowestFloat(PreventionType.SpeakingVolume);
+        if (!Restrictions.SpeakingVolume.IsRestricted) return;
+        var multiplier = Restrictions.SpeakingVolume.LowestFloat.Value;
         if (float.IsNaN(multiplier)) return;
         if (multiplier < 0.0f) multiplier = 0.0f;
         if (multiplier > 1.0f) multiplier = 1.0f;

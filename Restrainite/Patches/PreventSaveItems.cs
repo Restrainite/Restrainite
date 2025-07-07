@@ -1,6 +1,5 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -11,7 +10,7 @@ internal static class PreventSaveItems
     [HarmonyPatch(typeof(WorldPermissionsExtensoins), nameof(WorldPermissionsExtensoins.CanSaveItems))]
     private static bool WorldPermissionsExtensoins_CanSaveItems_Prefix(ref bool __result)
     {
-        if (!RestrainiteMod.IsRestricted(PreventionType.PreventSaveItems))
+        if (!Restrictions.PreventSaveItems.IsRestricted)
             return true;
 
         __result = false;

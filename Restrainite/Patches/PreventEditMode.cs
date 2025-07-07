@@ -1,7 +1,7 @@
 using FrooxEngine;
 using FrooxEngine.UIX;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -10,12 +10,12 @@ internal static class PreventEditMode
 {
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnRestrictionChanged;
+        Restrictions.PreventEditMode.OnChanged += OnRestrictionChanged;
     }
 
-    private static void OnRestrictionChanged(PreventionType preventionType, bool value)
+    private static void OnRestrictionChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventEditMode || !value) return;
+        if (!Restrictions.PreventEditMode.IsRestricted) return;
         var world = Engine.Current?.WorldManager?.FocusedWorld;
         world?.RunSynchronously(() =>
         {
@@ -31,14 +31,14 @@ internal static class PreventEditMode
     [HarmonyPatch(typeof(User), nameof(User.EditMode), MethodType.Setter)]
     private static bool User_EditMode_Prefix()
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventEditMode);
+        return !Restrictions.PreventEditMode.IsRestricted;
     }
 
     [HarmonyPostfix]
     [HarmonyPatch(typeof(SessionControlDialog), "OnCommonUpdate")]
     private static void SessionControlDialog_OnCommonUpdate_Postfix(SyncRef<Button> ____editMode)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.PreventEditMode))
+        if (Restrictions.PreventEditMode.IsRestricted)
             ____editMode.Target.Enabled = false;
     }
 }

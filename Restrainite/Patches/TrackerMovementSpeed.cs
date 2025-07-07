@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -13,12 +13,12 @@ internal static class TrackerMovementSpeed
 
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnChange;
+        Restrictions.TrackerMovementSpeed.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType == PreventionType.TrackerMovementSpeed && !value) SmoothingFilters.Clear();
+        if (!Restrictions.TrackerMovementSpeed.IsRestricted) SmoothingFilters.Clear();
     }
 
     [HarmonyPrefix]
@@ -30,15 +30,15 @@ internal static class TrackerMovementSpeed
         ref bool isActive,
         BodyNode node)
     {
-        if (RestrainiteMod.IsRestricted(PreventionType.DisableVrTrackers))
+        if (Restrictions.DisableVrTrackers.IsRestricted)
         {
             isActive = false;
             return;
         }
 
         if (!__instance.IsUnderLocalUser) return;
-        if (!RestrainiteMod.IsRestricted(PreventionType.TrackerMovementSpeed)) return;
-        var speed = RestrainiteMod.GetLowestFloat(PreventionType.TrackerMovementSpeed);
+        if (!Restrictions.TrackerMovementSpeed.IsRestricted) return;
+        var speed = Restrictions.TrackerMovementSpeed.LowestFloat.Value;
         if (float.IsNaN(speed)) return;
 
         if (!isActive) return;

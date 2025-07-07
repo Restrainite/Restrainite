@@ -1,6 +1,5 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
 
 namespace Restrainite.Patches;
 
@@ -11,6 +10,6 @@ internal static class PreventInviteContact
     [HarmonyPatch(typeof(ContactsDialog), "OnInviteContact")]
     private static bool ContactsDialog_OnInviteContact_Prefix()
     {
-        return !RestrainiteMod.IsRestricted(PreventionType.PreventInviteContact);
+        return !Restrictions.PreventInviteContact.IsRestricted;
     }
 }

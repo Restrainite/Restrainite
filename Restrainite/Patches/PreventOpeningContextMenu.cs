@@ -1,6 +1,6 @@
 using FrooxEngine;
 using HarmonyLib;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -9,14 +9,12 @@ internal static class PreventOpeningContextMenu
 {
     internal static void Initialize()
     {
-        RestrainiteMod.OnRestrictionChanged += OnChange;
+        Restrictions.PreventOpeningContextMenu.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventOpeningContextMenu ||
-            !value)
-            return;
+        if (!Restrictions.PreventOpeningContextMenu.IsRestricted) return;
 
         var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
         user.Root.RunSynchronously(() => user.CloseContextMenu(null!));
@@ -24,10 +22,10 @@ internal static class PreventOpeningContextMenu
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(InteractionHandler), "TryOpenContextMenu")]
-    private static bool PreventOpeningContextMenu_InteractionHandlerTryOpenContextMenu_Prefix(
+    private static bool InteractionHandler_TryOpenContextMenu_Prefix(
         InteractionHandler __instance)
     {
         return __instance.World == Userspace.UserspaceWorld ||
-               !RestrainiteMod.IsRestricted(PreventionType.PreventOpeningContextMenu);
+               !Restrictions.PreventOpeningContextMenu.IsRestricted;
     }
 }

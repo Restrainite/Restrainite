@@ -2,7 +2,7 @@ using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
@@ -19,14 +19,13 @@ internal static class PreventGrabbing
             ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method InteractionHandler.EndGrab");
             RestrainiteMod.SuccessfullyPatched = false;
         }
-
-        RestrainiteMod.OnRestrictionChanged += OnChange;
+        
+        Restrictions.PreventGrabbing.OnChanged += OnChanged;
     }
 
-    private static void OnChange(PreventionType preventionType, bool value)
+    private static void OnChanged(IRestriction restriction)
     {
-        if (preventionType != PreventionType.PreventGrabbing ||
-            !value)
+        if (!Restrictions.PreventGrabbing.IsRestricted)
             return;
 
         if (EndGrabMethod == null) return;
@@ -43,9 +42,9 @@ internal static class PreventGrabbing
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(InteractionHandler), "StartGrab")]
-    private static bool PreventGrabbing_InteractionHandlerStartGrab_Prefix(InteractionHandler __instance)
+    private static bool InteractionHandler_StartGrab_Prefix(InteractionHandler __instance)
     {
         return __instance.World == Userspace.UserspaceWorld ||
-               !RestrainiteMod.IsRestricted(PreventionType.PreventGrabbing);
+               !Restrictions.PreventGrabbing.IsRestricted;
     }
 }

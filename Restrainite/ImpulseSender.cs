@@ -1,11 +1,11 @@
 using System;
 using FrooxEngine;
 using FrooxEngine.ProtoFlux;
-using Restrainite.Enums;
+using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
-internal class ImpulseSender
+public class ImpulseSender
 {
     private const string ImpulsePrefix = "Restrainite";
     private readonly Configuration _configuration;
@@ -17,20 +17,27 @@ internal class ImpulseSender
         _userRoot = new WeakReference<UserRoot>(userRoot);
     }
 
-    internal void SendDynamicImpulse<T>(PreventionType preventionType, T value)
+    internal event Action<ImpulseSender>? OnDestroy;
+
+    internal void Destroy()
+    {
+        OnDestroy.SafeInvoke(this);
+    }
+
+    internal void SendDynamicImpulse(IRestriction restriction, bool value, IDynamicVariableSpace source)
     {
         if (!_configuration.SendDynamicImpulses) return;
         if (!GetLocalUserSlot(out var slot) || slot == null) return;
         slot.RunSynchronously(() =>
         {
             if (slot.IsDestroyed || slot.IsDestroying) return;
-            if (!_configuration.AllowRestrictionsFromWorld(slot.World, preventionType)) return;
+            if (!_configuration.AllowRestrictionsFromWorld(slot.World, restriction)) return;
             ProtoFluxHelper.DynamicImpulseHandler.TriggerAsyncDynamicImpulseWithArgument(
                 slot, $"{ImpulsePrefix} Change", true,
-                $"{preventionType.ToExpandedString()}:{typeof(T)}:{value}"
+                $"{restriction.Name}:bool:{value}"
             );
             ProtoFluxHelper.DynamicImpulseHandler.TriggerAsyncDynamicImpulseWithArgument(
-                slot, $"{ImpulsePrefix} {preventionType.ToExpandedString()}", true,
+                slot, $"{ImpulsePrefix} {restriction.Name}", true,
                 value
             );
         });
