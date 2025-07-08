@@ -15,7 +15,7 @@ public class RestrainiteMod : ResoniteMod
     public override string Name => "Restrainite";
     public override string Author => "SnepDrone Zenuru";
 
-    public static Version AssemblyVersion => typeof(RestrainiteMod).Assembly.GetName().Version;
+    public static Version AssemblyVersion => typeof(RestrainiteMod).Assembly.GetName().Version ?? new Version(0, 0, 0);
     public override string Version => $"{AssemblyVersion.Major}.{AssemblyVersion.Minor}.{AssemblyVersion.Build}";
 
     public override string Link => "https://restrainite.github.io";

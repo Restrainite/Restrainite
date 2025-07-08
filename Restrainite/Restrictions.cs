@@ -90,7 +90,7 @@ internal static class Restrictions
 
     internal static int Length => All.Length;
 
-    internal static bool TryGetByName(string name, out IRestriction restriction)
+    internal static bool TryGetByName(string name, out IRestriction? restriction)
     {
         return NameToRestriction.TryGetValue(name, out restriction);
     }

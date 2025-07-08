@@ -41,7 +41,7 @@ internal static class UserRootInjector
 
     private static void InjectIntoUser(User value)
     {
-        var userRoot = (LinkRef<UserRoot>)UserRootField.GetValue(value);
+        if (UserRootField.GetValue(value) is not LinkRef<UserRoot> userRoot) return;
         userRoot.OnTargetChange += OnUserRootTargetChanged;
     }
 

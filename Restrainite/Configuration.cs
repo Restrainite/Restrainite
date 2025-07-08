@@ -210,7 +210,7 @@ internal class Configuration
         {
             if (entry.Key == null) continue;
             var found = Restrictions.TryGetByName(entry.Key, out var restriction);
-            if (!found) continue;
+            if (!found || restriction == null) continue;
             bitArray.Set(restriction.Index, entry.Value);
         }
 

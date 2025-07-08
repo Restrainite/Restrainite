@@ -16,7 +16,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Restrainite</RootNamespace>
         <AssemblyName>Restrainite</AssemblyName>
-        <TargetFramework>net472</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <FileAlignment>512</FileAlignment>
         <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
@@ -44,40 +44,34 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="Awwdio">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\Awwdio.dll</HintPath>
+            <HintPath>$(ResonitePath)Awwdio.dll</HintPath>
         </Reference>
         <Reference Include="Elements.Assets">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\Elements.Assets.dll</HintPath>
+            <HintPath>$(ResonitePath)Elements.Assets.dll</HintPath>
         </Reference>
         <Reference Include="FrooxEngine.Store">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\FrooxEngine.Store.dll</HintPath>
+            <HintPath>$(ResonitePath)FrooxEngine.Store.dll</HintPath>
         </Reference>
         <Reference Include="SkyFrost.Base">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\SkyFrost.Base.dll</HintPath>
+            <HintPath>$(ResonitePath)SkyFrost.Base.dll</HintPath>
         </Reference>
         <Reference Include="SkyFrost.Base.Models">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\SkyFrost.Base.Models.dll</HintPath>
+            <HintPath>$(ResonitePath)SkyFrost.Base.Models.dll</HintPath>
         </Reference>
         <Reference Include="0Harmony">
             <HintPath>$(ResonitePath)rml_libs\0Harmony.dll</HintPath>
         </Reference>
         <Reference Include="Elements.Core">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\Elements.Core.dll</HintPath>
+            <HintPath>$(ResonitePath)Elements.Core.dll</HintPath>
         </Reference>
         <Reference Include="FrooxEngine">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\FrooxEngine.dll</HintPath>
+            <HintPath>$(ResonitePath)FrooxEngine.dll</HintPath>
         </Reference>
         <Reference Include="ProtoFlux.Nodes.FrooxEngine">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\ProtoFlux.Nodes.FrooxEngine.dll</HintPath>
+            <HintPath>$(ResonitePath)ProtoFlux.Nodes.FrooxEngine.dll</HintPath>
         </Reference>
         <Reference Include="ResoniteModLoader">
             <HintPath>$(ResonitePath)Libraries\ResoniteModLoader.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Collections.Immutable">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\System.Collections.Immutable.dll</HintPath>
-        </Reference>
-        <Reference Include="System.Memory">
-            <HintPath>$(ResonitePath)Resonite_Data\Managed\System.Memory.dll</HintPath>
         </Reference>
     </ItemGroup>
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
