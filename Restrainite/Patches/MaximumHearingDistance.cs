@@ -18,6 +18,12 @@ internal static class MaximumHearingDistance
     private static readonly MethodInfo? AudioInletMethod =
         AccessTools.PropertyGetter(typeof(AudioManager), "EffectsInlet");
 
+    private static readonly FieldInfo? ExcludedListenersChangedField =
+        AccessTools.Field(typeof(AudioOutput), "_excludedListenersChanged");
+
+    private static readonly MethodInfo? UpdateExcludedListenersMethod =
+        AccessTools.Method(typeof(AudioOutput), "UpdateExcludedListeners");
+
     internal static void Initialize()
     {
         if (NativeOutputMethod == null)
@@ -30,6 +36,22 @@ internal static class MaximumHearingDistance
         if (AudioInletMethod == null)
         {
             ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method AudioManager.EffectsInlet");
+            RestrainiteMod.SuccessfullyPatched = false;
+            return;
+        }
+
+        if (ExcludedListenersChangedField == null)
+        {
+            ResoniteMod.Error(RestrainiteMod.LogReportUrl +
+                              " Failed to find field AudioOutput._excludedListenersChanged");
+            RestrainiteMod.SuccessfullyPatched = false;
+            return;
+        }
+
+        if (UpdateExcludedListenersMethod == null)
+        {
+            ResoniteMod.Error(
+                RestrainiteMod.LogReportUrl + " Failed to find method AudioOutput.UpdateExcludedListeners");
             RestrainiteMod.SuccessfullyPatched = false;
             return;
         }
@@ -49,6 +71,7 @@ internal static class MaximumHearingDistance
     private static bool AudioOutput_UpdateNativeOutput_Prefix(
         AudioOutput __instance,
         ChangesBatch batch,
+        bool updateExcludedListeners,
         ref bool ____updateRegistered,
         ref IAudioShape ____audioShape)
     {
@@ -64,8 +87,7 @@ internal static class MaximumHearingDistance
 
         ____updateRegistered = false;
 
-        var nativeOutput = (Awwdio.AudioOutput?)NativeOutputMethod.Invoke(__instance, []);
-        if (nativeOutput == null || __instance.IsRemoved)
+        if (NativeOutputMethod.Invoke(__instance, []) is not Awwdio.AudioOutput nativeOutput || __instance.IsRemoved)
             return false;
 
         __instance.GetActualDistances(out var minDistance,
@@ -99,6 +121,11 @@ internal static class MaximumHearingDistance
         if (!__instance.IgnoreAudioEffects.Value)
             audioInlet = AudioInletMethod.Invoke(__instance.Audio, []) as AudioInlet;
         nativeOutput.Update(batch, __instance.Source.Target, ____audioShape, audioInlet);
+        var excludedListenersChanged = ExcludedListenersChangedField?.GetValue(__instance) is bool &&
+                                       (bool)(ExcludedListenersChangedField.GetValue(__instance) ?? false);
+        if (!(excludedListenersChanged && updateExcludedListeners))
+            return false;
+        UpdateExcludedListenersMethod?.Invoke(__instance, [batch]);
         return false;
     }
 
