@@ -22,7 +22,7 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 
     private readonly string _refId;
 
-    private readonly ILocalRestriction[] _restrictions;
+    private readonly LocalRestriction[] _restrictions;
 
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
     private string _cachedSource;
@@ -47,7 +47,7 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 
     public bool IsActiveForLocalUser(IRestriction restriction)
     {
-        if (!GetDynamicVariableSpace(out var dynamicVariableSpace)) return false;
+        if (!GetDynamicVariableSpace(out var dynamicVariableSpace) || dynamicVariableSpace == null) return false;
         if (!IsValidRestrainiteDynamicSpace(dynamicVariableSpace) ||
             !RestrainiteMod.Configuration.AllowRestrictionsFromWorld(dynamicVariableSpace.World, restriction))
             return false;
@@ -96,7 +96,7 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
     }
 
 
-    private bool GetDynamicVariableSpace(out DynamicVariableSpace dynamicVariableSpace)
+    private bool GetDynamicVariableSpace(out DynamicVariableSpace? dynamicVariableSpace)
     {
         return _dynamicVariableSpace.TryGetTarget(out dynamicVariableSpace);
     }

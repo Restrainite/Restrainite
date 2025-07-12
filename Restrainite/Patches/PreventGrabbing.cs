@@ -19,7 +19,7 @@ internal static class PreventGrabbing
             ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method InteractionHandler.EndGrab");
             RestrainiteMod.SuccessfullyPatched = false;
         }
-        
+
         Restrictions.PreventGrabbing.OnChanged += OnChanged;
     }
 
@@ -32,11 +32,11 @@ internal static class PreventGrabbing
         var user = Engine.Current?.WorldManager?.FocusedWorld?.LocalUser;
         if (user == null) return;
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
-        if (leftInteractionHandler != null)
+        if (leftInteractionHandler != null && Restrictions.PreventGrabbing.Chirality.IsRestricted(Chirality.Left))
             leftInteractionHandler.RunInUpdates(0, () => { EndGrabMethod.Invoke(leftInteractionHandler, [false]); });
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
-        if (rightInteractionHandler != null)
+        if (rightInteractionHandler != null && Restrictions.PreventGrabbing.Chirality.IsRestricted(Chirality.Right))
             rightInteractionHandler.RunInUpdates(0, () => { EndGrabMethod.Invoke(rightInteractionHandler, [false]); });
     }
 
@@ -45,6 +45,7 @@ internal static class PreventGrabbing
     private static bool InteractionHandler_StartGrab_Prefix(InteractionHandler __instance)
     {
         return __instance.World == Userspace.UserspaceWorld ||
-               !Restrictions.PreventGrabbing.IsRestricted;
+               !Restrictions.PreventGrabbing.IsRestricted ||
+               !Restrictions.PreventGrabbing.Chirality.IsRestricted(__instance.Side.Value);
     }
 }

@@ -70,9 +70,9 @@ internal static class PreventHearing
         var userId = activeUser.UserID;
         if (userId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
         if (Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
-            Restrictions.AlwaysHearSelectedUsers.SetContains(userId)) return result;
+            Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(userId)) return result;
         if (Restrictions.EnforceSelectiveHearing.IsRestricted &&
-            !Restrictions.EnforceSelectiveHearing.SetContains(userId)) return 0.0f;
+            !Restrictions.EnforceSelectiveHearing.StringSet.Contains(userId)) return 0.0f;
         return Restrictions.PreventHearing.IsRestricted ||
                Restrictions.PreventHearingOfUsers.IsRestricted
             ? 0.0f

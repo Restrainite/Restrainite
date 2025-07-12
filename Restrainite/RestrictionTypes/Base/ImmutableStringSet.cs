@@ -10,9 +10,9 @@ public class ImmutableStringSet(IImmutableSet<string> immutableSet)
 {
     public static readonly ImmutableStringSet Empty = new(ImmutableHashSet<string>.Empty);
 
-    public bool Equals(ImmutableStringSet other)
+    public bool Equals(ImmutableStringSet? other)
     {
-        return immutableSet.SetEquals(other);
+        return other != null && immutableSet.SetEquals(other);
     }
 
     public IEnumerator<string> GetEnumerator()

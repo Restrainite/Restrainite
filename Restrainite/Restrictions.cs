@@ -83,14 +83,14 @@ internal static class Restrictions
         ResoniteMod.Msg($"Found {All.Length} restrictions");
         for (var i = 0; i < All.Length; i++)
         {
-            All[i].Index = i;
+            All[i].Initialize(i);
             NameToRestriction.Add(All[i].Name, All[i]);
         }
     }
 
     internal static int Length => All.Length;
 
-    internal static bool TryGetByName(string name, out IRestriction restriction)
+    internal static bool TryGetByName(string name, out IRestriction? restriction)
     {
         return NameToRestriction.TryGetValue(name, out restriction);
     }

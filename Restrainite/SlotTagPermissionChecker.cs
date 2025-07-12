@@ -6,11 +6,11 @@ namespace Restrainite;
 
 public class SlotTagPermissionChecker
 {
-    private readonly StringSetRestriction _allowedPrevention;
-    private readonly StringSetRestriction _deniedPrevention;
+    private readonly ISlotTagRestriction _allowedPrevention;
+    private readonly ISlotTagRestriction _deniedPrevention;
 
-    internal SlotTagPermissionChecker(StringSetRestriction allowedPrevention,
-        StringSetRestriction deniedPrevention)
+    internal SlotTagPermissionChecker(ISlotTagRestriction allowedPrevention,
+        ISlotTagRestriction deniedPrevention)
     {
         _allowedPrevention = allowedPrevention;
         _deniedPrevention = deniedPrevention;
@@ -38,11 +38,13 @@ public class SlotTagPermissionChecker
         var tag = slot == null || string.IsNullOrEmpty(slot.Tag) ? "null" : slot.Tag;
 
         if (_deniedPrevention.IsRestricted)
-            if (_deniedPrevention.SetContains(tag))
+            if (_deniedPrevention.StringSet.Contains(tag))
                 return PermissionType.ExplicitlyDenied;
 
         if (_allowedPrevention.IsRestricted)
-            return _allowedPrevention.SetContains(tag) ? PermissionType.ExplicitlyAllowed : PermissionType.Denied;
+            return _allowedPrevention.StringSet.Contains(tag)
+                ? PermissionType.ExplicitlyAllowed
+                : PermissionType.Denied;
 
         return PermissionType.Allowed;
     }
@@ -66,4 +68,11 @@ public class SlotTagPermissionChecker
         ExplicitlyAllowed,
         ExplicitlyDenied
     }
+}
+
+internal interface ISlotTagRestriction
+{
+    bool IsRestricted { get; }
+
+    StringSetParameter StringSet { get; }
 }

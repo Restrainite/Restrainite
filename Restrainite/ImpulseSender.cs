@@ -24,7 +24,7 @@ public class ImpulseSender
         OnDestroy.SafeInvoke(this);
     }
 
-    internal void SendDynamicImpulse(IRestriction restriction, bool value, IDynamicVariableSpace source)
+    internal void SendDynamicImpulse(IRestriction restriction, bool value)
     {
         if (!_configuration.SendDynamicImpulses) return;
         if (!GetLocalUserSlot(out var slot) || slot == null) return;

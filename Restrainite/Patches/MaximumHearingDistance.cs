@@ -95,8 +95,10 @@ internal static class MaximumHearingDistance
             MathX.Max(0.0f, MathX.FilterInvalid(__instance.DopplerLevel.Value)));
 
 
-        nativeOutput.Update(batch, __instance.Source.Target, ____audioShape,
-            __instance.IgnoreAudioEffects.Value ? null : (AudioInlet)AudioInletMethod.Invoke(__instance.Audio, []));
+        AudioInlet? audioInlet = null;
+        if (!__instance.IgnoreAudioEffects.Value)
+            audioInlet = AudioInletMethod.Invoke(__instance.Audio, []) as AudioInlet;
+        nativeOutput.Update(batch, __instance.Source.Target, ____audioShape, audioInlet);
         return false;
     }
 
@@ -110,6 +112,6 @@ internal static class MaximumHearingDistance
         var userId = activeUser.UserID;
         if (userId is null) return false;
         return Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
-               Restrictions.AlwaysHearSelectedUsers.SetContains(userId);
+               Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(userId);
     }
 }

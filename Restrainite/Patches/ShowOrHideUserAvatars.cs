@@ -54,14 +54,14 @@ internal static class ShowOrHideUserAvatars
     {
         if (InUpdateBlocking.Value || __result || __instance == __instance.LocalUser) return;
         if (Restrictions.ShowUserAvatars.IsRestricted &&
-            !Restrictions.ShowUserAvatars.SetContains(__instance.UserID))
+            !Restrictions.ShowUserAvatars.StringSet.Contains(__instance.UserID))
         {
             __result = true;
             return;
         }
 
         if (!Restrictions.HideUserAvatars.IsRestricted ||
-            !Restrictions.HideUserAvatars.SetContains(__instance.UserID)) return;
+            !Restrictions.HideUserAvatars.StringSet.Contains(__instance.UserID)) return;
         __result = true;
     }
 }

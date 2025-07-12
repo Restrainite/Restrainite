@@ -51,7 +51,7 @@ internal static class ShowOrHideDashScreens
 
             if (Restrictions.ShowDashScreens.IsRestricted &&
                 !DashScreensExit.Equals(label) &&
-                !Restrictions.ShowDashScreens.SetContains(label))
+                !Restrictions.ShowDashScreens.StringSet.Contains(label))
             {
                 button.Slot.ActiveSelf = false;
                 continue;
@@ -59,7 +59,7 @@ internal static class ShowOrHideDashScreens
 
             if (Restrictions.HideDashScreens.IsRestricted &&
                 !DashScreensExit.Equals(label) &&
-                Restrictions.HideDashScreens.SetContains(label))
+                Restrictions.HideDashScreens.StringSet.Contains(label))
             {
                 button.Slot.ActiveSelf = false;
                 continue;
@@ -76,12 +76,12 @@ internal static class ShowOrHideDashScreens
 
         if (Restrictions.ShowDashScreens.IsRestricted &&
             !DashScreensExit.Equals(label) &&
-            !Restrictions.ShowDashScreens.SetContains(label))
+            !Restrictions.ShowDashScreens.StringSet.Contains(label))
             __instance.Dash.CurrentScreen.Target = __instance.Dash.GetScreen<ExitScreen>();
 
         if (Restrictions.HideDashScreens.IsRestricted &&
             !DashScreensExit.Equals(label) &&
-            Restrictions.HideDashScreens.SetContains(label))
+            Restrictions.HideDashScreens.StringSet.Contains(label))
             __instance.Dash.CurrentScreen.Target = __instance.Dash.GetScreen<ExitScreen>();
     }
 
