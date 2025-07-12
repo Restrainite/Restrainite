@@ -123,6 +123,30 @@ internal abstract class BaseRestriction : IRestriction
         component.Disposing += _ => { state.OnStateChanged -= onUpdate; };
     }
 
+    internal static void CreateStatusRefComponent<TS, TV>(
+        IRestriction restriction,
+        Slot slot,
+        string dynamicVariableSpaceName,
+        SimpleState<TS> state,
+        Func<TS, TV> to) where TV : class, IWorldElement
+    {
+        var nameWithPrefix = dynamicVariableSpaceName + "/" + restriction.Name;
+        var component = slot.GetComponentOrAttach<DynamicReferenceVariable<TV>>(out var attached,
+            search => nameWithPrefix.Equals(search.VariableName.Value));
+
+        component.VariableName.Value = nameWithPrefix;
+        component.Reference.Target = to(state.Value);
+        component.Persistent = false;
+
+        if (!attached) return;
+        Action<IRestriction, TS> onUpdate = (_, value) =>
+        {
+            slot.RunSynchronously(() => component.Reference.Target = to(value));
+        };
+        state.OnStateChanged += onUpdate;
+        component.Disposing += _ => { state.OnStateChanged -= onUpdate; };
+    }
+
     public event Action<IRestriction>? OnChanged;
 }
 

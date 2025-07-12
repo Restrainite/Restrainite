@@ -82,5 +82,6 @@ public class RestrainiteMod : ResoniteMod
         TrackerMovementSpeed.Initialize();
         SetBusyStatus.Initialize();
         PreventEditMode.Initialize();
+        PreventLeavingAnchors.Initialize();
     }
 }
