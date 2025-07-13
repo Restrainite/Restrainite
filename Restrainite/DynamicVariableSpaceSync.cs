@@ -65,7 +65,8 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
         if (tick == Interlocked.Read(ref _tick)) return _cachedSource;
         if (!_dynamicVariableSpace.TryGetTarget(out var space))
         {
-            _cachedSource = _refId;
+            Interlocked.Exchange(ref _cachedSource, _refId);
+            Interlocked.Exchange(ref _tick, tick);
             return _refId;
         }
 
@@ -73,7 +74,8 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 
         if (slot == null)
         {
-            _cachedSource = _refId;
+            Interlocked.Exchange(ref _cachedSource, _refId);
+            Interlocked.Exchange(ref _tick, tick);
             return _refId;
         }
 
