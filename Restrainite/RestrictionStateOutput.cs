@@ -63,7 +63,8 @@ internal class RestrictionStateOutput
 
     private Slot CreateStatusSlot(Slot userSlot)
     {
-        if (_oldSlot != null && _oldSlot.TryGetTarget(out var slot))
+        if (_oldSlot != null && _oldSlot.TryGetTarget(out var slot) &&
+            !slot.IsDestroyed && !slot.IsDisposed)
         {
             if (slot.FindParent(s => s == userSlot, 20) == null)
                 slot.Destroy(true);
