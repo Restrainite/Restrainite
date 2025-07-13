@@ -25,31 +25,40 @@ internal static class MaximumVoiceMode
 
         user.Root.Slot.RunSynchronously(() =>
         {
-            if (Restrictions.MaximumVoiceMode.IsRestricted)
-            {
-                if (user.VoiceMode > Restrictions.MaximumVoiceMode.LowestVoiceMode.Value)
-                {
-                    _originalVoiceMode2 = user.VoiceMode;
-                    user.VoiceMode = _lastVoiceMode = Restrictions.MaximumVoiceMode.LowestVoiceMode.Value;
-                }
-            }
-            else
-            {
-                if (user.VoiceMode == _lastVoiceMode) user.VoiceMode = _originalVoiceMode2;
-            }
-
-            if (Restrictions.EnforceWhispering.IsRestricted)
-            {
-                if (user.VoiceMode is not (Normal or Shout or Broadcast)) return;
-                _originalVoiceMode = user.VoiceMode;
-                user.VoiceMode = Whisper;
-            }
-            else
-            {
-                if (user.VoiceMode is not Whisper) return;
-                user.VoiceMode = _originalVoiceMode;
-            }
+            ToggleMaximumVoiceMode(user);
+            ToggleEnforceWhispering(user);
         });
+    }
+
+    private static void ToggleMaximumVoiceMode(User user)
+    {
+        if (Restrictions.MaximumVoiceMode.IsRestricted)
+        {
+            if (user.VoiceMode > Restrictions.MaximumVoiceMode.LowestVoiceMode.Value)
+            {
+                _originalVoiceMode2 = user.VoiceMode;
+                user.VoiceMode = _lastVoiceMode = Restrictions.MaximumVoiceMode.LowestVoiceMode.Value;
+            }
+        }
+        else
+        {
+            if (user.VoiceMode == _lastVoiceMode) user.VoiceMode = _originalVoiceMode2;
+        }
+    }
+    
+    private static void ToggleEnforceWhispering(User user)
+    {
+        if (Restrictions.EnforceWhispering.IsRestricted)
+        {
+            if (user.VoiceMode is not (Normal or Shout or Broadcast)) return;
+            _originalVoiceMode = user.VoiceMode;
+            user.VoiceMode = Whisper;
+        }
+        else
+        {
+            if (user.VoiceMode is not Whisper) return;
+            user.VoiceMode = _originalVoiceMode;
+        }
     }
 
     [HarmonyPrefix]

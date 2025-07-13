@@ -25,7 +25,7 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
     private readonly LocalRestriction[] _restrictions;
 
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
-    private string _cachedSource;
+    private volatile string _cachedSource;
     private long _tick;
 
     private DynamicVariableSpaceSync(DynamicVariableSpace dynamicVariableSpace)
