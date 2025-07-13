@@ -8,6 +8,8 @@ public interface IRestriction
     string Name { get; }
     string Description { get; }
 
+    bool IsDeprecated { get; }
+
     LocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
         IDynamicVariableSpace dynamicVariableSpaceSync);
 

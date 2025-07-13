@@ -9,6 +9,8 @@ internal class EnforceSelectiveHearing : BaseRestriction
     public override string Description =>
         "[Deprecated, use Always Hear Selected Users] Should others be able to limit the voices you can hear to specific players?";
 
+    public override bool IsDeprecated => true;
+
     public StringSetParameter StringSet { get; } = new();
 
     protected override IRestrictionParameter[] InitRestrictionParameters()

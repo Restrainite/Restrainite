@@ -21,6 +21,8 @@ internal abstract class BaseRestriction : IRestriction
 
     public abstract string Description { get; }
 
+    public virtual bool IsDeprecated => false;
+
     public void Initialize(int index)
     {
         Index = index;
@@ -44,6 +46,7 @@ internal abstract class BaseRestriction : IRestriction
     public void CreateStatusComponent(Slot slot, string dynamicVariableSpaceName)
     {
         CreateStatusComponent(this, slot, dynamicVariableSpaceName, _state, a => a);
+        CreateDescription(this, slot, dynamicVariableSpaceName);
         foreach (var restrictionParameter in _restrictionParameters)
             restrictionParameter.CreateStatusComponent(this, slot, dynamicVariableSpaceName);
     }
@@ -121,6 +124,21 @@ internal abstract class BaseRestriction : IRestriction
         };
         state.OnStateChanged += onUpdate;
         component.Disposing += _ => { state.OnStateChanged -= onUpdate; };
+    }
+
+    private static void CreateDescription(
+        IRestriction restriction,
+        Slot slot,
+        string dynamicVariableSpaceName)
+    {
+        var nameWithPrefix = dynamicVariableSpaceName + "/" + restriction.Name + " Description";
+        var component =
+            slot.GetComponentOrAttach<DynamicValueVariable<string>>(search =>
+                nameWithPrefix.Equals(search.VariableName.Value));
+
+        component.VariableName.Value = nameWithPrefix;
+        component.Value.Value = restriction.Description;
+        component.Persistent = false;
     }
 
     internal static void CreateStatusRefComponent<TS, TV>(

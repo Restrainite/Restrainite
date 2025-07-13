@@ -6,13 +6,16 @@ using static FrooxEngine.VoiceMode;
 namespace Restrainite.Patches;
 
 [HarmonyPatch]
-internal static class EnforceWhispering
+internal static class MaximumVoiceMode
 {
     private static VoiceMode _originalVoiceMode = Whisper;
+    private static VoiceMode _originalVoiceMode2 = Normal;
+    private static VoiceMode _lastVoiceMode = Normal;
 
     internal static void Initialize()
     {
         Restrictions.EnforceWhispering.OnChanged += OnRestrictionChanged;
+        Restrictions.MaximumVoiceMode.OnChanged += OnRestrictionChanged;
     }
 
     private static void OnRestrictionChanged(IRestriction restriction)
@@ -22,14 +25,26 @@ internal static class EnforceWhispering
 
         user.Root.Slot.RunSynchronously(() =>
         {
-            var value = Restrictions.EnforceWhispering.IsRestricted;
+            if (Restrictions.MaximumVoiceMode.IsRestricted)
+            {
+                if (user.VoiceMode > Restrictions.MaximumVoiceMode.LowestVoiceMode.Value)
+                {
+                    _originalVoiceMode2 = user.VoiceMode;
+                    user.VoiceMode = _lastVoiceMode = Restrictions.MaximumVoiceMode.LowestVoiceMode.Value;
+                }
+            }
+            else
+            {
+                if (user.VoiceMode == _lastVoiceMode) user.VoiceMode = _originalVoiceMode2;
+            }
+
             if (Restrictions.EnforceWhispering.IsRestricted)
             {
                 if (user.VoiceMode is not (Normal or Shout or Broadcast)) return;
                 _originalVoiceMode = user.VoiceMode;
                 user.VoiceMode = Whisper;
             }
-            else if (!value)
+            else
             {
                 if (user.VoiceMode is not Whisper) return;
                 user.VoiceMode = _originalVoiceMode;
@@ -42,7 +57,11 @@ internal static class EnforceWhispering
     private static bool User_VoiceMode_Setter_Prefix(VoiceMode value, User __instance)
     {
         return !(__instance.IsLocalUser &&
-                 Restrictions.EnforceWhispering.IsRestricted &&
-                 value is Normal or Shout or Broadcast);
+                 (
+                     (Restrictions.EnforceWhispering.IsRestricted && value is Normal or Shout or Broadcast) ||
+                     (Restrictions.MaximumVoiceMode.IsRestricted &&
+                      value > Restrictions.MaximumVoiceMode.LowestVoiceMode.Value)
+                 )
+            );
     }
 }

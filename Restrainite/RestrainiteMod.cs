@@ -67,7 +67,7 @@ public class RestrainiteMod : ResoniteMod
 
     private static void InitializePatches()
     {
-        EnforceWhispering.Initialize();
+        MaximumVoiceMode.Initialize();
         PreventGrabbing.Initialize();
         PreventOpeningContextMenu.Initialize();
         PreventOpeningDash.Initialize();
