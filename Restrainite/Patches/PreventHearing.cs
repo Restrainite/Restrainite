@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
@@ -16,6 +17,7 @@ internal static class PreventHearing
         Restrictions.DenyHearingBySlotTags);
 
     private static readonly FieldInfo? AudioManagerOutputs = AccessTools.Field(typeof(AudioManager), "_outputs");
+    private static int _alreadyMarkedForNextUpdate;
 
     internal static void Initialize()
     {
@@ -37,8 +39,10 @@ internal static class PreventHearing
 
     internal static void MarkAudioOutputsDirty(IRestriction restriction)
     {
+        var tick = Engine.Current.UpdateTick;
+        if (Interlocked.Exchange(ref _alreadyMarkedForNextUpdate, tick) == tick) return;
         var world = Engine.Current?.WorldManager?.FocusedWorld;
-        world?.RunSynchronously(() =>
+        world?.RunInUpdates(1, () =>
         {
             var sources = AudioManagerOutputs?.GetValue(world.Audio);
             if (sources is not HashSet<AudioOutput> audioOutputs) return;
