@@ -31,6 +31,7 @@ internal static class Restrictions
     internal static readonly HideUserAvatars HideUserAvatars = new();
     internal static readonly MaximumHearingDistance MaximumHearingDistance = new();
     internal static readonly MaximumLaserDistance MaximumLaserDistance = new();
+    internal static readonly MaximumVoiceMode MaximumVoiceMode = new();
     internal static readonly MovementSpeedMultiplier MovementSpeedMultiplier = new();
     internal static readonly PreventChangeLocomotion PreventChangeLocomotion = new();
     internal static readonly PreventClimbing PreventClimbing = new();
@@ -83,7 +84,7 @@ internal static class Restrictions
         ResoniteMod.Msg($"Found {All.Length} restrictions");
         for (var i = 0; i < All.Length; i++)
         {
-            All[i].Index = i;
+            All[i].Initialize(i);
             NameToRestriction.Add(All[i].Name, All[i]);
         }
     }

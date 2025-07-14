@@ -26,6 +26,7 @@ internal static class PreventOpeningContextMenu
         InteractionHandler __instance)
     {
         return __instance.World == Userspace.UserspaceWorld ||
-               !Restrictions.PreventOpeningContextMenu.IsRestricted;
+               !Restrictions.PreventOpeningContextMenu.IsRestricted ||
+               !Restrictions.PreventOpeningContextMenu.Chirality.IsRestricted(__instance.Side.Value);
     }
 }

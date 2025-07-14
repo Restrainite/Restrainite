@@ -22,10 +22,10 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 
     private readonly string _refId;
 
-    private readonly ILocalRestriction[] _restrictions;
+    private readonly LocalRestriction[] _restrictions;
 
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
-    private string _cachedSource;
+    private volatile string _cachedSource;
     private long _tick;
 
     private DynamicVariableSpaceSync(DynamicVariableSpace dynamicVariableSpace)
@@ -65,7 +65,8 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
         if (tick == Interlocked.Read(ref _tick)) return _cachedSource;
         if (!_dynamicVariableSpace.TryGetTarget(out var space))
         {
-            _cachedSource = _refId;
+            Interlocked.Exchange(ref _cachedSource, _refId);
+            Interlocked.Exchange(ref _tick, tick);
             return _refId;
         }
 
@@ -73,7 +74,8 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
 
         if (slot == null)
         {
-            _cachedSource = _refId;
+            Interlocked.Exchange(ref _cachedSource, _refId);
+            Interlocked.Exchange(ref _tick, tick);
             return _refId;
         }
 

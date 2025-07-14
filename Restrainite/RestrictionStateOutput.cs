@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -64,7 +63,8 @@ internal class RestrictionStateOutput
 
     private Slot CreateStatusSlot(Slot userSlot)
     {
-        if (_oldSlot != null && _oldSlot.TryGetTarget(out var slot))
+        if (_oldSlot != null && _oldSlot.TryGetTarget(out var slot) &&
+            !slot.IsDestroyed && !slot.IsDisposed)
         {
             if (slot.FindParent(s => s == userSlot, 20) == null)
                 slot.Destroy(true);
@@ -202,7 +202,8 @@ internal class RestrictionStateOutput
 
     private static void CreateComponents(Slot restrainiteSlot, IRestriction restriction)
     {
-        var slot = restrainiteSlot.FindChildOrAdd(restriction.Name, false);
+        var slotName = restriction.IsDeprecated ? $"<s>{restriction.Name}</s>" : restriction.Name;
+        var slot = restrainiteSlot.FindChildOrAdd(slotName, false);
 
         slot.Tag = $"{DynamicVariableSpaceSync.DynamicVariableSpaceName}/{restriction.Name}";
 

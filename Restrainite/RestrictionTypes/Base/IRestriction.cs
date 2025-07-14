@@ -4,11 +4,13 @@ namespace Restrainite.RestrictionTypes.Base;
 
 public interface IRestriction
 {
-    int Index { get; set; }
+    int Index { get; }
     string Name { get; }
     string Description { get; }
 
-    ILocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
+    bool IsDeprecated { get; }
+
+    LocalRestriction CreateLocal(DynamicVariableSpace dynamicVariableSpace,
         IDynamicVariableSpace dynamicVariableSpaceSync);
 
     void CreateStatusComponent(Slot slot, string dynamicVariableSpaceName);
@@ -17,5 +19,7 @@ public interface IRestriction
 
     void Update(IDynamicVariableSpace source);
 
-    void DestroyLocal(ILocalRestriction localBaseRestriction);
+    void DestroyLocal(LocalRestriction localBaseRestriction);
+
+    void Initialize(int index);
 }

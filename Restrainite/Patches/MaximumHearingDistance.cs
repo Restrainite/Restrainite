@@ -139,6 +139,6 @@ internal static class MaximumHearingDistance
         var userId = activeUser.UserID;
         if (userId is null) return false;
         return Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
-               Restrictions.AlwaysHearSelectedUsers.SetContains(userId);
+               Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(userId);
     }
 }

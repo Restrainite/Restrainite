@@ -67,7 +67,7 @@ public class RestrainiteMod : ResoniteMod
 
     private static void InitializePatches()
     {
-        EnforceWhispering.Initialize();
+        MaximumVoiceMode.Initialize();
         PreventGrabbing.Initialize();
         PreventOpeningContextMenu.Initialize();
         PreventOpeningDash.Initialize();
@@ -82,5 +82,6 @@ public class RestrainiteMod : ResoniteMod
         TrackerMovementSpeed.Initialize();
         SetBusyStatus.Initialize();
         PreventEditMode.Initialize();
+        PreventLeavingAnchors.Initialize();
     }
 }

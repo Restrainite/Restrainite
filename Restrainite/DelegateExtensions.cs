@@ -5,7 +5,7 @@ namespace Restrainite;
 
 internal static class DelegateExtensions
 {
-    internal static void SafeInvoke(this Delegate? del, params object[] args)
+    internal static void SafeInvoke(this Delegate? del, params object?[] args)
     {
         if (del == null) return;
         foreach (var invocation in del.GetInvocationList())

@@ -43,18 +43,20 @@ internal static class PreventLaserTouch
 
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
         leftInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(leftInteractionHandler, ref _leftOriginalValue));
+            SetLaserActive(leftInteractionHandler, ref _leftOriginalValue, Chirality.Left));
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
         rightInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(rightInteractionHandler, ref _rightOriginalValue));
+            SetLaserActive(rightInteractionHandler, ref _rightOriginalValue, Chirality.Right));
     }
 
-    private static void SetLaserActive(InteractionHandler? interactionHandler, ref bool originalValue)
+    private static void SetLaserActive(InteractionHandler? interactionHandler, ref bool originalValue,
+        Chirality chirality)
     {
         if (interactionHandler == null) return;
         if (LaserEnabledField?.GetValue(interactionHandler) is not Sync<bool> syncBool) return;
-        if (Restrictions.PreventLaserTouch.IsRestricted)
+        if (Restrictions.PreventLaserTouch.IsRestricted &&
+            Restrictions.PreventLaserTouch.Chirality.IsRestricted(chirality))
         {
             originalValue = syncBool.Value;
             syncBool.Value = false;

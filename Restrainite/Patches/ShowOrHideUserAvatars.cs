@@ -10,6 +10,7 @@ namespace Restrainite.Patches;
 internal static class ShowOrHideUserAvatars
 {
     private static readonly ThreadLocal<bool> InUpdateBlocking = new();
+    private static int _alreadyMarkedForUpdate;
 
     internal static void Initialize()
     {
@@ -24,8 +25,10 @@ internal static class ShowOrHideUserAvatars
 
     private static void MarkAllUsersDirty()
     {
+        var tick = Engine.Current.UpdateTick;
+        if (Interlocked.Exchange(ref _alreadyMarkedForUpdate, tick) == tick) return;
         var world = Engine.Current?.WorldManager?.FocusedWorld;
-        world?.RunSynchronously(() =>
+        world?.RunInUpdates(1, () =>
         {
             var userList = world.AllUsers;
             if (userList is null) return;
@@ -54,14 +57,14 @@ internal static class ShowOrHideUserAvatars
     {
         if (InUpdateBlocking.Value || __result || __instance == __instance.LocalUser) return;
         if (Restrictions.ShowUserAvatars.IsRestricted &&
-            !Restrictions.ShowUserAvatars.SetContains(__instance.UserID))
+            !Restrictions.ShowUserAvatars.StringSet.Contains(__instance.UserID))
         {
             __result = true;
             return;
         }
 
         if (!Restrictions.HideUserAvatars.IsRestricted ||
-            !Restrictions.HideUserAvatars.SetContains(__instance.UserID)) return;
+            !Restrictions.HideUserAvatars.StringSet.Contains(__instance.UserID)) return;
         __result = true;
     }
 }

@@ -49,11 +49,11 @@ internal static class SetBusyStatus
             return true;
 
         if (Restrictions.HideDashScreens.IsRestricted &&
-            Restrictions.HideDashScreens.SetContains("Dash.Screens.Contacts"))
+            Restrictions.HideDashScreens.StringSet.Contains("Dash.Screens.Contacts"))
             return true;
 
         if (Restrictions.ShowDashScreens.IsRestricted &&
-            !Restrictions.ShowDashScreens.SetContains("Dash.Screens.Contacts"))
+            !Restrictions.ShowDashScreens.StringSet.Contains("Dash.Screens.Contacts"))
             return true;
         return false;
     }

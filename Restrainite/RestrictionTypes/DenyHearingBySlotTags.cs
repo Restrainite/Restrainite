@@ -2,10 +2,17 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class DenyHearingBySlotTags : StringSetRestriction
+internal class DenyHearingBySlotTags : BaseRestriction, ISlotTagRestriction
 {
     public override string Name => "Deny Hearing By Slot Tags";
 
     public override string Description =>
         "Should others be able to prevent you from hearing audio sources with a specific tag?";
+
+    public StringSetParameter StringSet { get; } = new();
+
+    protected override IRestrictionParameter[] InitRestrictionParameters()
+    {
+        return [StringSet];
+    }
 }
