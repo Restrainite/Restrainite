@@ -10,6 +10,7 @@ namespace Restrainite.Patches;
 internal static class ShowOrHideUserAvatars
 {
     private static readonly ThreadLocal<bool> InUpdateBlocking = new();
+    private static int _alreadyMarkedForUpdate;
 
     internal static void Initialize()
     {
@@ -24,8 +25,10 @@ internal static class ShowOrHideUserAvatars
 
     private static void MarkAllUsersDirty()
     {
+        var tick = Engine.Current.UpdateTick;
+        if (Interlocked.Exchange(ref _alreadyMarkedForUpdate, tick) == tick) return;
         var world = Engine.Current?.WorldManager?.FocusedWorld;
-        world?.RunSynchronously(() =>
+        world?.RunInUpdates(1, () =>
         {
             var userList = world.AllUsers;
             if (userList is null) return;
