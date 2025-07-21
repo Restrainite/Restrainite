@@ -7,6 +7,8 @@ public class ChiralityParameter : IRestrictionParameter
 {
     private SimpleState<Chirality?> Chirality { get; } = new(null);
 
+    public Chirality? Value => Chirality.Value;
+
     public bool Combine(IRestriction restriction, IEnumerable<IBaseState> states)
     {
         Chirality? chiralityValue = null;

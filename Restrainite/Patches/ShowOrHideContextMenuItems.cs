@@ -9,7 +9,7 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class ShowOrHideContextMenuItems
 {
-    private static bool ShouldDisableButton(IWorldElement contextMenuItem, LocaleString? label)
+    private static bool ShouldDisableButton(ContextMenu contextMenuItem, LocaleString? label)
     {
         if (Restrictions.ShowContextMenuItems.IsRestricted)
         {
@@ -29,7 +29,13 @@ internal static class ShowOrHideContextMenuItems
             if (hidden) return true;
         }
 
-        return Restrictions.PreventLaserTouch.IsRestricted && label is { content: "Interaction.LaserEnabled" };
+        Chirality? chirality = null;
+        if (contextMenuItem.CurrentSummoner is InteractionHandler interactionHandler)
+            chirality = interactionHandler.Side.Value;
+
+        return Restrictions.PreventLaserTouch.IsRestricted &&
+               Restrictions.PreventLaserTouch.Chirality.IsRestricted(chirality) &&
+               label is { content: "Interaction.LaserEnabled" };
     }
 
     private static bool FindInList(IWorldElement element, ImmutableStringSet items, LocaleString? label)
@@ -65,9 +71,9 @@ internal static class ShowOrHideContextMenuItems
             ArgumentType.Ref, ArgumentType.Normal
         ])]
     public static void ShowOrHideContextMenuItems_ContextMenuAddItem_Postfix(LocaleString label,
-        ContextMenuItem __result)
+        ContextMenuItem __result, ContextMenu __instance)
     {
-        if (ShouldDisableButton(__result, label)) __result.Button.Slot.ActiveSelf = false;
+        if (ShouldDisableButton(__instance, label)) __result.Button.Slot.ActiveSelf = false;
     }
 
     [HarmonyPrefix]
