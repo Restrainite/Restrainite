@@ -9,7 +9,9 @@ namespace Restrainite.Patches;
 internal static class PreventLaserTouch
 {
     private static bool _leftOriginalValue = true;
+    private static bool _leftIsRestricted;
     private static bool _rightOriginalValue = true;
+    private static bool _rightIsRestricted;
 
     private static readonly FieldInfo?
         LaserEnabledField = AccessTools.Field(typeof(InteractionHandler), "_laserEnabled");
@@ -43,28 +45,34 @@ internal static class PreventLaserTouch
 
         var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
         leftInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(leftInteractionHandler, ref _leftOriginalValue, Chirality.Left));
+            SetLaserActive(leftInteractionHandler, ref _leftOriginalValue, ref _leftIsRestricted, Chirality.Left));
 
         var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
         rightInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(rightInteractionHandler, ref _rightOriginalValue, Chirality.Right));
+            SetLaserActive(rightInteractionHandler, ref _rightOriginalValue, ref _rightIsRestricted, Chirality.Right));
     }
 
     private static void SetLaserActive(InteractionHandler? interactionHandler, ref bool originalValue,
-        Chirality chirality)
+        ref bool isRestricted, Chirality chirality)
     {
         if (interactionHandler == null) return;
         if (LaserEnabledField?.GetValue(interactionHandler) is not Sync<bool> syncBool) return;
         if (Restrictions.PreventLaserTouch.IsRestricted &&
             Restrictions.PreventLaserTouch.Chirality.IsRestricted(chirality))
         {
-            originalValue = syncBool.Value;
+            if (!isRestricted)
+            {
+                originalValue = syncBool.Value;
+                isRestricted = true;
+            }
+
             syncBool.Value = false;
             if (interactionHandler.Laser != null) ClearLaserTimeoutMethod?.Invoke(interactionHandler.Laser, []);
         }
-        else
+        else if (isRestricted)
         {
             syncBool.Value = originalValue;
+            isRestricted = false;
         }
     }
 }

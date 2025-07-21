@@ -11,8 +11,10 @@ internal class MaximumLaserDistance : BaseRestriction
 
     public LowestFloatParameter LowestFloat { get; } = new();
 
+    public ChiralityParameter Chirality { get; } = new();
+
     protected override IRestrictionParameter[] InitRestrictionParameters()
     {
-        return [LowestFloat];
+        return [LowestFloat, Chirality];
     }
 }

@@ -12,7 +12,8 @@ internal static class PreventUsingTools
     {
         if (__instance.World == Userspace.UserspaceWorld) return result;
 
-        return !Restrictions.PreventUsingTools.IsRestricted && result;
+        return (!Restrictions.PreventUsingTools.IsRestricted ||
+                !Restrictions.PreventUsingTools.Chirality.IsRestricted(__instance.Side.Value)) && result;
     }
 
     [HarmonyPostfix]
@@ -22,6 +23,7 @@ internal static class PreventUsingTools
     {
         if (__instance.World == Userspace.UserspaceWorld) return result;
 
-        return !Restrictions.PreventUsingTools.IsRestricted && result;
+        return (!Restrictions.PreventUsingTools.IsRestricted ||
+                !Restrictions.PreventUsingTools.Chirality.IsRestricted(__instance.Side.Value)) && result;
     }
 }
