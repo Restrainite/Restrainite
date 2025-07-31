@@ -32,7 +32,7 @@ Breaking because of updates can always happen and is also very likely, if the ga
 We are reducing the impact of failures as much as possible by using defensive programming. In most cases only a single
 feature should malfunction. We are a team of three dedicated developers to work on this, in case something happens.
 Due to a team effort, the last breaking release was fixed within 4 hours of
-[reporting](https://github.com/Restrainite/RestrainiteMod/issues/87). Our code is open source and we are always open to
+[reporting](https://github.com/Restrainite/Restrainite/issues/87). Our code is open source and we are always open to
 bug reports, feature and pull requests. Talk to us on Resonite.
 
 We plan to support this for the future, because we are long term active supporters of Resonite and use the mod
@@ -43,17 +43,17 @@ should not be used anymore and there will be a replacement available. Unless the
 that we can't provide that feature anymore.
 
 ## About the project
-RestrainiteMod is © 2024-2025 by SnepDrone, Uruloke, Zenuru
+Restrainite is © 2024-2025 by SnepDrone, Uruloke, Zenuru
 
 Idea by Fuzy Sidwell
 
 Tested by Azavit, Fuzy Sidwell, K3nzC0, Sylvan and others.
 
 ### License
-RestrainiteMod is distributed under a [BSD 3-Clause License](https://github.com/Restrainite/RestrainiteMod?tab=BSD-3-Clause-1-ov-file).
+Restrainite is distributed under a [BSD 3-Clause License](https://github.com/Restrainite/Restrainite?tab=BSD-3-Clause-1-ov-file).
 
 ### Contributing and Building from source
 As an external contributor, when contributing to this project, please first discuss the change you wish to make via issue 
 before making a pull request. 
 
-Read more in our [GitHub repo](https://github.com/Restrainite/RestrainiteMod/blob/main/CONTRIBUTING.md).
+Read more in our [GitHub repo](https://github.com/Restrainite/Restrainite/blob/main/CONTRIBUTING.md).
