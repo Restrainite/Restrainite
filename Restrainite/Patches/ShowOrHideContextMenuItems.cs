@@ -2,6 +2,7 @@ using System;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
+using Renderite.Shared;
 using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;

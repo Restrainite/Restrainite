@@ -52,6 +52,9 @@
         <Reference Include="FrooxEngine.Store">
             <HintPath>$(ResonitePath)FrooxEngine.Store.dll</HintPath>
         </Reference>
+        <Reference Include="Renderite.Shared">
+            <HintPath>$(ResonitePath)Renderite.Shared.dll</HintPath>
+        </Reference>
         <Reference Include="SkyFrost.Base">
             <HintPath>$(ResonitePath)SkyFrost.Base.dll</HintPath>
         </Reference>
