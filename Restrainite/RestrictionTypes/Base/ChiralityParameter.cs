@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using FrooxEngine;
+using Renderite.Shared;
 
 namespace Restrainite.RestrictionTypes.Base;
 

@@ -1,6 +1,7 @@
 using System;
 using FrooxEngine;
 using HarmonyLib;
+using Renderite.Shared;
 using ResoniteModLoader;
 
 namespace Restrainite.Patches;
