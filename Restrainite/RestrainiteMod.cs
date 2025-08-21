@@ -18,7 +18,7 @@ public class RestrainiteMod : ResoniteMod
     public static Version AssemblyVersion => typeof(RestrainiteMod).Assembly.GetName().Version ?? new Version(0, 0, 0);
     public override string Version => $"{AssemblyVersion.Major}.{AssemblyVersion.Minor}.{AssemblyVersion.Build}";
 
-    public override string Link => "https://restrainite.github.io";
+    public override string Link => "https://github.com/Restrainite/Restrainite";
 
     internal static bool SuccessfullyPatched { get; set; } = true;
 
