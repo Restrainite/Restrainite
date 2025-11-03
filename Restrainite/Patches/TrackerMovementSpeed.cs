@@ -49,6 +49,32 @@ internal static class TrackerMovementSpeed
         smoothingFilter.Smooth(ref position, ref rotation, __instance.Time.Delta * speed);
     }
 
+    /*
+     * Resonite doesn't add a PoseFilter to trackers, but we need it for any additional trackers,
+     * that are not feet trackers.
+     */
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(TrackerController), "OnInputDeviceAdded")]
+    private static void TrackerController_OnInputDeviceAdded_Postfix(
+        TrackerController __instance,
+        IInputDevice obj)
+    {
+        if (obj is not ITracker tracker)
+            return;
+        __instance.RunSynchronously(() =>
+        {
+            var localUser = __instance.LocalUser;
+            var bodyNode = tracker.CorrespondingBodyNode;
+            if (bodyNode is BodyNode.LeftFoot or BodyNode.RightFoot) return;
+            var slot1 = localUser.Root.Slot.FindChild(tracker.PublicID);
+            if (slot1 == null) return;
+            var devicePositioner = slot1.GetComponent<TrackedDevicePositioner>();
+            if (devicePositioner == null) return;
+            if (devicePositioner.PoseFilter.Target != null) return;
+            devicePositioner.PoseFilter.Target = localUser.Root.GetRegisteredComponent<UserPoseController>();
+        });
+    }
+
     private class SmoothingFilter
     {
         private bool _intermediateInitialized;
