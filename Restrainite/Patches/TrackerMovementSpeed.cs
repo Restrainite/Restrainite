@@ -31,6 +31,7 @@ internal static class TrackerMovementSpeed
         ref bool isActive,
         BodyNode node)
     {
+        if (__instance.World != Engine.Current.WorldManager.FocusedWorld) return;
         if (Restrictions.DisableVrTrackers.IsRestricted)
         {
             isActive = false;
@@ -46,30 +47,6 @@ internal static class TrackerMovementSpeed
         if (!SmoothingFilters.TryGetValue(node, out var smoothingFilter) || smoothingFilter == null)
             SmoothingFilters.Add(node, smoothingFilter = new SmoothingFilter());
         smoothingFilter.Smooth(ref position, ref rotation, __instance.Time.Delta * speed);
-    }
-
-    /*
-     * This looks like a bug in Resonite, that it doesn't add a PoseFilter to trackers.
-     * So we are adding one.
-     */
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(TrackerController), "OnInputDeviceAdded")]
-    private static void TrackerController_OnInputDeviceAdded_Postfix(
-        TrackerController __instance,
-        IInputDevice obj)
-    {
-        if (obj is not ITracker tracker)
-            return;
-        __instance.RunSynchronously(() =>
-        {
-            var localUser = __instance.LocalUser;
-            var slot1 = localUser.Root.Slot.FindChild(tracker.PublicID);
-            if (slot1 == null) return;
-            var devicePositioner = slot1.GetComponent<TrackedDevicePositioner>();
-            if (devicePositioner == null) return;
-            if (devicePositioner.PoseFilter.Target != null) return;
-            devicePositioner.PoseFilter.Target = localUser.Root.GetRegisteredComponent<UserPoseController>();
-        });
     }
 
     private class SmoothingFilter
