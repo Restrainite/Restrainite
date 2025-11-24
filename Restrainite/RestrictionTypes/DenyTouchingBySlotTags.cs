@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class DenyTouchingBySlotTags : BaseRestriction, ISlotTagRestriction
+internal sealed class DenyTouchingBySlotTags : BaseRestriction, ISlotTagRestriction
 {
     public override string Name => "Deny Touching By Slot Tags";
 

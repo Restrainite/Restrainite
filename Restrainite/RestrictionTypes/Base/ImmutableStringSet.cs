@@ -1,6 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Restrainite.RestrictionTypes.Base;
@@ -100,6 +98,16 @@ public class ImmutableStringSet(IImmutableSet<string> immutableSet)
     public bool Overlaps(IEnumerable<string> other)
     {
         return immutableSet.Overlaps(other);
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is ImmutableStringSet other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return immutableSet.GetHashCode();
     }
 
     public static implicit operator ImmutableStringSet(ImmutableHashSet<string> immutableHashSet)

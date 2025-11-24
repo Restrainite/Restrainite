@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventSwitchingWorld : BaseRestriction
+internal sealed class PreventSwitchingWorld : BaseRestriction
 {
     public override string Name => "Prevent Switching World";
 

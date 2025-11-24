@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class HideUserAvatars : BaseRestriction
+internal sealed class HideUserAvatars : BaseRestriction
 {
     public override string Name => "Hide User Avatars";
     public override string Description => "Should others be able to hide specific players?";

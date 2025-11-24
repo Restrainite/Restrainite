@@ -1,7 +1,4 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using FrooxEngine;
 using ResoniteModLoader;
 using Restrainite.Enums;
@@ -10,7 +7,7 @@ using SkyFrost.Base;
 
 namespace Restrainite;
 
-internal class Configuration
+internal sealed class Configuration
 {
     private readonly ModConfigurationKey<bool> _allowRestrictionsFromFocusedWorldOnly = new(
         "Allow Restrictions from Focused World only",
@@ -286,6 +283,11 @@ internal class Configuration
         // Focused world, we change the preset.
         var currentPreset = _config?.GetValue(_presetConfig);
         var changePreset = GetWorldPresetChangeType(world);
+        TriggerPresetUpdate(changePreset, currentPreset);
+    }
+
+    private void TriggerPresetUpdate(PresetChangeType? changePreset, PresetType? currentPreset)
+    {
         switch (changePreset)
         {
             case PresetChangeType.None:
@@ -316,7 +318,7 @@ internal class Configuration
                 ShouldRecheckPermissions.SafeInvoke();
                 return;
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(nameof(changePreset), changePreset, "Unknown preset change type");
         }
     }
 
@@ -359,7 +361,7 @@ internal class Configuration
             return true;
 
         // Password is set, so compare it
-        return passwordToCheck != null && password.Equals(passwordToCheck);
+        return passwordToCheck != null && password.Equals(passwordToCheck, StringComparison.Ordinal);
     }
 
     private void UpdatePasswordState(object? value)

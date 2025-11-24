@@ -1,4 +1,3 @@
-using System;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -7,7 +6,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
-internal class RestrictionStateOutput
+internal sealed class RestrictionStateOutput
 {
     private const string RestrainiteRootSlotName = "Restrainite Status";
     private const string DynamicVariableSpaceStatusName = "Restrainite Status";
@@ -89,7 +88,7 @@ internal class RestrictionStateOutput
     private static void CreateDynamicVariableSpace(Slot userSlot)
     {
         var dynamicVariableSpace = userSlot.GetComponentOrAttach<DynamicVariableSpace>(out var attached, component =>
-            DynamicVariableSpaceStatusName.Equals(component.SpaceName.Value)
+            DynamicVariableSpaceStatusName.Equals(component.SpaceName.Value, StringComparison.Ordinal)
         );
         if (attached)
             ResoniteMod.Msg($"Adding Restrainite DynamicVariableSpace to {userSlot.Name} {userSlot.ReferenceID} " +
@@ -138,7 +137,7 @@ internal class RestrictionStateOutput
         const string versionName = $"{DynamicVariableSpaceStatusName}/Version";
         var component =
             restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<uint3>>(search =>
-                versionName.Equals(search.VariableName.Value));
+                versionName.Equals(search.VariableName.Value, StringComparison.Ordinal));
         component.VariableName.Value = versionName;
         component.Persistent = false;
         var version = RestrainiteMod.AssemblyVersion;
@@ -154,7 +153,7 @@ internal class RestrictionStateOutput
         const string presetName = $"{DynamicVariableSpaceStatusName}/Preset";
         var component = restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<string>>(
             out var attached,
-            search => presetName.Equals(search.VariableName.Value));
+            search => presetName.Equals(search.VariableName.Value, StringComparison.Ordinal));
         component.VariableName.Value = presetName;
         component.Persistent = false;
         component.Value.Value = _configuration.CurrentPreset?.ToString() ?? "";
@@ -168,7 +167,7 @@ internal class RestrictionStateOutput
         const string passwordName = $"{DynamicVariableSpaceStatusName}/Requires Password";
         var component =
             restrainiteSlot.GetComponentOrAttach<DynamicValueVariable<bool>>(search =>
-                passwordName.Equals(search.VariableName.Value));
+                passwordName.Equals(search.VariableName.Value, StringComparison.Ordinal));
         component.VariableName.Value = passwordName;
         component.Persistent = false;
         component.Value.Value = _configuration.RequiresPassword;
@@ -179,7 +178,7 @@ internal class RestrictionStateOutput
         const string selfReferenceName = "User/Restrainite Status Slot";
         var component =
             restrainiteSlot.GetComponentOrAttach<DynamicReferenceVariable<Slot>>(search =>
-                selfReferenceName.Equals(search.VariableName.Value));
+                selfReferenceName.Equals(search.VariableName.Value, StringComparison.Ordinal));
         component.VariableName.Value = selfReferenceName;
         component.Persistent = false;
         component.Reference.Target = restrainiteSlot;
@@ -189,7 +188,7 @@ internal class RestrictionStateOutput
     {
         try
         {
-            var presetType = (PresetType)Enum.Parse(typeof(PresetType), syncField.Value);
+            var presetType = Enum.Parse<PresetType>(syncField.Value);
             if ((int)presetType >= PresetTypes.Max || (int)presetType < 0) throw new OverflowException();
             RestrainiteMod.Configuration.CurrentPreset = presetType;
         }

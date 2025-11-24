@@ -1,10 +1,9 @@
-using System;
 using FrooxEngine;
 using ResoniteModLoader;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal class LocalBaseState<T> : SimpleState<T>, IBaseState
+internal sealed class LocalBaseState<T> : SimpleState<T>, IBaseState
 {
     private readonly DynamicVariableChangeListener<T> _changeListener;
     private readonly T _defaultValue;

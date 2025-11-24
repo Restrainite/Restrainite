@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
@@ -118,7 +116,7 @@ internal static class UserRootInjector
 
 
     [HarmonyPatch(typeof(World), nameof(World.LocalUser), MethodType.Setter)]
-    private class LocalUserSetterPatch
+    private sealed class LocalUserSetterPatch
     {
         private static void Postfix(User value)
         {

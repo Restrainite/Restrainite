@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventUsingTools : BaseRestriction
+internal sealed class PreventUsingTools : BaseRestriction
 {
     public override string Name => "Prevent Using Tools";
     public override string Description => "Should others be able to prevent you from equipping tools?";

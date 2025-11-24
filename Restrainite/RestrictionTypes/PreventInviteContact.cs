@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventInviteContact : BaseRestriction
+internal sealed class PreventInviteContact : BaseRestriction
 {
     public override string Name => "Prevent Invite Contact";
 

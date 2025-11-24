@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventNonDashUserspaceInteraction : BaseRestriction
+internal sealed class PreventNonDashUserspaceInteraction : BaseRestriction
 {
     public override string Name => "Prevent Non Dash Userspace Interaction";
 

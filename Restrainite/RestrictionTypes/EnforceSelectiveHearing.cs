@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class EnforceSelectiveHearing : BaseRestriction
+internal sealed class EnforceSelectiveHearing : BaseRestriction
 {
     public override string Name => "Enforce Selective Hearing";
 

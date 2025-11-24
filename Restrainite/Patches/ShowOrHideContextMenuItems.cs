@@ -1,4 +1,3 @@
-using System;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
@@ -45,17 +44,17 @@ internal static class ShowOrHideContextMenuItems
         {
             if (label?.content == null)
             {
-                if (item.Equals("null")) return true;
+                if (item.Equals("null", StringComparison.Ordinal)) return true;
                 continue;
             }
 
-            if (item.Equals(label.Value.content)) return true;
+            if (item.Equals(label.Value.content, StringComparison.Ordinal)) return true;
 
             // Special case for locomotion item
             if (label.Value.isLocaleKey) continue;
             var localized = element.GetLocalized(item);
             if (localized == null) continue;
-            if (label.Value.content.StartsWith(localized)) return true;
+            if (label.Value.content.StartsWith(localized, StringComparison.Ordinal)) return true;
         }
 
         return false;

@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class ShowContextMenuItems : BaseRestriction
+internal sealed class ShowContextMenuItems : BaseRestriction
 {
     public override string Name => "Show Context Menu Items";
 

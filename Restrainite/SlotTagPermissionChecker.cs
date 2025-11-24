@@ -1,4 +1,3 @@
-using System;
 using FrooxEngine;
 using Restrainite.RestrictionTypes.Base;
 
@@ -57,7 +56,7 @@ public class SlotTagPermissionChecker
             PermissionType.Denied => false,
             PermissionType.ExplicitlyAllowed => true,
             PermissionType.ExplicitlyDenied => false,
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown permission type")
         };
     }
 

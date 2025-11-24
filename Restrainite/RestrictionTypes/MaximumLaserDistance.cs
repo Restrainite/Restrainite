@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class MaximumLaserDistance : BaseRestriction
+internal sealed class MaximumLaserDistance : BaseRestriction
 {
     public override string Name => "Maximum Laser Distance";
 

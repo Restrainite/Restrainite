@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class HearingVolume : BaseRestriction
+internal sealed class HearingVolume : BaseRestriction
 {
     public override string Name => "Hearing Volume";
     public override string Description => "Should others be able to make all sounds/audio quieter for you?";

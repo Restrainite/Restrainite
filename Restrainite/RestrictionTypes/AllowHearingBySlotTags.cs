@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class AllowHearingBySlotTags : BaseRestriction, ISlotTagRestriction
+internal sealed class AllowHearingBySlotTags : BaseRestriction, ISlotTagRestriction
 {
     public override string Name => "Allow Hearing By Slot Tags";
 

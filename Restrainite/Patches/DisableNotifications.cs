@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Reflection;
+﻿using System.Reflection;
 using FrooxEngine;
 using HarmonyLib;
 
@@ -8,10 +7,10 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class DisableNotifications
 {
-    private static IEnumerable<MethodBase> TargetMethods()
+    private static List<MethodInfo> TargetMethods()
     {
         return AccessTools.GetDeclaredMethods(typeof(NotificationPanel))
-            .FindAll(info => "AddNotification".Equals(info.Name));
+            .FindAll(info => "AddNotification".Equals(info.Name, StringComparison.Ordinal));
     }
 
     [HarmonyPrefix]

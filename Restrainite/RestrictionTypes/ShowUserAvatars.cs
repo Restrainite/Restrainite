@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class ShowUserAvatars : BaseRestriction
+internal sealed class ShowUserAvatars : BaseRestriction
 {
     public override string Name => "Show User Avatars";
 

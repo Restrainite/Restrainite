@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Elements.Core;
 using FrooxEngine;
 using HarmonyLib;
@@ -75,7 +74,7 @@ internal static class TrackerMovementSpeed
         });
     }
 
-    private class SmoothingFilter
+    private sealed class SmoothingFilter
     {
         private bool _intermediateInitialized;
         private float3 _intermediatePosition;

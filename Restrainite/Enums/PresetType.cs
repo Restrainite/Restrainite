@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace Restrainite.Enums;
 
 internal enum PresetType
@@ -19,7 +15,7 @@ internal enum PresetType
 internal static class PresetTypes
 {
     internal static readonly IEnumerable<PresetType> List =
-        Enum.GetValues(typeof(PresetType)).Cast<PresetType>();
+        Enum.GetValues<PresetType>();
 
     internal static readonly int Max = (int)List.Max() + 1;
 }

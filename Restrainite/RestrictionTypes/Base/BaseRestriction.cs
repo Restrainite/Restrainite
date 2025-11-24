@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using FrooxEngine;
 using ResoniteModLoader;
 
@@ -67,7 +64,7 @@ internal abstract class BaseRestriction : IRestriction
                 .ToArray();
         }
 
-        var changed = _state.SetIfChanged(this, localValues.Any());
+        var changed = _state.SetIfChanged(this, localValues.Length > 0);
         if (changed) Log(this, _state.Value, source);
 
         for (var index = 0; index < _restrictionParameters.Length; index++)
@@ -97,7 +94,7 @@ internal abstract class BaseRestriction : IRestriction
         return [];
     }
 
-    private static void Log(IRestriction restriction, bool value, IDynamicVariableSpace source)
+    private static void Log(BaseRestriction restriction, bool value, IDynamicVariableSpace source)
     {
         ResoniteMod.Msg($"Global state of {restriction.Name} changed to {value} by {source.AsString()}");
     }
@@ -111,7 +108,7 @@ internal abstract class BaseRestriction : IRestriction
     {
         var nameWithPrefix = dynamicVariableSpaceName + "/" + restriction.Name;
         var component = slot.GetComponentOrAttach<DynamicValueVariable<TV>>(out var attached,
-            search => nameWithPrefix.Equals(search.VariableName.Value));
+            search => nameWithPrefix.Equals(search.VariableName.Value, StringComparison.Ordinal));
 
         component.VariableName.Value = nameWithPrefix;
         component.Value.Value = to(state.Value);
@@ -127,14 +124,14 @@ internal abstract class BaseRestriction : IRestriction
     }
 
     private static void CreateDescription(
-        IRestriction restriction,
+        BaseRestriction restriction,
         Slot slot,
         string dynamicVariableSpaceName)
     {
         var nameWithPrefix = dynamicVariableSpaceName + "/" + restriction.Name + " Description";
         var component =
             slot.GetComponentOrAttach<DynamicValueVariable<string>>(search =>
-                nameWithPrefix.Equals(search.VariableName.Value));
+                nameWithPrefix.Equals(search.VariableName.Value, StringComparison.Ordinal));
 
         component.VariableName.Value = nameWithPrefix;
         component.Value.Value = restriction.Description;
@@ -150,7 +147,7 @@ internal abstract class BaseRestriction : IRestriction
     {
         var nameWithPrefix = dynamicVariableSpaceName + "/" + restriction.Name;
         var component = slot.GetComponentOrAttach<DynamicReferenceVariable<TV>>(out var attached,
-            search => nameWithPrefix.Equals(search.VariableName.Value));
+            search => nameWithPrefix.Equals(search.VariableName.Value, StringComparison.Ordinal));
 
         component.VariableName.Value = nameWithPrefix;
         component.Reference.Target = to(state.Value);
@@ -168,7 +165,7 @@ internal abstract class BaseRestriction : IRestriction
     public event Action<IRestriction>? OnChanged;
 }
 
-internal class DestroyedDynamicVariableSpace : IDynamicVariableSpace
+internal sealed class DestroyedDynamicVariableSpace : IDynamicVariableSpace
 {
     private const string DestroyedDynamicVariableSpaceString = "Destroyed DynamicVariableSpace";
     internal static readonly DestroyedDynamicVariableSpace Instance = new();

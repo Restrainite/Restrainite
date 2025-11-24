@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventRunning : BaseRestriction
+internal sealed class PreventRunning : BaseRestriction
 {
     public override string Name => "Prevent Running";
 

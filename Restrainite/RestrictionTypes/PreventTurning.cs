@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventTurning : BaseRestriction
+internal sealed class PreventTurning : BaseRestriction
 {
     public override string Name => "Prevent Turning";
 

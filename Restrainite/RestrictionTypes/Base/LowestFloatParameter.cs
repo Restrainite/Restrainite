@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal class LowestFloatParameter : IRestrictionParameter
+internal sealed class LowestFloatParameter : IRestrictionParameter
 {
     private SimpleState<float> LowestFloat { get; } = new(float.NaN);
 

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using FrooxEngine;
 using SkyFrost.Base;
@@ -26,7 +23,7 @@ internal enum WorldPermissionType
 internal static class WorldPermissionTypes
 {
     internal static readonly IEnumerable<WorldPermissionType> List =
-        Enum.GetValues(typeof(WorldPermissionType)).Cast<WorldPermissionType>();
+        Enum.GetValues<WorldPermissionType>();
 
     private static readonly Dictionary<WorldPermissionType, string> Dictionary =
         List.ToDictionary(l => l,
@@ -56,7 +53,11 @@ internal static class WorldPermissionTypes
     {
         var sessionAccessLevel = world.Configuration.AccessLevel.Value;
         var hidden = world.HideFromListing;
+        return ToWorldPermissionType(sessionAccessLevel, hidden);
+    }
 
+    private static WorldPermissionType ToWorldPermissionType(SessionAccessLevel sessionAccessLevel, bool hidden)
+    {
         return sessionAccessLevel switch
         {
             SessionAccessLevel.Private => hidden

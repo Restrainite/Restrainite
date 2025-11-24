@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Elements.Core;
 using FrooxEngine;
 using ResoniteModLoader;
@@ -11,7 +9,7 @@ internal static class DynamicVariableChangeListener
     internal static bool HasShownWarning;
 }
 
-internal class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
+internal sealed class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
 {
     private readonly WeakReference<DynamicVariableSpace> _space;
     private Action<TV>? _onValueChanged;

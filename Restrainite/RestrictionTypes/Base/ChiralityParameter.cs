@@ -1,10 +1,9 @@
-using System.Collections.Generic;
 using FrooxEngine;
 using Renderite.Shared;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-public class ChiralityParameter : IRestrictionParameter
+internal sealed class ChiralityParameter : IRestrictionParameter
 {
     private SimpleState<Chirality?> Chirality { get; } = new(null);
 

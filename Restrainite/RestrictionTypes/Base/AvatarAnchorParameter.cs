@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 
@@ -54,7 +51,7 @@ public class AvatarAnchorParameter : IRestrictionParameter
     }
 }
 
-internal class AnchorList(ReadOnlyCollection<AvatarAnchor> anchors) : IEquatable<AnchorList>
+internal sealed class AnchorList(ReadOnlyCollection<AvatarAnchor> anchors) : IEquatable<AnchorList>
 {
     internal static readonly AnchorList Empty = new(new ReadOnlyCollection<AvatarAnchor>([]));
 
@@ -65,6 +62,16 @@ internal class AnchorList(ReadOnlyCollection<AvatarAnchor> anchors) : IEquatable
     public bool Equals(AnchorList? other)
     {
         return other is not null && (ReferenceEquals(this, other) || Anchors.SequenceEqual(other.Anchors));
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is AnchorList objS && Equals(objS);
+    }
+
+    public override int GetHashCode()
+    {
+        return Anchors.GetHashCode();
     }
 
     public AvatarAnchor? GetRandomAnchor(World world)

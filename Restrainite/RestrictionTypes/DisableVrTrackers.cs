@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class DisableVrTrackers : BaseRestriction
+internal sealed class DisableVrTrackers : BaseRestriction
 {
     public override string Name => "Disable Vr Trackers";
 

@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class EnforceWhispering : BaseRestriction
+internal sealed class EnforceWhispering : BaseRestriction
 {
     public override string Name => "Enforce Whispering";
 

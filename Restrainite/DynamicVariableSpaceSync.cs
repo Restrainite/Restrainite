@@ -1,14 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
 using FrooxEngine;
 using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite;
 
-internal class DynamicVariableSpaceSync : IDynamicVariableSpace
+internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
 {
     internal const string DynamicVariableSpaceName = "Restrainite";
     private const string TargetUserVariableName = "Target User";
@@ -80,12 +76,12 @@ internal class DynamicVariableSpaceSync : IDynamicVariableSpace
         }
 
         var slotTree = new StringBuilder();
-        slotTree.Append(slot.Name).Append("/");
+        slotTree.Append(slot.Name).Append('/');
         var parent = slot.Parent;
         var maxDepth = 20;
         while (parent != null && maxDepth-- > 0)
         {
-            slotTree.Append(parent.Name).Append("/");
+            slotTree.Append(parent.Name).Append('/');
             parent = parent.Parent;
         }
 

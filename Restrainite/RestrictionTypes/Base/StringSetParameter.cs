@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal class StringSetParameter : IRestrictionParameter
+internal sealed class StringSetParameter : IRestrictionParameter
 {
     private SimpleState<ImmutableStringSet> StringSet { get; } = new(ImmutableStringSet.Empty);
 

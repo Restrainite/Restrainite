@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class TrackerMovementSpeed : BaseRestriction
+internal sealed class TrackerMovementSpeed : BaseRestriction
 {
     public override string Name => "Tracker Movement Speed";
 

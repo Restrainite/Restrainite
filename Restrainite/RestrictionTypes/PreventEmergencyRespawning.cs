@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventEmergencyRespawning : BaseRestriction
+internal sealed class PreventEmergencyRespawning : BaseRestriction
 {
     public override string Name => "Prevent Emergency Respawning";
 

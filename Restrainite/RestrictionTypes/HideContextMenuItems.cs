@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class HideContextMenuItems : BaseRestriction
+internal sealed class HideContextMenuItems : BaseRestriction
 {
     public override string Name => "Hide Context Menu Items";
     public override string Description => "Should others be able to hide specific context menu items?";

@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class AlwaysHearSelectedUsers : BaseRestriction
+internal sealed class AlwaysHearSelectedUsers : BaseRestriction
 {
     public override string Name => "Always Hear Selected Users";
 

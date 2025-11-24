@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class ShowDashScreens : BaseRestriction
+internal sealed class ShowDashScreens : BaseRestriction
 {
     public override string Name => "Show Dash Screens";
 

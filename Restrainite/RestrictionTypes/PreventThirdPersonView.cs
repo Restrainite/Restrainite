@@ -2,7 +2,7 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.RestrictionTypes;
 
-internal class PreventThirdPersonView : BaseRestriction
+internal sealed class PreventThirdPersonView : BaseRestriction
 {
     public override string Name => "Prevent Third Person View";
 

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 using FrooxEngine;
 using HarmonyLib;
 using ProtoFlux.Runtimes.Execution.Nodes.FrooxEngine.Worlds;
@@ -113,7 +111,7 @@ internal static class PreventSwitchingWorld
 
     // Prevent world closing via emergency gesture
     [HarmonyPatch]
-    private class InteractionHandlerHoldMenuPatch
+    private static class InteractionHandlerHoldMenuPatch
     {
         [HarmonyPatch(typeof(InteractionHandler), "HoldMenu")]
         [HarmonyPrefix]
@@ -131,7 +129,7 @@ internal static class PreventSwitchingWorld
     }
 
     [HarmonyPatch]
-    private class WorldManagerPatch
+    private static class WorldManagerPatch
     {
         [HarmonyPatch(typeof(WorldManager), nameof(WorldManager.FocusWorld))]
         [HarmonyPrefix]

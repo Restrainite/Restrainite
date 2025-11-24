@@ -37,7 +37,7 @@ internal static class ShowOrHideDashScreens
 
         var localeStringDriver = screen.Label.FindNearestParent<Slot>()
             .GetComponent<LocaleStringDriver>(l => screen.Label.Equals(l.Target.Target));
-        label = localeStringDriver?.LocaleString.content ?? (screen.Label.Value ?? "");
+        label = localeStringDriver?.LocaleString.content ?? screen.Label.Value ?? "";
         return true;
     }
 
@@ -50,7 +50,7 @@ internal static class ShowOrHideDashScreens
             if (!ScreenToLabel(screen, out var label) || label == null) continue;
 
             if (Restrictions.ShowDashScreens.IsRestricted &&
-                !DashScreensExit.Equals(label) &&
+                !DashScreensExit.Equals(label, StringComparison.Ordinal) &&
                 !Restrictions.ShowDashScreens.StringSet.Contains(label))
             {
                 button.Slot.ActiveSelf = false;
@@ -58,7 +58,7 @@ internal static class ShowOrHideDashScreens
             }
 
             if (Restrictions.HideDashScreens.IsRestricted &&
-                !DashScreensExit.Equals(label) &&
+                !DashScreensExit.Equals(label, StringComparison.Ordinal) &&
                 Restrictions.HideDashScreens.StringSet.Contains(label))
             {
                 button.Slot.ActiveSelf = false;
@@ -75,12 +75,12 @@ internal static class ShowOrHideDashScreens
         if (target == null || !ScreenToLabel(target, out var label) || label == null) return;
 
         if (Restrictions.ShowDashScreens.IsRestricted &&
-            !DashScreensExit.Equals(label) &&
+            !DashScreensExit.Equals(label, StringComparison.Ordinal) &&
             !Restrictions.ShowDashScreens.StringSet.Contains(label))
             __instance.Dash.CurrentScreen.Target = __instance.Dash.GetScreen<ExitScreen>();
 
         if (Restrictions.HideDashScreens.IsRestricted &&
-            !DashScreensExit.Equals(label) &&
+            !DashScreensExit.Equals(label, StringComparison.Ordinal) &&
             Restrictions.HideDashScreens.StringSet.Contains(label))
             __instance.Dash.CurrentScreen.Target = __instance.Dash.GetScreen<ExitScreen>();
     }

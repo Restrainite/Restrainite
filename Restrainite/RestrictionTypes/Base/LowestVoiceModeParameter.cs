@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-public class LowestVoiceModeParameter : IRestrictionParameter
+internal sealed class LowestVoiceModeParameter : IRestrictionParameter
 {
     private SimpleState<VoiceMode> LowestVoiceMode { get; } = new(VoiceMode.Broadcast);
 
