@@ -39,6 +39,6 @@ internal static class PreventEditMode
     private static void SessionControlDialog_OnCommonUpdate_Postfix(SyncRef<Button> ____editMode)
     {
         if (Restrictions.PreventEditMode.IsRestricted)
-            ____editMode.Target.Enabled = false;
+            ____editMode?.Target?.Enabled = false;
     }
 }
