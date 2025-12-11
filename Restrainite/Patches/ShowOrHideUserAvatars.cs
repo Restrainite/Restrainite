@@ -64,21 +64,6 @@ internal static class ShowOrHideUserAvatars
         ShouldBeVisible(ref __result, __instance);
     }
 
-    [HarmonyPatch]
-    private static class ParticleSystemPatch
-    {
-        private static IEnumerable<MethodInfo> TargetMethods()
-        {
-            return AccessTools.GetDeclaredMethods(typeof(ParticleSystem)).Where(method => method.Name.Contains("ShouldBeEnabled")).AsEnumerable();
-        }
-        
-        private static void Postfix(ref bool __result, ParticleSystem __instance)
-        {
-            ShouldBeVisible(ref __result, __instance);
-        }
-    }
-    
-
     [HarmonyPostfix]
     [HarmonyPatch(typeof(TextRenderer), nameof(TextRenderer.ShouldBeEnabled), MethodType.Getter)]
     private static void TextRenderer_ShouldBeEnabled_Postfix(ref bool __result, TextRenderer __instance)
@@ -96,12 +81,10 @@ internal static class ShowOrHideUserAvatars
     private static void ShouldBeVisible(ref bool result, Component component)
     {
         if (!result ||
-            (!Restrictions.ShowUserAvatars.IsRestricted && !Restrictions.HideUserAvatars.IsRestricted) || 
-            component.IsLocalElement ||
+            (!Restrictions.ShowUserAvatars.IsRestricted && !Restrictions.HideUserAvatars.IsRestricted) ||
             component.Slot?.IsLocalElement != false) return;
         var user = component.Slot?.ActiveUser;
-        if (user == null) return;
-        if (user.IsLocalUser) return;
+        if (user == null || user.IsLocalUser) return;
         if (Restrictions.ShowUserAvatars.IsRestricted &&
             !Restrictions.ShowUserAvatars.StringSet.Contains(user.UserID))
         {
@@ -114,9 +97,24 @@ internal static class ShowOrHideUserAvatars
         result = false;
     }
 
+    [HarmonyPatch]
+    private static class ParticleSystemPatch
+    {
+        private static IEnumerable<MethodInfo> TargetMethods()
+        {
+            return AccessTools.GetDeclaredMethods(typeof(ParticleSystem))
+                .Where(method => method.Name.Contains("ShouldBeEnabled")).AsEnumerable();
+        }
+
+        private static void Postfix(ref bool __result, ParticleSystem __instance)
+        {
+            ShouldBeVisible(ref __result, __instance);
+        }
+    }
+
     /// <summary>
-    /// To avoid lagging the game, we update the visibility of all avatars for each user in small chunks. Every update
-    /// cycle, we mark one component in one user dirty. 
+    ///     To avoid lagging the game, we update the visibility of all avatars for each user in small chunks. Every update
+    ///     cycle, we mark one component in one user dirty.
     /// </summary>
     private sealed class SlowUpdater
     {
@@ -152,13 +150,7 @@ internal static class ShowOrHideUserAvatars
 
                 ResetStateIfNecessary(world);
 
-                var currentUserSlot = CurrentUserSlot(world, _currentUserId);
-
-                if (currentUserSlot == null)
-                {
-                    var userList = world.AllUsers;
-                    currentUserSlot = NextUserSlot(userList);
-                }
+                var currentUserSlot = CurrentUserSlot(world, _currentUserId) ?? NextUserSlot(world);
 
                 if (currentUserSlot == null || _currentUserId == null)
                 {
@@ -193,9 +185,9 @@ internal static class ShowOrHideUserAvatars
             return currentUserSlot;
         }
 
-        private Slot? NextUserSlot(Dictionary<RefID, User>.ValueCollection userList)
+        private Slot? NextUserSlot(World world)
         {
-            var user = userList.FirstOrDefault(user => !_finishedUsers.Contains(user.ReferenceID));
+            var user = world.TryGetUser(user => !_finishedUsers.Contains(user.ReferenceID) && user is { IsLocalUser: false, Root: not null, Root.Slot: not null });
             _currentUserId = user?.ReferenceID;
             _finishedTypesForCurrentUser = 0;
             return user?.Root?.Slot;
@@ -230,8 +222,8 @@ internal static class ShowOrHideUserAvatars
         }
 
         /// <summary>
-        /// This list of components has been created by searching for all components that are using the
-        /// <see cref="User.IsRenderingLocallyBlocked"/> property.
+        ///     This list of components has been created by searching for all components that are using the
+        ///     <see cref="User.IsRenderingLocallyBlocked" /> property.
         /// </summary>
         /// <param name="component">Internal id of the component</param>
         /// <param name="slot">User Root Slot</param>
