@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using Elements.Core;
 using FrooxEngine;
@@ -150,23 +151,28 @@ internal static class ShowOrHideUserAvatars
 
                 ResetStateIfNecessary(world);
 
-                var currentUserSlot = CurrentUserSlot(world, _currentUserId) ?? NextUserSlot(world);
+                var stopwatch = Stopwatch.StartNew();
 
-                if (currentUserSlot == null || _currentUserId == null)
+                do
                 {
-                    Finish();
-                    return;
-                }
+                    var currentUserSlot = CurrentUserSlot(world, _currentUserId) ?? NextUserSlot(world);
 
-                MarkChangeDirty(_finishedTypesForCurrentUser, currentUserSlot);
-                _finishedTypesForCurrentUser++;
+                    if (currentUserSlot == null || _currentUserId == null)
+                    {
+                        Finish();
+                        return;
+                    }
+                
+                    MarkChangeDirty(_finishedTypesForCurrentUser, currentUserSlot);
+                    _finishedTypesForCurrentUser++;
 
-                if (_finishedTypesForCurrentUser >= TotalComponentCount)
-                {
-                    _finishedUsers.Add((RefID)_currentUserId);
-                    _currentUserId = null;
-                    _finishedTypesForCurrentUser = 0;
-                }
+                    if (_finishedTypesForCurrentUser >= TotalComponentCount)
+                    {
+                        _finishedUsers.Add((RefID)_currentUserId);
+                        _currentUserId = null;
+                        _finishedTypesForCurrentUser = 0;
+                    }
+                } while (stopwatch.Elapsed.TotalMilliseconds < 1);
 
                 world.RunInUpdates(1, Update);
             }
