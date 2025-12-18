@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
@@ -55,28 +52,23 @@ internal static class PreventHearing
     [HarmonyPatch(typeof(AudioOutput), nameof(AudioOutput.ActualVolume), MethodType.Getter)]
     private static float AudioOutput_ActualVolume_Getter_Postfix(float result, AudioOutput __instance)
     {
-        var slot = __instance.Slot;
-        var activeUser = slot?.ActiveUser;
         var volume = result;
         if (Restrictions.HearingVolume.IsRestricted)
         {
             var volumeMultiplier = Restrictions.HearingVolume.LowestFloat.Value;
             if (!float.IsNaN(volumeMultiplier))
             {
-                if (volumeMultiplier <= 0.0f) volumeMultiplier = 0.0f;
-                if (volumeMultiplier >= 1.0f) volumeMultiplier = 1.0f;
                 volume = volumeMultiplier * volume;
             }
         }
 
-        if (activeUser == null || __instance.AudioTypeGroup.Value != AudioTypeGroup.Voice)
-            return ShouldHearSounds(slot) ? volume : 0.0f;
-        var userId = activeUser.UserID;
-        if (userId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
+        var slot = __instance.Slot;
+        var activeUserId = slot?.ActiveUser?.UserID;
+        if (activeUserId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
         if (Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
-            Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(userId)) return result;
+            Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(activeUserId)) return result;
         if (Restrictions.EnforceSelectiveHearing.IsRestricted &&
-            !Restrictions.EnforceSelectiveHearing.StringSet.Contains(userId)) return 0.0f;
+            !Restrictions.EnforceSelectiveHearing.StringSet.Contains(activeUserId)) return 0.0f;
         return Restrictions.PreventHearing.IsRestricted ||
                Restrictions.PreventHearingOfUsers.IsRestricted
             ? 0.0f

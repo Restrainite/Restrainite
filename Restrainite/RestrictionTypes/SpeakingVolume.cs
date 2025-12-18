@@ -7,7 +7,7 @@ internal sealed class SpeakingVolume : BaseRestriction
     public override string Name => "Speaking Volume";
     public override string Description => "Should others be able to make your voice quieter to everyone else?";
 
-    public LowestFloatParameter LowestFloat { get; } = new();
+    public LowestFloatParameter LowestFloat { get; } = new(0.0f, 1.0f);
 
     protected override IRestrictionParameter[] InitRestrictionParameters()
     {

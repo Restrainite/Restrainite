@@ -2,7 +2,10 @@ using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;
 
-internal sealed class LowestFloatParameter : IRestrictionParameter
+internal sealed class LowestFloatParameter(
+    float minValue = float.NegativeInfinity,
+    float maxValue = float.PositiveInfinity)
+    : IRestrictionParameter
 {
     private SimpleState<float> LowestFloat { get; } = new(float.NaN);
 
@@ -14,9 +17,12 @@ internal sealed class LowestFloatParameter : IRestrictionParameter
         foreach (var baseState in states)
         {
             if (baseState is not LocalBaseState<float> localState) continue;
-            if (!float.IsNaN(localState.Value) &&
-                (float.IsNaN(lowestFloatValue) || localState.Value < lowestFloatValue))
-                lowestFloatValue = localState.Value;
+            var value = localState.Value;
+            if (float.IsNaN(value)) continue;
+            if (value < minValue) value = minValue;
+            if (value > maxValue) value = maxValue;
+            if (float.IsNaN(lowestFloatValue) || value < lowestFloatValue)
+                lowestFloatValue = value;
         }
 
         return LowestFloat.SetIfChanged(restriction, lowestFloatValue);

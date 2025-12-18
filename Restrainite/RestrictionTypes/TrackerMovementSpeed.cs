@@ -9,7 +9,7 @@ internal sealed class TrackerMovementSpeed : BaseRestriction
     public override string Description =>
         "Should others be able to slow down or freeze your full-body trackers? (Including VR controllers.)";
 
-    public LowestFloatParameter LowestFloat { get; } = new();
+    public LowestFloatParameter LowestFloat { get; } = new(0.0f);
 
     protected override IRestrictionParameter[] InitRestrictionParameters()
     {

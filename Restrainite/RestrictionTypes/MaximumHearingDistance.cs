@@ -7,7 +7,7 @@ internal sealed class MaximumHearingDistance : BaseRestriction
     public override string Name => "Maximum Hearing Distance";
     public override string Description => "Should others be able to limit how far away you can hear sounds/audio from?";
 
-    public LowestFloatParameter LowestFloat { get; } = new();
+    public LowestFloatParameter LowestFloat { get; } = new(0.0f);
 
     protected override IRestrictionParameter[] InitRestrictionParameters()
     {

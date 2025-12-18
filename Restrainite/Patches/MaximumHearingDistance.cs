@@ -15,11 +15,8 @@ internal static class MaximumHearingDistance
     private static readonly MethodInfo? NativeOutputMethod =
         AccessTools.PropertyGetter(typeof(AudioOutput), "NativeOutput");
 
-    private static readonly MethodInfo? AudioInletMethod =
+    private static readonly MethodInfo? EffectsInletMethod =
         AccessTools.PropertyGetter(typeof(AudioManager), "EffectsInlet");
-
-    private static readonly FieldInfo? ExcludedListenersChangedField =
-        AccessTools.Field(typeof(AudioOutput), "_excludedListenersChanged");
 
     private static readonly MethodInfo? UpdateExcludedListenersMethod =
         AccessTools.Method(typeof(AudioOutput), "UpdateExcludedListeners");
@@ -33,17 +30,9 @@ internal static class MaximumHearingDistance
             return;
         }
 
-        if (AudioInletMethod == null)
+        if (EffectsInletMethod == null)
         {
             ResoniteMod.Error(RestrainiteMod.LogReportUrl + " Failed to find method AudioManager.EffectsInlet");
-            RestrainiteMod.SuccessfullyPatched = false;
-            return;
-        }
-
-        if (ExcludedListenersChangedField == null)
-        {
-            ResoniteMod.Error(RestrainiteMod.LogReportUrl +
-                              " Failed to find field AudioOutput._excludedListenersChanged");
             RestrainiteMod.SuccessfullyPatched = false;
             return;
         }
@@ -73,22 +62,21 @@ internal static class MaximumHearingDistance
         ChangesBatch batch,
         bool updateExcludedListeners,
         ref bool ____updateRegistered,
-        ref IAudioShape ____audioShape)
+        ref IAudioShape ____audioShape,
+        ref bool ____excludedListenersChanged)
     {
         if (!Restrictions.MaximumHearingDistance.IsRestricted) return true;
-        if (NativeOutputMethod == null || AudioInletMethod == null) return true;
+        if (NativeOutputMethod == null || EffectsInletMethod == null || __instance.IsRemoved) return true;
+        if (NativeOutputMethod.Invoke(__instance, []) is not Awwdio.AudioOutput nativeOutput)
+            return true;
         if (IsAlwaysHearingSelectedUsers(__instance)) return true;
 
         var restrictedDistance = Restrictions.MaximumHearingDistance.LowestFloat.Value;
         if (float.IsNaN(restrictedDistance)) return true;
-        if (restrictedDistance <= 0.0f) restrictedDistance = 0.0f;
 
         if (__instance.Global.Value ?? MathX.Approximately(__instance.SpatialBlend.Value, 0.0f)) return true;
-
+        
         ____updateRegistered = false;
-
-        if (NativeOutputMethod.Invoke(__instance, []) is not Awwdio.AudioOutput nativeOutput || __instance.IsRemoved)
-            return false;
 
         __instance.GetActualDistances(out var minDistance,
             out var maxDistance,
@@ -119,11 +107,9 @@ internal static class MaximumHearingDistance
 
         AudioInlet? audioInlet = null;
         if (!__instance.IgnoreAudioEffects.Value)
-            audioInlet = AudioInletMethod.Invoke(__instance.Audio, []) as AudioInlet;
+            audioInlet = EffectsInletMethod.Invoke(__instance.Audio, []) as AudioInlet;
         nativeOutput.Update(batch, __instance.Source.Target, ____audioShape, audioInlet);
-        var excludedListenersChanged = ExcludedListenersChangedField?.GetValue(__instance) is bool &&
-                                       (bool)(ExcludedListenersChangedField.GetValue(__instance) ?? false);
-        if (!(excludedListenersChanged && updateExcludedListeners))
+        if (!(____excludedListenersChanged && updateExcludedListeners))
             return false;
         UpdateExcludedListenersMethod?.Invoke(__instance, [batch]);
         return false;
@@ -131,14 +117,9 @@ internal static class MaximumHearingDistance
 
     private static bool IsAlwaysHearingSelectedUsers(AudioOutput audioOutput)
     {
-        var slot = audioOutput.Slot;
-        var activeUser = slot?.ActiveUser;
-
-        if (activeUser == null || audioOutput.AudioTypeGroup.Value != AudioTypeGroup.Voice)
-            return false;
-        var userId = activeUser.UserID;
-        if (userId is null) return false;
+        var activeUserId = audioOutput.Slot?.ActiveUser?.UserID;
+        if (activeUserId is null) return false;
         return Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
-               Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(userId);
+               Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(activeUserId);
     }
 }

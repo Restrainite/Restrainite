@@ -15,8 +15,6 @@ internal static class MovementSpeedMultiplier
 
         var multiplier = Restrictions.MovementSpeedMultiplier.LowestFloat.Value;
         if (float.IsNaN(multiplier)) return;
-        if (multiplier < 0.0f) multiplier = 0.0f;
-        else if (multiplier > 1.0f) multiplier = 1.0f;
         __result = __result.Value * multiplier;
     }
 
@@ -28,8 +26,6 @@ internal static class MovementSpeedMultiplier
 
         var multiplier = Restrictions.MovementSpeedMultiplier.LowestFloat.Value;
         if (float.IsNaN(multiplier)) return;
-        if (multiplier < 0.0f) multiplier = 0.0f;
-        else if (multiplier > 1.0f) multiplier = 1.0f;
         __result = __result.Value * multiplier;
     }
 }

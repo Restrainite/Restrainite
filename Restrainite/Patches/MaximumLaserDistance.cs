@@ -17,7 +17,6 @@ internal static class MaximumLaserDistance
 
         var distance = Restrictions.MaximumLaserDistance.LowestFloat.Value;
         if (float.IsNaN(distance)) return;
-        if (distance < 0.0f) distance = 0.0f;
         if (distance > __result) return;
         __result = distance;
     }

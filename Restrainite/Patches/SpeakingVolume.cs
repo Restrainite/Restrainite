@@ -15,8 +15,6 @@ internal static class SpeakingVolume
         if (!Restrictions.SpeakingVolume.IsRestricted) return;
         var multiplier = Restrictions.SpeakingVolume.LowestFloat.Value;
         if (float.IsNaN(multiplier)) return;
-        if (multiplier < 0.0f) multiplier = 0.0f;
-        if (multiplier > 1.0f) multiplier = 1.0f;
         var newBuffer = new Span<StereoSample>(buffer.ToArray());
         for (var i = 0; i < newBuffer.Length; i++) newBuffer[i] *= multiplier;
         buffer = newBuffer;
@@ -29,8 +27,6 @@ internal static class SpeakingVolume
         if (!Restrictions.SpeakingVolume.IsRestricted) return;
         var multiplier = Restrictions.SpeakingVolume.LowestFloat.Value;
         if (float.IsNaN(multiplier)) return;
-        if (multiplier < 0.0f) multiplier = 0.0f;
-        if (multiplier > 1.0f) multiplier = 1.0f;
         var newBuffer = new Span<StereoSample>(buffer.ToArray());
         for (var i = 0; i < newBuffer.Length; i++) newBuffer[i] *= multiplier;
         buffer = newBuffer;
