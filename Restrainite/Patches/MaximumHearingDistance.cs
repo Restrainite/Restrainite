@@ -118,7 +118,7 @@ internal static class MaximumHearingDistance
     private static bool IsAlwaysHearingSelectedUsers(AudioOutput audioOutput)
     {
         var activeUserId = audioOutput.Slot?.ActiveUser?.UserID;
-        if (activeUserId is null) return false;
+        if (activeUserId is null || audioOutput.AudioTypeGroup.Value != AudioTypeGroup.Voice) return false;
         return Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
                Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(activeUserId);
     }

@@ -64,7 +64,7 @@ internal static class PreventHearing
 
         var slot = __instance.Slot;
         var activeUserId = slot?.ActiveUser?.UserID;
-        if (activeUserId is null) return ShouldHearSounds(slot) ? volume : 0.0f;
+        if (activeUserId is null ||  __instance.AudioTypeGroup.Value != AudioTypeGroup.Voice) return ShouldHearSounds(slot) ? volume : 0.0f;
         if (Restrictions.AlwaysHearSelectedUsers.IsRestricted &&
             Restrictions.AlwaysHearSelectedUsers.StringSet.Contains(activeUserId)) return result;
         if (Restrictions.EnforceSelectiveHearing.IsRestricted &&
