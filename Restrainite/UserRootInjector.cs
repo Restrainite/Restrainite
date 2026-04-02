@@ -19,6 +19,8 @@ internal static class UserRootInjector
         RestrainiteMod.SuccessfullyPatched = false;
     }
 
+    public static event Action<UserRoot>? OnUserRootInitialized;
+
     private static void WorldFocused(World world)
     {
         WorldPermissionChanged(world);
@@ -112,6 +114,8 @@ internal static class UserRootInjector
                 DynamicVariableStatusMap.Remove(refId);
             };
         }
+
+        userSlot?.RunInUpdates(1, () => { OnUserRootInitialized?.SafeInvoke(userRoot); });
     }
 
 

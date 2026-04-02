@@ -45,7 +45,7 @@ internal static class MaximumVoiceMode
             if (user.VoiceMode == _lastVoiceMode) user.VoiceMode = _originalVoiceMode2;
         }
     }
-    
+
     private static void ToggleEnforceWhispering(User user)
     {
         if (Restrictions.EnforceWhispering.IsRestricted)

@@ -75,7 +75,7 @@ internal static class MaximumHearingDistance
         if (float.IsNaN(restrictedDistance)) return true;
 
         if (__instance.Global.Value ?? MathX.Approximately(__instance.SpatialBlend.Value, 0.0f)) return true;
-        
+
         ____updateRegistered = false;
 
         __instance.GetActualDistances(out var minDistance,

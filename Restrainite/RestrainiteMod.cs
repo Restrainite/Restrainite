@@ -33,7 +33,7 @@ public class RestrainiteMod : ResoniteMod
     public override IncompatibleConfigurationHandlingOption HandleIncompatibleConfigurationVersions(
         Version serializedVersion, Version definedVersion)
     {
-        if ((serializedVersion.Major == 2 && definedVersion.Major == 3) || 
+        if ((serializedVersion.Major == 2 && definedVersion.Major == 3) ||
             (serializedVersion.Major == 3 && definedVersion.Major == 2))
             return IncompatibleConfigurationHandlingOption.FORCELOAD;
         return IncompatibleConfigurationHandlingOption.CLOBBER;

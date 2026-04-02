@@ -162,7 +162,7 @@ internal static class ShowOrHideUserAvatars
                         Finish();
                         return;
                     }
-                
+
                     MarkChangeDirty(_finishedTypesForCurrentUser, currentUserSlot);
                     _finishedTypesForCurrentUser++;
 
@@ -193,7 +193,9 @@ internal static class ShowOrHideUserAvatars
 
         private Slot? NextUserSlot(World world)
         {
-            var user = world.TryGetUser(user => !_finishedUsers.Contains(user.ReferenceID) && user is { IsLocalUser: false, Root: not null, Root.Slot: not null });
+            var user = world.TryGetUser(user =>
+                !_finishedUsers.Contains(user.ReferenceID) && user is
+                    { IsLocalUser: false, Root: not null, Root.Slot: not null });
             _currentUserId = user?.ReferenceID;
             _finishedTypesForCurrentUser = 0;
             return user?.Root?.Slot;

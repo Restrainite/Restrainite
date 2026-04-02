@@ -1,4 +1,3 @@
-using System;
 using FrooxEngine;
 using FrooxEngine.ProtoFlux;
 using Restrainite.RestrictionTypes.Base;

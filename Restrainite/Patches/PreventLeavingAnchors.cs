@@ -1,5 +1,4 @@
-﻿using System.Threading;
-using FrooxEngine;
+﻿using FrooxEngine;
 using FrooxEngine.CommonAvatar;
 using HarmonyLib;
 using Restrainite.RestrictionTypes.Base;
@@ -16,6 +15,31 @@ internal static class PreventLeavingAnchors
     public static void Initialize()
     {
         Restrictions.PreventLeavingAnchors.OnChanged += OnChanged;
+        UserRootInjector.OnUserRootInitialized += OnUserRootInitialized;
+    }
+
+    private static void OnUserRootInitialized(UserRoot userRoot)
+    {
+        if (userRoot.World != Engine.Current.WorldManager.FocusedWorld) return;
+        // Delay to allow the user to be fully initialized.
+        userRoot.RunInUpdates(1, () => { WaitForUserToStopFalling(userRoot); });
+    }
+
+    private static void WaitForUserToStopFalling(UserRoot userRoot)
+    {
+        // Make sure the user is on the ground, otherwise they will be stuck in fall animation.
+        if (userRoot.GetRegisteredComponent<LocomotionController>()?.ActiveModule is IPhysicalLocomotion activeModule)
+        {
+            var characterController = activeModule.CharacterController;
+            if (characterController?.CurrentGround != null)
+                userRoot.RunInUpdates(1, () => { OnChanged(Restrictions.PreventLeavingAnchors); });
+            else
+                userRoot.RunInUpdates(1, () => { WaitForUserToStopFalling(userRoot); });
+        }
+        else
+        {
+            OnChanged(Restrictions.PreventLeavingAnchors);
+        }
     }
 
     private static void OnChanged(IRestriction restriction)

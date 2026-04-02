@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using FrooxEngine;
 
 namespace Restrainite.RestrictionTypes.Base;

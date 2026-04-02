@@ -22,7 +22,7 @@ internal static class PreventEditMode
             var user = world.LocalUser;
             if (user == null) return;
             var mode = user.editMode.Value;
-            if (mode != true) return;
+            if (!mode) return;
             user.editMode.Value = false;
         });
     }

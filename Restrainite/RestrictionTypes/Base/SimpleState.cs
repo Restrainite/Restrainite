@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 namespace Restrainite.RestrictionTypes.Base;
 
 internal class SimpleState<T>(T defaultValue)

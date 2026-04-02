@@ -77,7 +77,9 @@ internal sealed class AnchorList(ReadOnlyCollection<AvatarAnchor> anchors) : IEq
     public AvatarAnchor? GetRandomAnchor(World world)
     {
         if (Anchors.Count == 0) return null;
-        var validAnchors = Anchors.Where(anchor => anchor.World == world).ToList();
+        var validAnchors = Anchors.Where(anchor =>
+            anchor.World == world && anchor is { Enabled: true, Slot.IsActive: true, IsOccupied: false }
+        ).ToList();
         return validAnchors.Count == 0
             ? null
             : validAnchors[Random.Next(validAnchors.Count)];

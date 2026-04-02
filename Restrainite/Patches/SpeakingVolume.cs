@@ -1,4 +1,3 @@
-using System;
 using Elements.Assets;
 using FrooxEngine;
 using HarmonyLib;
