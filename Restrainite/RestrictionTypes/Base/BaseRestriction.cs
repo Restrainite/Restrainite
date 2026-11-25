@@ -6,6 +6,7 @@ namespace Restrainite.RestrictionTypes.Base;
 internal abstract class BaseRestriction : IRestriction
 {
     private readonly List<LocalRestriction> _localValues = [];
+    private readonly Lock _localValuesLock = new();
 
     private readonly SimpleState<bool> _state = new(false);
     private IRestrictionParameter[] _restrictionParameters = [];
@@ -32,7 +33,7 @@ internal abstract class BaseRestriction : IRestriction
     {
         var localValue =
             new LocalRestriction(dynamicVariableSpace, dynamicVariableSpaceSync, this, _restrictionParameters);
-        lock (_localValues)
+        lock (_localValuesLock)
         {
             _localValues.Add(localValue);
         }
@@ -57,7 +58,7 @@ internal abstract class BaseRestriction : IRestriction
     public void Update(IDynamicVariableSpace source)
     {
         LocalRestriction[] localValues;
-        lock (_localValues)
+        lock (_localValuesLock)
         {
             localValues = _localValues
                 .Where(localValue => localValue.IsActive())
@@ -81,7 +82,7 @@ internal abstract class BaseRestriction : IRestriction
 
     public void DestroyLocal(LocalRestriction localRestriction)
     {
-        lock (_localValues)
+        lock (_localValuesLock)
         {
             _localValues.Remove(localRestriction);
         }

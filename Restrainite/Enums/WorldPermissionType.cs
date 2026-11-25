@@ -20,14 +20,17 @@ internal enum WorldPermissionType
     PrivateNonHidden
 }
 
-internal static class WorldPermissionTypes
+internal static partial class WorldPermissionTypes
 {
     internal static readonly IEnumerable<WorldPermissionType> List =
         Enum.GetValues<WorldPermissionType>();
 
     private static readonly Dictionary<WorldPermissionType, string> Dictionary =
         List.ToDictionary(l => l,
-            l => Regex.Replace(l.ToString(), "([a-z])([A-Z])", "$1 $2"));
+            l => WordBoundaryRegex.Replace(l.ToString(), "$1 $2"));
+
+    [GeneratedRegex("([a-z])([A-Z])")]
+    private static partial Regex WordBoundaryRegex { get; }
 
     internal static string AsExpandedString(this WorldPermissionType type)
     {

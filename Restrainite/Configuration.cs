@@ -132,6 +132,7 @@ internal sealed class Configuration
         foreach (var key in _presetStore.Values)
             key.OnChanged += ShouldRecheckPermissionInvoker;
 
+        RequiresPassword = !string.IsNullOrEmpty(_config?.GetValue(_password));
         _password.OnChanged += UpdatePasswordState;
 
         foreach (var key in _changeOnWorldPermissionChangeDict.Values)

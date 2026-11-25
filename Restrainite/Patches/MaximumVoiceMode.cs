@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using FrooxEngine;
 using HarmonyLib;
 using Restrainite.RestrictionTypes.Base;
@@ -8,9 +9,7 @@ namespace Restrainite.Patches;
 [HarmonyPatch]
 internal static class MaximumVoiceMode
 {
-    private static VoiceMode _originalVoiceMode = Whisper;
-    private static VoiceMode _originalVoiceMode2 = Normal;
-    private static VoiceMode _lastVoiceMode = Normal;
+    private static readonly ConditionalWeakTable<User, LimitedVoiceMode> LimitedVoiceModes = new();
 
     internal static void Initialize()
     {
@@ -20,44 +19,36 @@ internal static class MaximumVoiceMode
 
     private static void OnRestrictionChanged(IRestriction restriction)
     {
-        var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
-        if (user == null) return;
-
-        user.Root.Slot.RunSynchronously(() =>
-        {
-            ToggleMaximumVoiceMode(user);
-            ToggleEnforceWhispering(user);
-        });
+        var user = Engine.Current?.WorldManager?.FocusedWorld?.LocalUser;
+        user?.World?.RunSynchronously(() => UpdateVoiceMode(user));
     }
 
-    private static void ToggleMaximumVoiceMode(User user)
+    private static VoiceMode MaximumAllowedVoiceMode()
     {
-        if (Restrictions.MaximumVoiceMode.IsRestricted)
+        var maximum = Restrictions.MaximumVoiceMode.IsRestricted
+            ? Restrictions.MaximumVoiceMode.LowestVoiceMode.Value
+            : Broadcast;
+        return Restrictions.EnforceWhispering.IsRestricted && maximum > Whisper ? Whisper : maximum;
+    }
+
+    private static void UpdateVoiceMode(User user)
+    {
+        // If the user selected another voice mode while being limited, then that is the one to keep.
+        var current = user.VoiceMode;
+        var original = LimitedVoiceModes.TryGetValue(user, out var limited) && limited.Applied == current
+            ? limited.Original
+            : current;
+
+        var maximum = MaximumAllowedVoiceMode();
+        if (original > maximum)
         {
-            if (user.VoiceMode > Restrictions.MaximumVoiceMode.LowestVoiceMode.Value)
-            {
-                _originalVoiceMode2 = user.VoiceMode;
-                user.VoiceMode = _lastVoiceMode = Restrictions.MaximumVoiceMode.LowestVoiceMode.Value;
-            }
+            LimitedVoiceModes.AddOrUpdate(user, new LimitedVoiceMode(original, maximum));
+            user.VoiceMode = maximum;
         }
         else
         {
-            if (user.VoiceMode == _lastVoiceMode) user.VoiceMode = _originalVoiceMode2;
-        }
-    }
-
-    private static void ToggleEnforceWhispering(User user)
-    {
-        if (Restrictions.EnforceWhispering.IsRestricted)
-        {
-            if (user.VoiceMode is not (Normal or Shout or Broadcast)) return;
-            _originalVoiceMode = user.VoiceMode;
-            user.VoiceMode = Whisper;
-        }
-        else
-        {
-            if (user.VoiceMode is not Whisper) return;
-            user.VoiceMode = _originalVoiceMode;
+            LimitedVoiceModes.Remove(user);
+            user.VoiceMode = original;
         }
     }
 
@@ -65,12 +56,8 @@ internal static class MaximumVoiceMode
     [HarmonyPatch(typeof(User), nameof(User.VoiceMode), MethodType.Setter)]
     private static bool User_VoiceMode_Setter_Prefix(VoiceMode value, User __instance)
     {
-        return !(__instance.IsLocalUser &&
-                 (
-                     (Restrictions.EnforceWhispering.IsRestricted && value is Normal or Shout or Broadcast) ||
-                     (Restrictions.MaximumVoiceMode.IsRestricted &&
-                      value > Restrictions.MaximumVoiceMode.LowestVoiceMode.Value)
-                 )
-            );
+        return !__instance.IsLocalUser || value <= MaximumAllowedVoiceMode();
     }
+
+    private sealed record LimitedVoiceMode(VoiceMode Original, VoiceMode Applied);
 }

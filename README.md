@@ -43,7 +43,7 @@ should not be used anymore and there will be a replacement available. Unless the
 that we can't provide that feature anymore.
 
 ## About the project
-Restrainite is © 2024-2025 by SnepDrone, Uruloke, Zenuru
+Restrainite is © 2024-2026 by SnepDrone, Uruloke, Zenuru
 
 Idea by Fuzy Sidwell
 

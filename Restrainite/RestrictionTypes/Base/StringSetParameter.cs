@@ -42,10 +42,9 @@ internal sealed class StringSetParameter : IRestrictionParameter
                StringSet.Value.Contains(value);
     }
 
-    private static IEnumerable<string> SplitValues(string? commaSeparatedList)
+    private static string[] SplitValues(string? commaSeparatedList)
     {
-        var splitArray = commaSeparatedList?.Split([','], StringSplitOptions.RemoveEmptyEntries) ?? [];
-        return splitArray.Select(t => t.Trim())
-            .Where(trimmed => trimmed.Length != 0);
+        return commaSeparatedList?.Split(',',
+            StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? [];
     }
 }

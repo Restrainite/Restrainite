@@ -76,24 +76,26 @@ internal static class PreventLeavingAnchors
     [HarmonyPatch(typeof(AvatarAnchor), nameof(AvatarAnchor.Release))]
     private static bool AvatarAnchor_Release_Prefix(AvatarAnchor __instance)
     {
-        return __instance.Engine.WorldManager.FocusedWorld.LocalUser != __instance.AnchoredUser
-               || IsAnchoring.Value || !Restrictions.PreventLeavingAnchors.IsRestricted;
+        if (!Restrictions.PreventLeavingAnchors.IsRestricted || IsAnchoring.Value) return true;
+        var localUser = __instance.Engine?.WorldManager?.FocusedWorld?.LocalUser;
+        return localUser == null || localUser != __instance.AnchoredUser;
     }
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(AvatarAnchor), nameof(AvatarAnchor.Anchor), typeof(AvatarManager))]
-    private static bool AvatarAnchor_Anchor_Prefix(AvatarAnchor __instance)
+    private static bool AvatarAnchor_Anchor_Prefix(AvatarAnchor __instance, out bool? __state)
     {
+        __state = IsAnchoring.Value;
         if (Restrictions.PreventLeavingAnchors.IsRestricted &&
             !Restrictions.PreventLeavingAnchors.AvatarAnchors.Contains(__instance)) return false;
         IsAnchoring.Value = true;
         return true;
     }
 
-    [HarmonyPostfix]
+    [HarmonyFinalizer]
     [HarmonyPatch(typeof(AvatarAnchor), nameof(AvatarAnchor.Anchor), typeof(AvatarManager))]
-    private static void AvatarAnchor_Anchor_Postfix()
+    private static void AvatarAnchor_Anchor_Finalizer(bool? __state)
     {
-        IsAnchoring.Value = false;
+        if (__state.HasValue) IsAnchoring.Value = __state.Value;
     }
 }

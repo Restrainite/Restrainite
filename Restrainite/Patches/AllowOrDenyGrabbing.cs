@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using FrooxEngine;
+using FrooxEngine.FinalIK;
 using HarmonyLib;
 
 namespace Restrainite.Patches;
@@ -16,6 +17,8 @@ internal static class AllowOrDenyGrabbing
         yield return AccessTools.Method(typeof(Grabbable), nameof(Grabbable.CanGrab));
         yield return AccessTools.Method(typeof(Draggable), nameof(Draggable.CanGrab));
         yield return AccessTools.Method(typeof(GrabInstancer), nameof(GrabInstancer.CanGrab));
+        yield return AccessTools.Method(typeof(DynamicBoneChain), nameof(DynamicBoneChain.CanGrab));
+        yield return AccessTools.Method(typeof(IKDraggableOffset), nameof(IKDraggableOffset.CanGrab));
     }
 
     private static void Postfix(IGrabbable __instance, ref bool __result)

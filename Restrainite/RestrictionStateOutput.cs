@@ -201,17 +201,21 @@ internal sealed class RestrictionStateOutput
 
     private static void CreateComponents(Slot restrainiteSlot, IRestriction restriction)
     {
-        var slotName = restriction.IsDeprecated ? $"<s>{restriction.Name}</s>" : restriction.Name;
-        var slot = restrainiteSlot.FindChildOrAdd(slotName, false);
+        var slot = restrainiteSlot.FindChildOrAdd(GetSlotName(restriction), false);
 
         slot.Tag = $"{DynamicVariableSpaceSync.DynamicVariableSpaceName}/{restriction.Name}";
 
         restriction.CreateStatusComponent(slot, DynamicVariableSpaceStatusName);
     }
 
+    private static string GetSlotName(IRestriction restriction)
+    {
+        return restriction.IsDeprecated ? $"<s>{restriction.Name}</s>" : restriction.Name;
+    }
+
     private static void RemoveComponents(Slot restrainiteSlot, IRestriction restriction)
     {
-        var oldSlot = restrainiteSlot.FindChild(restriction.Name);
+        var oldSlot = restrainiteSlot.FindChild(GetSlotName(restriction));
 
         if (oldSlot == null) return;
         if (oldSlot.IsDestroyed || oldSlot.IsDestroying) return;

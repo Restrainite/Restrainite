@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using FrooxEngine;
 using HarmonyLib;
 using Renderite.Shared;
@@ -7,12 +8,10 @@ using Restrainite.RestrictionTypes.Base;
 
 namespace Restrainite.Patches;
 
+[HarmonyPatch]
 internal static class PreventLaserTouch
 {
-    private static bool _leftOriginalValue = true;
-    private static bool _leftIsRestricted;
-    private static bool _rightOriginalValue = true;
-    private static bool _rightIsRestricted;
+    private static readonly ConditionalWeakTable<InteractionHandler, OriginalState> DisabledLasers = new();
 
     private static readonly FieldInfo?
         LaserEnabledField = AccessTools.Field(typeof(InteractionHandler), "_laserEnabled");
@@ -41,39 +40,53 @@ internal static class PreventLaserTouch
 
     private static void OnRestrictionChanged(IRestriction restriction)
     {
+        // Restore the lasers in all worlds, not only in the focused one
+        foreach (var (interactionHandler, _) in DisabledLasers) ScheduleUpdate(interactionHandler);
+
         var user = Engine.Current?.WorldManager?.FocusedWorld?.LocalUser;
         if (user is null) return;
-
-        var leftInteractionHandler = user.GetInteractionHandler(Chirality.Left);
-        leftInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(leftInteractionHandler, ref _leftOriginalValue, ref _leftIsRestricted, Chirality.Left));
-
-        var rightInteractionHandler = user.GetInteractionHandler(Chirality.Right);
-        rightInteractionHandler.RunInUpdates(0, () =>
-            SetLaserActive(rightInteractionHandler, ref _rightOriginalValue, ref _rightIsRestricted, Chirality.Right));
+        ScheduleUpdate(user.GetInteractionHandler(Chirality.Left));
+        ScheduleUpdate(user.GetInteractionHandler(Chirality.Right));
     }
 
-    private static void SetLaserActive(InteractionHandler? interactionHandler, ref bool originalValue,
-        ref bool isRestricted, Chirality chirality)
+    private static void ScheduleUpdate(InteractionHandler? interactionHandler)
     {
-        if (interactionHandler == null) return;
-        if (LaserEnabledField?.GetValue(interactionHandler) is not Sync<bool> syncBool) return;
-        if (Restrictions.PreventLaserTouch.IsRestricted &&
-            Restrictions.PreventLaserTouch.Chirality.IsRestricted(chirality))
-        {
-            if (!isRestricted)
-            {
-                originalValue = syncBool.Value;
-                isRestricted = true;
-            }
+        if (interactionHandler is not { IsRemoved: false, World.IsDestroyed: false }) return;
+        interactionHandler.RunInUpdates(0, () => UpdateLaser(interactionHandler));
+    }
 
-            syncBool.Value = false;
+    private static void UpdateLaser(InteractionHandler interactionHandler)
+    {
+        if (interactionHandler.IsRemoved) return;
+        if (LaserEnabledField?.GetValue(interactionHandler) is not Sync<bool> laserEnabled) return;
+
+        if (IsRestricted(interactionHandler))
+        {
+            DisabledLasers.TryAdd(interactionHandler, new OriginalState(laserEnabled.Value));
+            laserEnabled.Value = false;
             if (interactionHandler.Laser != null) ClearLaserTimeoutMethod?.Invoke(interactionHandler.Laser, []);
         }
-        else if (isRestricted)
+        else if (DisabledLasers.TryGetValue(interactionHandler, out var originalState))
         {
-            syncBool.Value = originalValue;
-            isRestricted = false;
+            DisabledLasers.Remove(interactionHandler);
+            laserEnabled.Value = originalState.LaserEnabled;
         }
     }
+
+    private static bool IsRestricted(InteractionHandler interactionHandler)
+    {
+        return Restrictions.PreventLaserTouch.IsRestricted &&
+               Restrictions.PreventLaserTouch.Chirality.IsRestricted(interactionHandler.Side.Value) &&
+               interactionHandler.World != Userspace.UserspaceWorld &&
+               interactionHandler.IsUnderLocalUser;
+    }
+
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(InteractionHandler), "OnStart")]
+    private static void InteractionHandler_OnStart_Postfix(InteractionHandler __instance)
+    {
+        if (Restrictions.PreventLaserTouch.IsRestricted) ScheduleUpdate(__instance);
+    }
+
+    private sealed record OriginalState(bool LaserEnabled);
 }

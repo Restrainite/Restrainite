@@ -20,7 +20,8 @@ internal sealed class LocalBaseState<T> : SimpleState<T>, IBaseState
         _dynamicVariableSpaceSync = new WeakReference<IDynamicVariableSpace>(dynamicVariableSpaceSync);
         _restriction = restriction;
         _logChanges = logChanges;
-        _changeListener = new DynamicVariableChangeListener<T>(dynamicVariableSpace, restriction.Name, OnValueChanged);
+        _changeListener = new DynamicVariableChangeListener<T>(dynamicVariableSpace, restriction.Name, OnValueChanged,
+            defaultValue);
     }
 
     public void Destroy()

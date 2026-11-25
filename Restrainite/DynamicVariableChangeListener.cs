@@ -11,17 +11,23 @@ internal static class DynamicVariableChangeListener
 
 internal sealed class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
 {
+    private readonly TV? _defaultValue;
+    private readonly WeakReference<DynamicVariableSpace.ValueManager<TV>> _manager;
     private readonly WeakReference<DynamicVariableSpace> _space;
     private Action<TV>? _onValueChanged;
 
     private TV? _value;
 
-    internal DynamicVariableChangeListener(DynamicVariableSpace space, string variableName, Action<TV> callback)
+    internal DynamicVariableChangeListener(DynamicVariableSpace space, string variableName, Action<TV> callback,
+        TV? defaultValue = default)
     {
         _space = new WeakReference<DynamicVariableSpace>(space);
         VariableName = variableName;
+        _defaultValue = defaultValue;
+        _value = defaultValue;
         _onValueChanged = callback;
         var manager = space.GetManager<TV>(VariableName, true);
+        _manager = new WeakReference<DynamicVariableSpace.ValueManager<TV>>(manager);
         manager.Register(this);
     }
 
@@ -109,11 +115,17 @@ internal sealed class DynamicVariableChangeListener<TV> : IDynamicVariable<TV>
         get => _value!;
         set
         {
-            if (EqualityComparer<TV>.Default.Equals(_value!, value))
+            var newValue = HasVariable() ? value : _defaultValue;
+            if (EqualityComparer<TV>.Default.Equals(_value!, newValue!))
                 return;
-            _value = value;
-            _onValueChanged.SafeInvoke(value!);
+            _value = newValue;
+            _onValueChanged.SafeInvoke(newValue);
         }
+    }
+
+    private bool HasVariable()
+    {
+        return _manager.TryGetTarget(out var manager) && manager.ReadableValueCount > 0;
     }
 
     private static void WarnInvalidCalls(Exception ex)

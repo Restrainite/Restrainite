@@ -37,12 +37,12 @@ internal static class PreventSwitchingWorld
             yield return AccessTools.Method(typeof(Userspace), "ExitWorld");
         }
 
-        private static bool Prefix()
+        private static bool Prefix(ref Task __result)
         {
-            return !(
-                (InOnCommonUpdate.Value || InInteractionHandlerHoldMenu.Value) &&
-                Restrictions.PreventSwitchingWorld.IsRestricted
-            );
+            if ((!InOnCommonUpdate.Value && !InInteractionHandlerHoldMenu.Value) ||
+                !Restrictions.PreventSwitchingWorld.IsRestricted) return true;
+            __result = Task.CompletedTask;
+            return false;
         }
     }
 
@@ -70,7 +70,8 @@ internal static class PreventSwitchingWorld
         private static IEnumerable<MethodBase> TargetMethods()
         {
             // These methods all call Userspace.OpenWorld
-            yield return AccessTools.Method(typeof(WorldOrb), "OpenAsync");
+            yield return AccessTools.Method(typeof(WorldOrb), "Open");
+            yield return AccessTools.Method(typeof(WorldOrb), "OpenLink");
             yield return AccessTools.Method(typeof(LegacyWorldDetail), "CustomWorldStart");
             yield return AccessTools.Method(typeof(LegacyWorldDetail), "OnOpen");
             yield return AccessTools.Method(typeof(WorldOrb), "CustomWorldStart");
@@ -80,11 +81,38 @@ internal static class PreventSwitchingWorld
             yield return AccessTools.Method(typeof(SessionInfoSource), "OpenLink");
             yield return AccessTools.Method(typeof(WorldLink), "OpenLink");
             yield return AccessTools.Method(typeof(ButtonOpenHome), "Pressed");
-            yield return AccessTools.Method(typeof(FocusWorld), "RunWorldAction");
-            yield return AccessTools.Method(typeof(OpenWorld), "RunWorldAction");
         }
 
         private static bool Prefix()
+        {
+            return !Restrictions.PreventSwitchingWorld.IsRestricted;
+        }
+    }
+
+    // Prevent world switching via the FocusWorld and OpenWorld ProtoFlux nodes
+    [HarmonyPatch]
+    private static class WorldActionNodePatches
+    {
+        private static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(FocusWorld), "IsAllowedToFocus");
+            yield return AccessTools.Method(typeof(WorldStartSettings), "CanStart");
+        }
+
+        private static bool Prefix(ref bool __result)
+        {
+            if (!Restrictions.PreventSwitchingWorld.IsRestricted) return true;
+            __result = false;
+            return false;
+        }
+    }
+
+    [HarmonyPatch]
+    private static class SteamJoinPatch
+    {
+        [HarmonyPatch(typeof(SteamConnector), "GameRichPresenceJoinRequested")]
+        [HarmonyPrefix]
+        private static bool GameRichPresenceJoinRequested_Prefix()
         {
             return !Restrictions.PreventSwitchingWorld.IsRestricted;
         }
@@ -102,8 +130,8 @@ internal static class PreventSwitchingWorld
         }
 
         [HarmonyPatch(typeof(Userspace), "OnCommonUpdate")]
-        [HarmonyPostfix]
-        private static void OnCommonUpdate_Postfix()
+        [HarmonyFinalizer]
+        private static void OnCommonUpdate_Finalizer()
         {
             InOnCommonUpdate.Value = false;
         }
@@ -121,8 +149,8 @@ internal static class PreventSwitchingWorld
         }
 
         [HarmonyPatch(typeof(InteractionHandler), "HoldMenu")]
-        [HarmonyPostfix]
-        private static void HoldMenu_Postfix()
+        [HarmonyFinalizer]
+        private static void HoldMenu_Finalizer()
         {
             InInteractionHandlerHoldMenu.Value = false;
         }

@@ -30,8 +30,6 @@ jobs:
         with: 
           github-token: '${{ github.token }}'
           script: |
-            const https = require('https');
-            const crypto = require('crypto');
             const fs = require('fs');
             const path = require('path');
             
@@ -66,59 +64,11 @@ jobs:
               throw new Error("Asset named Restrainite.dll not found");
             }
             
-            const fileRedirectPromise = new Promise((resolve, reject) => {
-              const request = https.get(asset.browser_download_url, res => {
-                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                  resolve(res.headers.location);
-                  res.resume();
-                  return;
-                } else {
-                  reject(new Error(`Request Failed. Status Code: ${res.statusCode}, Status Message: ${res.statusMessage}`));
-                  res.resume();
-                  return;
-                }
-                res.on('error', reject);
-              });
-              request.on('error', (error) => {
-                request.destroy();
-                reject(error);
-              });
-              request.on('timeout', () => {
-                request.destroy();
-                reject(new Error('Request timed out'));
-              });
-              
-              request.setTimeout(30000);
-            });
-            
-            const redirectUrl = await fileRedirectPromise;
-  
-            const fileHashPromise = new Promise((resolve, reject) => {
-              const request = https.get(redirectUrl, res => {
-                if (res.statusCode !== 200) {
-                  reject(new Error(`Request Failed. Status Code: ${res.statusCode}, Status Message: ${res.statusMessage}`));
-                  res.resume();
-                  return;
-                }
-    
-                const hash = crypto.createHash('sha256');
-                res.on('data', chunk => hash.update(chunk));
-                res.on('end', () => resolve(hash.digest('hex')));
-                res.on('error', reject);
-              });
-              request.on('error', (error) => {
-                request.destroy();
-                reject(error);
-              });
-              request.on('timeout', () => {
-                request.destroy();
-                reject(new Error('Request timed out'));
-              });
-              
-              request.setTimeout(30000);
-            });
-  
-            const hash = await fileHashPromise;
+            const digestMatch = /^sha256:([0-9a-f]{64})$/.exec(asset.digest ?? '');
+            if (!digestMatch) {
+              throw new Error(`Invalid or missing sha256 digest: ${asset.digest}`);
+            }
+            const hash = digestMatch[1];
   
             const jsonPath = path.join('manifest', 'Restrainite', 'Restrainite', 'info.json');
             try {

@@ -11,13 +11,12 @@ internal static class MaximumLaserDistance
     private static void InteractionHandler_MaxLaserDistance_Postfix(ref float __result, InteractionHandler __instance)
     {
         if (!Restrictions.MaximumLaserDistance.IsRestricted ||
-            !Restrictions.MaximumLaserDistance.Chirality.IsRestricted(__instance.Side.Value)
-            || __result < float.MaxValue)
+            !Restrictions.MaximumLaserDistance.Chirality.IsRestricted(__instance.Side.Value) ||
+            __instance.World == Userspace.UserspaceWorld ||
+            !__instance.IsUnderLocalUser)
             return;
 
         var distance = Restrictions.MaximumLaserDistance.LowestFloat.Value;
-        if (float.IsNaN(distance)) return;
-        if (distance > __result) return;
-        __result = distance;
+        if (distance < __result) __result = distance;
     }
 }

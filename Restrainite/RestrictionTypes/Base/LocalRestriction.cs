@@ -48,6 +48,11 @@ public class LocalRestriction
         return _localStates[index];
     }
 
+    public void UpdateIfActive(IDynamicVariableSpace source)
+    {
+        if (IsActive()) _restriction.Update(source);
+    }
+
     public bool IsActive()
     {
         return _state.Value;

@@ -11,6 +11,7 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
     private const string PasswordVariableName = "Password";
 
     private static readonly List<DynamicVariableSpaceSync> Spaces = [];
+    private static readonly Lock SpacesLock = new();
 
     private readonly WeakReference<DynamicVariableSpace> _dynamicVariableSpace;
 
@@ -18,7 +19,7 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
 
     private readonly string _refId;
 
-    private readonly LocalRestriction[] _restrictions;
+    private readonly LocalRestriction[] _restrictions = [];
 
     private readonly DynamicVariableChangeListener<User> _targetUserListener;
     private volatile string _cachedSource;
@@ -48,7 +49,7 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
             !RestrainiteMod.Configuration.AllowRestrictionsFromWorld(dynamicVariableSpace.World, restriction))
             return false;
         var user = _targetUserListener.DynamicValue;
-        if (user != dynamicVariableSpace.LocalUser) return false;
+        if (user == null || user != dynamicVariableSpace.LocalUser) return false;
 
         if (!RestrainiteMod.Configuration.RequiresPassword) return true;
         var password = _passwordListener.DynamicValue;
@@ -110,8 +111,9 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
     {
         var isValid = IsValidRestrainiteDynamicSpace(dynamicVariableSpace);
         DynamicVariableSpaceSync? shouldUnregister = null;
+        DynamicVariableSpaceSync? created = null;
 
-        lock (Spaces)
+        lock (SpacesLock)
         {
             var index = Spaces.FindIndex(space => space.Equals(dynamicVariableSpace));
             if (index != -1)
@@ -125,13 +127,19 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
             {
                 if (!isValid) return;
 
-                var dynamicVariableSpaceSync = new DynamicVariableSpaceSync(dynamicVariableSpace);
-                Spaces.Add(dynamicVariableSpaceSync);
-                dynamicVariableSpace.Destroyed += dynamicVariableSpaceSync.OnSpaceDestroyed;
+                created = new DynamicVariableSpaceSync(dynamicVariableSpace);
+                Spaces.Add(created);
+                dynamicVariableSpace.Destroyed += created.OnSpaceDestroyed;
             }
         }
 
         shouldUnregister?.Unregister();
+        created?.UpdateActiveRestrictions();
+    }
+
+    private void UpdateActiveRestrictions()
+    {
+        foreach (var restriction in _restrictions) restriction.UpdateIfActive(this);
     }
 
     private void OnTargetUserChanged(User user)
@@ -166,7 +174,7 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
     private void OnSpaceDestroyed(IDestroyable destroyable)
     {
         destroyable.Destroyed -= OnSpaceDestroyed;
-        lock (Spaces)
+        lock (SpacesLock)
         {
             Spaces.Remove(this);
         }
@@ -177,7 +185,7 @@ internal sealed class DynamicVariableSpaceSync : IDynamicVariableSpace
     internal static void Remove(DynamicVariableSpace dynamicVariableSpace)
     {
         DynamicVariableSpaceSync? dynamicVariableSpaceToRemove = null;
-        lock (Spaces)
+        lock (SpacesLock)
         {
             var index = Spaces.FindIndex(space => space.Equals(dynamicVariableSpace));
             if (index != -1)

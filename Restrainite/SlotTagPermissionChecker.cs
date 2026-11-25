@@ -17,6 +17,8 @@ public class SlotTagPermissionChecker
 
     internal bool IsAllowed(Slot? slot)
     {
+        if (!_deniedPrevention.IsRestricted && !_allowedPrevention.IsRestricted) return true;
+
         var slotPermission = CheckPermissionForSlot(slot);
 
         if (slotPermission == PermissionType.ExplicitlyDenied || slot?.GetObjectRoot() is not Slot objectRootSlot)

@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using FrooxEngine;
 using HarmonyLib;
 using ResoniteModLoader;
@@ -9,6 +10,7 @@ internal static class UserRootInjector
 {
     private static readonly Dictionary<string, ImpulseSender> ImpulseSenders = new();
     private static readonly Dictionary<string, RestrictionStateOutput> DynamicVariableStatusMap = new();
+    private static readonly ConditionalWeakTable<World, object?> ObservedWorlds = new();
     private static bool _hasInjectedIntoWorldManager;
     private static readonly FieldInfo UserRootField = AccessTools.Field(typeof(User), "userRoot");
 
@@ -24,6 +26,7 @@ internal static class UserRootInjector
     private static void WorldFocused(World world)
     {
         WorldPermissionChanged(world);
+        if (!ObservedWorlds.TryAdd(world, null)) return;
         Action<IChangeable> worldPermissionChange = _ => WorldPermissionChanged(world);
         world.Configuration.AccessLevel.Changed += worldPermissionChange;
         world.Configuration.HideFromListing.Changed += worldPermissionChange;
@@ -124,6 +127,7 @@ internal static class UserRootInjector
     {
         private static void Postfix(User value)
         {
+            if (value == null) return;
             if (!_hasInjectedIntoWorldManager)
             {
                 _hasInjectedIntoWorldManager = true;

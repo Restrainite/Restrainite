@@ -121,31 +121,66 @@ internal static class ShowOrHideUserAvatars
     {
         private const int TotalComponentCount = 8;
         private readonly List<RefID> _finishedUsers = [];
+        private readonly Lock _runningWorldLock = new();
         private string? _currentSessionId;
         private RefID? _currentUserId;
         private int _finishedTypesForCurrentUser;
         private ImmutableStringSet? _hiddenUsers;
         private bool _hiddenUsersState;
-        private int _isRunning;
+        private int _runId;
+        private WeakReference<World>? _runningWorld;
         private ImmutableStringSet? _shownUsers;
         private bool _shownUsersState;
 
         public void Start()
         {
             var world = Engine.Current?.WorldManager?.FocusedWorld;
-            if (world == null) return;
-            if (Interlocked.Exchange(ref _isRunning, 1) == 1) return;
-            world.RunInUpdates(1, Update);
+            if (world == null || world.IsDestroyed) return;
+            int runId;
+            lock (_runningWorldLock)
+            {
+                if (IsRunningIn(world)) return;
+                runId = ++_runId;
+                _runningWorld = new WeakReference<World>(world);
+                Reset(world.SessionId);
+            }
+
+            Action update = null!;
+            update = () => Update(world, runId, update);
+            try
+            {
+                world.RunInUpdates(1, update);
+            }
+            catch (Exception e)
+            {
+                ResoniteMod.Warn("Error while updating user avatars", e);
+                Finish(runId);
+            }
         }
 
-        private void Update()
+        private bool IsRunningIn(World world)
+        {
+            return _runningWorld != null && _runningWorld.TryGetTarget(out var runningWorld) && runningWorld == world;
+        }
+
+        private bool IsCurrentRun(int runId)
+        {
+            return _runningWorld != null && _runId == runId;
+        }
+
+        private void Update(World world, int runId, Action update)
         {
             try
             {
-                var world = Engine.Current?.WorldManager?.FocusedWorld;
-                if (world == null)
+                lock (_runningWorldLock)
                 {
-                    Finish();
+                    if (!IsCurrentRun(runId)) return;
+                }
+
+                if (world.IsDestroyed || world != Engine.Current?.WorldManager?.FocusedWorld)
+                {
+                    Finish(runId);
+                    Start();
                     return;
                 }
 
@@ -159,7 +194,7 @@ internal static class ShowOrHideUserAvatars
 
                     if (currentUserSlot == null || _currentUserId == null)
                     {
-                        Finish();
+                        Finish(runId);
                         return;
                     }
 
@@ -174,12 +209,12 @@ internal static class ShowOrHideUserAvatars
                     }
                 } while (stopwatch.Elapsed.TotalMilliseconds < 1);
 
-                world.RunInUpdates(1, Update);
+                world.RunInUpdates(1, update);
             }
             catch (Exception e)
             {
                 ResoniteMod.Warn("Error while updating user avatars", e);
-                Finish();
+                Finish(runId);
             }
         }
 
@@ -201,10 +236,14 @@ internal static class ShowOrHideUserAvatars
             return user?.Root?.Slot;
         }
 
-        private void Finish()
+        private void Finish(int runId)
         {
-            Reset();
-            Interlocked.Exchange(ref _isRunning, 0);
+            lock (_runningWorldLock)
+            {
+                if (!IsCurrentRun(runId)) return;
+                _runningWorld = null;
+                Reset();
+            }
         }
 
         private void ResetStateIfNecessary(World world)

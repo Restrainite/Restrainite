@@ -16,8 +16,22 @@ internal static class PreventOpeningContextMenu
     {
         if (!Restrictions.PreventOpeningContextMenu.IsRestricted) return;
 
-        var user = Engine.Current.WorldManager.FocusedWorld.LocalUser;
-        user.Root.RunSynchronously(() => user.CloseContextMenu(null!));
+        var user = Engine.Current?.WorldManager?.FocusedWorld?.LocalUser;
+        user?.World?.RunSynchronously(() => CloseContextMenu(user));
+    }
+
+    private static void CloseContextMenu(User user)
+    {
+        var contextMenu = user.GetUserContextMenu();
+        if (contextMenu?.CurrentSummoner is InteractionHandler interactionHandler && IsRestricted(interactionHandler))
+            contextMenu.Close();
+    }
+
+    private static bool IsRestricted(InteractionHandler interactionHandler)
+    {
+        return Restrictions.PreventOpeningContextMenu.IsRestricted &&
+               interactionHandler.World != Userspace.UserspaceWorld &&
+               Restrictions.PreventOpeningContextMenu.Chirality.IsRestricted(interactionHandler.Side.Value);
     }
 
     [HarmonyPrefix]
@@ -25,8 +39,6 @@ internal static class PreventOpeningContextMenu
     private static bool InteractionHandler_TryOpenContextMenu_Prefix(
         InteractionHandler __instance)
     {
-        return __instance.World == Userspace.UserspaceWorld ||
-               !Restrictions.PreventOpeningContextMenu.IsRestricted ||
-               !Restrictions.PreventOpeningContextMenu.Chirality.IsRestricted(__instance.Side.Value);
+        return !IsRestricted(__instance);
     }
 }

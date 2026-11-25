@@ -8,7 +8,7 @@ The mod has the following guidelines:
 
 ## Compiling the mod from source
 
-Building the mod from source is easy. You'll need to install the latest .NET SDK (9.0 at the time of writing) and Git.
+Building the mod from source is easy. You'll need to install the latest .NET SDK (11.0 at the time of writing) and Git.
 
 1. Clone this repository with git and navigate into the project folder (the one containing the csproj file, not the sln file)
 2. Create a copy of the file "Directory.Build.props.template" and remove the ".template" from the name so the copied file is called `Directory.Build.props`
@@ -26,8 +26,8 @@ In order to compile the mod, you will need three things: Resonite, Git (or a gra
 If this is the first time you are compiling the mod, start from step 1. Otherwhise, if you are re-compiling the mod after an update, start from step 5.
 
 **1.** Install the latest .NET SDK.
-- At the time of writing, that is .NET 9.0.
-- Visit [https://dotnet.microsoft.com/en-us/download](https://dotnet.microsoft.com/en-us/download), click "Download .NET SDK" under the .NET 9.0 box, and run the downloaded installer.
+- At the time of writing, that is .NET 11.0.
+- Visit [https://dotnet.microsoft.com/en-us/download](https://dotnet.microsoft.com/en-us/download), click "Download .NET SDK" under the .NET 11.0 box, and run the downloaded installer.
 
 **2.** Install git
 - This guide assumes you are working with git on the command line.
